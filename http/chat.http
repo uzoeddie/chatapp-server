@@ -1,0 +1,52 @@
+###
+POST http://localhost:5000/api/v1/chat/message
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "body": "Sup man",
+    "receiverName": "Manny",
+    "isRead": false,
+    "gifUrl": "",
+    "profilePicture": "",
+    "selectedImages": [],
+    "receiverId": {
+        "_id": "60903f191f9bedc7a3cfb727",
+        "username": "Manny",
+        "avatarColor": "#ff1744",
+        "email": "manny@test.com",
+        "profilePicture": ""
+    },
+    "conversationId": ""
+}
+
+###
+GET http://localhost:5000/api/v1/chat/message/list
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET http://localhost:5000/api/v1/chat/message/60903f191f9bedc7a3cfb727/609baa8ee5efd68138ad998e
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+PUT http://localhost:5000/api/v1/chat/message/mark-as-read
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "userId": "608ea50bc079ee706153bcc4",
+    "receiverId": "60903f191f9bedc7a3cfb727",
+    "conversationId": ""
+}
+
+###
+GET http://localhost:5000/api/v1/chat/message/search/manny
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true

@@ -1,0 +1,51 @@
+###
+POST http://localhost:5000/api/v1/user/profile/work
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "company": "Tester COmpany",
+    "position": "Software Developer",
+    "city": "Paris",
+    "description": "",
+    "from": "2020",
+    "to": ""
+}
+
+###
+POST http://localhost:5000/api/v1/user/profile/school
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "name": "Tester College",
+    "course": "Information Technology",
+    "degree": "B.Sc",
+    "from": "2010",
+    "to": "2020"
+}
+
+###
+PUT http://localhost:5000/api/v1/user/profile/work/60a93f59e670585202e8ff75
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "company": "Global Tester Company ",
+    "position": "Software Engineer",
+    "city": "Paris",
+    "description": "I am a software engineer",
+    "from": "2020",
+    "to": "Present"
+}
+
+###
+DELETE http://localhost:5000/api/v1/user/profile/work/60a93f8ee670585202e8ff77
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}

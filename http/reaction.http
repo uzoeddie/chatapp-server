@@ -1,0 +1,32 @@
+###
+POST http://localhost:5000/api/v1/post/reaction
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "postId": "608ea523c079ee706153bcc6",
+    "type": "angry",
+    "profilePicture": "",
+    "userTo": "60903f191f9bedc7a3cfb727"
+}
+
+###
+GET http://localhost:5000/api/v1/post/reactions/608ea523c079ee706153bcc6/1
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET http://localhost:5000/api/v1/post/single/reaction/608ea523c079ee706153bcc6/60958d09e2c8a47bbdf1ebdb
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+DELETE http://localhost:5000/api/v1/post/reaction/608ea523c079ee706153bcc6/love
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}

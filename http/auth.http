@@ -1,0 +1,54 @@
+###
+POST http://localhost:5000/api/v1/signup
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "username": "Manny",
+    "email": "manny@test.com",
+    "password": "test1234"
+}
+
+###
+POST http://localhost:5000/api/v1/signin
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "username": "Danny",
+    "password": "test1234"
+}
+
+###
+GET http://localhost:5000/api/v1/currentuser
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET http://localhost:5000/api/v1/signout
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+POST http://localhost:5000/api/v1/forgot-password
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "email": "manny@test.com"
+}
+
+###
+POST http://localhost:5000/api/v1/reset-password/f7545cec8c837e9450e2b052a6275696f0074921
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+    "password": "newpass1"
+}

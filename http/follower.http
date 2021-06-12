@@ -1,0 +1,37 @@
+###
+PUT http://localhost:5000/api/v1/user/follow/608ea50bc079ee706153bcc4
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}
+
+###
+PUT http://localhost:5000/api/v1/user/unfollow/60a10c17ae0cb5a314780407/608ea50bc079ee706153bcc4
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}
+
+###
+PUT http://localhost:5000/api/v1/user/block/60903f191f9bedc7a3cfb727
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}
+
+###
+PUT http://localhost:5000/api/v1/user/unblock/60903f191f9bedc7a3cfb727
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}
+
+###
+GET http://localhost:5000/api/v1/user/following
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
