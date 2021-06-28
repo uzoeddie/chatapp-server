@@ -1,6 +1,6 @@
 import { IUserDocument } from '@user/interfaces/user.interface';
 import mongoose, { model, Model, Schema } from 'mongoose';
-import { hash, compare } from 'bcrypt';
+import { hash, compare } from 'bcryptjs';
 
 const SALT_ROUND = 10;
 
@@ -75,7 +75,7 @@ const userSchema: Schema = new Schema(
 );
 
 userSchema.pre('save', async function (this: IUserDocument, next: () => void) {
-    const hashedPassword: string = await hash(this.password, SALT_ROUND);
+    const hashedPassword: string = await hash(this.password as string, SALT_ROUND);
     this.password = hashedPassword;
     next();
 });

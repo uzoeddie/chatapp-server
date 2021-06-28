@@ -131,5 +131,6 @@ temp/
 
 .scannerwork/
 sonar-project.properties
+user-data.sh
 
 # End of https://www.toptal.com/developers/gitignore/api/node
