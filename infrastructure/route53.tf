@@ -3,8 +3,8 @@ data "aws_route53_zone" "main" {
   private_zone = false
 }
 
-resource "aws_acm_certificate" "dev_cert" {
-  domain_name       = "api.dev.chatappserver.xyz"
+resource "aws_acm_certificate" "staging_cert" {
+  domain_name       = "api.staging.chatappserver.xyz"
   validation_method = "DNS"
 
   tags = {
@@ -18,22 +18,22 @@ resource "aws_acm_certificate" "dev_cert" {
 }
 
 resource "aws_acm_certificate_validation" "cert_validation" {
-  certificate_arn         = aws_acm_certificate.dev_cert.arn
+  certificate_arn         = aws_acm_certificate.staging_cert.arn
   validation_record_fqdns = [aws_route53_record.cert_validation_record.fqdn]
 }
 
 resource "aws_route53_record" "cert_validation_record" {
   allow_overwrite = false
-  name            = tolist(aws_acm_certificate.dev_cert.domain_validation_options)[0].resource_record_name
-  records         = [tolist(aws_acm_certificate.dev_cert.domain_validation_options)[0].resource_record_value]
-  type            = tolist(aws_acm_certificate.dev_cert.domain_validation_options)[0].resource_record_type
+  name            = tolist(aws_acm_certificate.staging_cert.domain_validation_options)[0].resource_record_name
+  records         = [tolist(aws_acm_certificate.staging_cert.domain_validation_options)[0].resource_record_value]
+  type            = tolist(aws_acm_certificate.staging_cert.domain_validation_options)[0].resource_record_type
   zone_id         = data.aws_route53_zone.main.zone_id
   ttl             = 60
 }
 
 resource "aws_route53_record" "alb_dns_record" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = "api.dev.chatappserver.xyz"
+  name    = "api.staging.chatappserver.xyz"
   type    = "A"
 
   alias {

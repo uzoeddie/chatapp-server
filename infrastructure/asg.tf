@@ -52,7 +52,7 @@ resource "aws_autoscaling_group" "ec2_autoscaling_group" {
 }
 
 resource "aws_autoscaling_policy" "asg_scale_out_policy" {
-  name                   = "ASG-SCALE-OUT-POLICY-DEVELOP"
+  name                   = "ASG-SCALE-OUT-POLICY-STAGING"
   autoscaling_group_name = aws_autoscaling_group.ec2_autoscaling_group.name
   adjustment_type        = "ChangeInCapacity"
   policy_type            = "SimpleScaling"
@@ -61,7 +61,7 @@ resource "aws_autoscaling_policy" "asg_scale_out_policy" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "ec2_scale_out_alarm" {
-  alarm_name          = "EC2-SCALE-OUT-ALARM-DEVELOP"
+  alarm_name          = "EC2-SCALE-OUT-ALARM-STAGING"
   alarm_description   = "This metric monitors EC2 CPU utilization"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
@@ -78,7 +78,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_scale_out_alarm" {
 }
 
 resource "aws_autoscaling_policy" "asg_scale_in_policy" {
-  name                   = "ASG-SCALE-IN-POLICY-DEVELOP"
+  name                   = "ASG-SCALE-IN-POLICY-STAGING"
   autoscaling_group_name = aws_autoscaling_group.ec2_autoscaling_group.name
   adjustment_type        = "ChangeInCapacity"
   policy_type            = "SimpleScaling"
@@ -87,7 +87,7 @@ resource "aws_autoscaling_policy" "asg_scale_in_policy" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "ec2_scale_in_alarm" {
-  alarm_name          = "EC2-SCALE-IN-ALARM-DEVELOP"
+  alarm_name          = "EC2-SCALE-IN-ALARM-STAGING"
   alarm_description   = "This metric monitors EC2 CPU utilization"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "1"

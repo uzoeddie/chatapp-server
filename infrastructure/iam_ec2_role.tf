@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ec2_iam_role" {
-  name = "EC2-IAM-ROLE-DEVELOP"
+  name = "EC2-IAM-ROLE-STAGING"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -15,7 +15,7 @@ resource "aws_iam_role" "ec2_iam_role" {
 }
 
 resource "aws_iam_role_policy" "ec2_iam_role_policy" {
-  name   = "EC2-IAM-ROLE-POLICY-DEVELOP"
+  name   = "EC2-IAM-ROLE-POLICY-STAGING"
   role   = aws_iam_role.ec2_iam_role.id
   policy = <<EOF
 {
@@ -41,6 +41,6 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "EC2-IAM-INSTANCE-PROFILE-DEVELOP"
+  name = "EC2-IAM-INSTANCE-PROFILE-STAGING"
   role = aws_iam_role.ec2_iam_role.name
 }

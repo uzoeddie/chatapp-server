@@ -44,11 +44,11 @@ fi
 
 cd /home/ec2-user
 
-git clone -b develop https://github.com/uzoeddie/chatapp-server.git
+git clone -b staging https://github.com/uzoeddie/chatapp-server.git
 cd chatapp-server
 sudo npm install
-aws s3 sync s3://chatapp-env-files/develop .
+aws s3 sync s3://chatapp-env-files/staging .
 sudo unzip env-file.zip
-sudo cp .env.develop .env
+sudo cp .env.staging .env
 sudo npm run build
 sudo npm start

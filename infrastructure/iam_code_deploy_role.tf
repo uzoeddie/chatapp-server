@@ -1,5 +1,5 @@
 resource "aws_iam_role" "code_deploy_iam_role" {
-  name = "EC2-CODEDEPLOY-IAM-ROLE-DEVELOP"
+  name = "EC2-CODEDEPLOY-IAM-ROLE-STAGING"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
