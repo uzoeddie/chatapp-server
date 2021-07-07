@@ -80,6 +80,8 @@ typings/
 .env
 .env.test
 .env*.local
+.env.develop
+.env.staging
 .env.production
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -131,6 +133,5 @@ temp/
 
 .scannerwork/
 sonar-project.properties
-user-data.sh
 
 # End of https://www.toptal.com/developers/gitignore/api/node
