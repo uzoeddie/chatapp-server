@@ -80,6 +80,8 @@ typings/
 .env
 .env.test
 .env*.local
+.env.develop
+.env.staging
 .env.production
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -131,6 +133,16 @@ temp/
 
 .scannerwork/
 sonar-project.properties
-user-data.sh
+
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
+infrastructure/terraform.tfvars
+infrastructure/.terraform.lock.hcl
+infrastructure/.terraform/
+infrastructure/override.tf
+infrastructure/override.tf.json
+infrastructure/*_override.tf
+infrastructure/*_override.tf.json
+
 
 # End of https://www.toptal.com/developers/gitignore/api/node
