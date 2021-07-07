@@ -67,7 +67,7 @@ resource "aws_security_group" "autoscaling_group_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
-    cidr_blocks = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.alb_sg.id]
     description = "Allows HTTP traffic into webserver through ALB"
   }
 
@@ -75,7 +75,7 @@ resource "aws_security_group" "autoscaling_group_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "TCP"
-    cidr_blocks = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.alb_sg.id]
     description = "Allows HTTPS traffic into webserver through ALB"
   }
 
@@ -83,7 +83,7 @@ resource "aws_security_group" "autoscaling_group_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = [aws_security_group.bastion_host_sg.id]
+    security_groups = [aws_security_group.bastion_host_sg.id]
     description = "Allows access to webserver through bastion host"
   }
 
@@ -91,7 +91,7 @@ resource "aws_security_group" "autoscaling_group_sg" {
     from_port   = 5000
     to_port     = 5000
     protocol    = "TCP"
-    cidr_blocks = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.alb_sg.id]
     description = "Allows access to webserver through ALB"
   }
 
@@ -117,7 +117,7 @@ resource "aws_security_group" "elasticache_sg" {
     from_port   = 6379
     to_port     = 6379
     protocol    = "TCP"
-    cidr_blocks = [aws_security_group.bastion_host_sg.id]
+    security_groups = [aws_security_group.bastion_host_sg.id]
     description = "Allows access to redis server through bastion host"
   }
 
@@ -125,7 +125,7 @@ resource "aws_security_group" "elasticache_sg" {
     from_port   = 6379
     to_port     = 6379
     protocol    = "TCP"
-    cidr_blocks = [aws_security_group.autoscaling_group_sg.id]
+    security_groups = [aws_security_group.autoscaling_group_sg.id]
     description = "Allows access to redis server through ASG"
   }
 
