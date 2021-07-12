@@ -1,0 +1,218 @@
+orbs:
+  aws-cli: circleci/aws-cli@2.0.3
+  coveralls: coveralls/coveralls@1.0.6
+version: 2.1
+executors:
+    app-executor:
+        docker:
+          - image: cimg/node:16.4.1
+          - image: circleci/redis:latest
+        working_directory: ~/repo
+    terraform-executor:
+        docker:
+          - image: hashicorp/terraform:latest
+
+aliases:
+    - &show-current-branch-name
+      run:
+        name: Show current branch
+        command: echo ${CIRCLE_BRANCH}
+    - &restore-cache
+      restore_cache:
+        keys:
+          - app-{{ checksum "package.json" }}
+          - app-
+    - &install-dependencies
+      run:
+        name: Install dependencies
+        command: npm install
+    - &save-cache
+      save_cache:
+        paths:
+          - node_modules
+        key: app-{{ checksum "package.json" }}
+    - &zip-project
+      run:
+        name: Zip Project
+        command: |
+            rm -rf node_modules
+            zip chatapp.zip -r .
+            echo "Zip successful"
+
+jobs:
+  build:
+    executor: app-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - *restore-cache
+      - *install-dependencies
+      - *save-cache
+
+  unit-test:
+    executor: app-executor
+    steps:
+        - checkout
+        - setup_remote_docker
+        - *show-current-branch-name
+        - *restore-cache
+        - run:
+            name: Start Redis Server
+            command: docker run --name chatapp-redis -p 6379:6379 -d redis
+            background: true
+        - run:
+            name: Start Server
+            command: |
+                sleep 3
+                npm run dev
+            background: true
+        - run:
+            name: Run Unit Test
+            command: |
+                sleep 3
+                npm run test
+        - coveralls/upload
+
+  terraform-validate:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+          name: Terraform Validate & Format
+          command: |
+            cd infrastructure/
+            terraform init -backend=false
+            terraform validate
+            terraform fmt
+
+  terraform-plan-and-apply:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+          name: Terraform Plan
+          command: |
+            cd infrastructure/
+            terraform init
+            terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+            terraform plan
+      - run:
+          name: Terraform Apply
+          command: |
+            cd infrastructure/
+            terraform workspace select ${CIRCLE_BRANCH}
+            terraform apply --auto-approve
+
+  upload-project-to-s3:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+            profile-name: default
+      - *zip-project
+      - run:
+          name: Upload Project to S3
+          command: |
+            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+
+  push-to-aws-code-deploy:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+            profile-name: default
+      - *zip-project
+      - run:
+          name: Deploy Changes With AWS CodeDeploy
+          command: |
+            if [ "${CODE_DEPLOY_UPDATE}" == "true" ]
+            then
+                aws deploy create-deployment \
+                    --region eu-central-1 \
+                    --application-name chatapp-server-${CIRCLE_BRANCH}-app \
+                    --deployment-config-name CodeDeployDefault.AllAtOnce \
+                    --deployment-group-name chatapp-server-${CIRCLE_BRANCH}-group \
+                    --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
+            fi
+
+  # This job will be manually executed
+  # Because of how terraform handles codedeploy ASG, you will have to
+  # manually delete the ASG created by code deploy from the aws console first
+  # before triggering this job
+  terraform-destroy:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+          name: Terraform Destroy
+          command: |
+            cd infrastructure/
+            terraform init
+            terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+            terraform destroy --auto-approve
+
+workflows:
+  build_and_deploy:
+    jobs:
+      - build
+      - unit-test:
+            requires:
+              - build
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master # Be sure to check if the branch is master or main
+      - terraform-validate:
+            requires:
+              - unit-test
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - terraform-plan-and-apply:
+            requires:
+              - terraform-validate
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - upload-project-to-s3:
+            requires:
+              - terraform-plan-and-apply
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - push-to-aws-code-deploy:
+            requires:
+              - upload-project-to-s3
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - hold:
+          type: approval
+          requires:
+            - push-to-aws-code-deploy
+      - terraform-destroy: # Always manually delete code deploy ASG before executing this job
+            requires:
+              - hold
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
