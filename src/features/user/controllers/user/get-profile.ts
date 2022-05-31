@@ -1,18 +1,19 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
+import _ from 'lodash';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { LeanDocument } from 'mongoose';
-import { userCache } from '@service/redis/user.cache';
+import { UserCache } from '@service/redis/user.cache';
 import { UserModel } from '@user/models/user.schema';
-import { IFollower, IFollowerDocument } from '@follower/interface/follower.interface';
-import { followerCache } from '@service/redis/follower.cache';
-import { FollowerModel } from '@follower/models/follower.schema';
+import { IFollower, IFollowerData, IFollowerDocument } from '@follower/interface/follower.interface';
+import { FollowerCache } from '@service/redis/follower.cache';
 import { Helpers } from '@global/helpers/helpers';
-import { postCache } from '@service/redis/post.cache';
+import { PostCache } from '@service/redis/post.cache';
 import { postService } from '@service/db/post.service';
 import { IPostDocument } from '@post/interfaces/post.interface';
+import { followerService } from '@service/db/follower.service';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 100;
 
 interface IUserAll {
     newSkip: number;
@@ -20,6 +21,9 @@ interface IUserAll {
     skip: number;
     userId: string;
 }
+const postCache: PostCache = new PostCache();
+const userCache: UserCache = new UserCache();
+const followerCache: FollowerCache = new FollowerCache();
 
 export class Get {
     public async all(req: Request, res: Response): Promise<void> {
@@ -27,14 +31,14 @@ export class Get {
         const skip: number = (parseInt(page) - 1) * PAGE_SIZE;
         const limit: number = PAGE_SIZE * parseInt(page);
         const newSkip: number = skip === 0 ? skip : skip + 1;
-        const allUsers: Promise<IUserDocument[] | LeanDocument<IUserDocument[]>> = Get.prototype.allUsers({
+        const allUsers = await Get.prototype.allUsers({
             newSkip,
             limit,
             skip,
             userId: `${req.currentUser?.userId}`
         });
-        const followers: Promise<IFollowerDocument[] | IFollower[]> = Get.prototype.followers(`${req.currentUser?.userId}`, limit, skip);
-        const response: [IUserDocument[] | LeanDocument<IUserDocument[]>, IFollowerDocument[] | IFollower[]] = await Promise.all([
+        const followers: Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> = Get.prototype.followers(`${req.currentUser?.userId}`);
+        const response: [IUserDocument[] | LeanDocument<IUserDocument[]>, IFollowerDocument[] | IFollower[] | IFollowerData[]] = await Promise.all([
             allUsers,
             followers
         ]);
@@ -42,7 +46,7 @@ export class Get {
     }
 
     public async profile(req: Request, res: Response): Promise<void> {
-        const cachedUser: IUserDocument = await userCache.getUserFromCache(`${req.currentUser?.userId}`);
+        const cachedUser: IUserDocument = await userCache.getUserFromCache(`${req.currentUser?.userId}`) as IUserDocument;
         const existingUser: LeanDocument<IUserDocument> | null = cachedUser
             ? cachedUser
             : await UserModel.findOne({ _id: req.currentUser?.userId }).lean().exec();
@@ -52,7 +56,7 @@ export class Get {
     public async username(req: Request, res: Response): Promise<void> {
         const { username, userId, uId } = req.params;
         const userName: string = Helpers.firstLetterUppercase(username);
-        const cachedUser: Promise<IUserDocument> = userCache.getUserFromCache(userId);
+        const cachedUser: Promise<IUserDocument> = userCache.getUserFromCache(userId) as Promise<IUserDocument>;
         const cachedUserPosts: Promise<IPostDocument[]> = postCache.getUserPostsFromCache('post', parseInt(uId, 10));
         const cachedResponse: [IUserDocument, IPostDocument[]] = await Promise.all([cachedUser, cachedUserPosts]);
 
@@ -73,7 +77,7 @@ export class Get {
 
     private async allUsers({ newSkip, limit, skip, userId }: IUserAll): Promise<IUserDocument[] | LeanDocument<IUserDocument[]>> {
         let users;
-        const cachedUser: IUserDocument[] = await userCache.getUsersFromCache(newSkip, limit, userId);
+        const cachedUser: IUserDocument[] = await userCache.getUsersFromCache(newSkip, limit, userId) as IUserDocument[];
         if (cachedUser.length) {
             users = cachedUser;
         } else {
@@ -87,23 +91,31 @@ export class Get {
         return users;
     }
 
-    private async followers(userId: string, limit: number, skip: number): Promise<IFollowerDocument[] | IFollower[]> {
-        const cachedFollowers: IFollower[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
+    private async followers(userId: string): Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> {
+        const cachedFollowers: IFollower[] | IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
         return cachedFollowers.length
             ? cachedFollowers
-            : (((await FollowerModel.find({ followerId: userId })
-                  .lean()
-                  .populate({
-                      path: 'followerId',
-                      select: 'username avatarColor postsCount, followersCount followingCount profilePicture'
-                  })
-                  .populate({
-                      path: 'followeeId',
-                      select: 'username avatarColor postsCount, followersCount followingCount profilePicture'
-                  })
-                  .skip(skip)
-                  .limit(limit)
-                  .sort({ createdAt: -1 })
-                  .exec()) as unknown) as IFollower[]);
+            : await followerService.getFollowers(userId);
+    }
+
+    public async randomUserSuggestions(req: Request, res: Response): Promise<void> {
+        let randomUsers: IUserDocument[] = [];
+        const cachedUser: IUserDocument[] = await userCache.getRandomUsersFromCache(`${req.currentUser?.userId}`);
+        if (cachedUser.length) {
+            randomUsers = [...cachedUser];
+        } else {
+            const users = await UserModel.aggregate([
+                { $match: { username: { $not: { $eq: req.currentUser!.username }} } },
+                { $sample: { size: 10 } }
+            ]);
+            const followers: string[] = await followerService.getFolloweeIds(`${req.currentUser?.userId}`);
+            for (const user of users) {
+                const followerIndex = _.indexOf(followers, user._id.toString());
+                if (followerIndex < 0) {
+                    randomUsers.push(user);
+                }
+            }
+        }
+        res.status(HTTP_STATUS.OK).json({ message: 'User suggestions', users: randomUsers });
     }
 }

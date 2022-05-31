@@ -1,4 +1,3 @@
-import { Multi } from 'redis';
 import _ from 'lodash';
 import { BaseCache } from '@service/redis/base.cache';
 import { IChatListItemIndex, IChatMessage, IChatRedisData } from '@chat/interfaces/chat.interface';
@@ -9,12 +8,13 @@ class MessageCache extends BaseCache {
         super('messageCache');
     }
 
-    public addChatListToCache(keys: string[], value: IChatRedisData): Promise<void> {
+    public async addChatListToCache(keys: string[], value: IChatRedisData): Promise<void> {
+        await this.client.connect();
         return new Promise((resolve, reject) => {
             for (const key of keys) {
-                const multi: Multi = this.client.multi();
-                multi.lrange(`chatList:${key}`, 0, -1);
-                multi.exec((error: Error | null, response) => {
+                const multi = this.client.multi();
+                multi.LRANGE(`chatList:${key}`, 0, -1);
+                multi.exec((error: Error | null, response: any) => {
                     if (error) {
                         reject(error);
                     }
@@ -22,10 +22,10 @@ class MessageCache extends BaseCache {
                         const parsedResponse: IChatRedisData = Helpers.parseJson(response[0]) as IChatRedisData;
                         const listItem: IChatListItemIndex = this.getChatItemAndIndex(response[0], parsedResponse.conversationId);
                         if (listItem.item && listItem.index > -1) {
-                            multi.lset(`chatList:${key}`, listItem.index, JSON.stringify(value)).exec();
+                            multi.LSET(`chatList:${key}`, listItem.index, JSON.stringify(value)).exec();
                         }
                     } else {
-                        multi.rpush(`chatList:${key}`, JSON.stringify(value)).exec();
+                        multi.RPUSH(`chatList:${key}`, JSON.stringify(value)).exec();
                     }
                     resolve();
                 });
@@ -35,16 +35,16 @@ class MessageCache extends BaseCache {
 
     public addChatMessageToCache(key: string, value: IChatRedisData): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.client.lrange(`messages:${key}`, 0, -1, (error: Error | null, response: string[]) => {
+            this.client.LRANGE(`messages:${key}`, 0, -1, (error: Error | null, response: string[]) => {
                 if (error) {
                     reject(error);
                 }
-                const multi: Multi = this.client.multi();
+                const multi = this.client.multi();
                 if (response.length <= 20) {
-                    multi.rpush(`messages:${key}`, JSON.stringify(value));
+                    multi.RPUSH(`messages:${key}`, JSON.stringify(value));
                 } else {
-                    multi.lpop(`messages:${key}`);
-                    multi.rpush(`messages:${key}`, JSON.stringify(value));
+                    multi.LPOP(`messages:${key}`);
+                    multi.RPUSH(`messages:${key}`, JSON.stringify(value));
                 }
                 multi.exec((errorObj: Error | null) => {
                     if (errorObj) {
@@ -58,7 +58,7 @@ class MessageCache extends BaseCache {
 
     public getChatFromCache(key: string): Promise<string[]> {
         return new Promise((resolve, reject) => {
-            this.client.lrange(key, 0, -1, (error: Error | null, response: string[]) => {
+            this.client.LRANGE(key, 0, -1, (error: Error | null, response: string[]) => {
                 if (error) {
                     reject(error);
                 }
@@ -69,11 +69,11 @@ class MessageCache extends BaseCache {
 
     public updateIsReadPropInCache(keyOne: string, keyTwo: string, conversationId: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            const multi: Multi = this.client.multi();
-            multi.lrange(`chatList:${keyOne}`, 0, -1);
-            multi.lrange(`chatList:${keyTwo}`, 0, -1);
-            multi.lrange(`messages:${conversationId}`, 0, -1);
-            multi.exec((error: Error | null, response) => {
+            const multi = this.client.multi();
+            multi.LRANGE(`chatList:${keyOne}`, 0, -1);
+            multi.LRANGE(`chatList:${keyTwo}`, 0, -1);
+            multi.LRANGE(`messages:${conversationId}`, 0, -1);
+            multi.exec((error: Error | null, response: any) => {
                 if (error) {
                     reject(error);
                 }
@@ -103,9 +103,9 @@ class MessageCache extends BaseCache {
         };
     }
 
-    private updateIsRead(listItem: IChatMessage, index: number, key: string, multi: Multi): void {
+    private updateIsRead(listItem: IChatMessage, index: number, key: string, multi: any): void {
         listItem.isRead = true;
-        multi.lset(key, index, JSON.stringify(listItem)).exec();
+        multi.LSET(key, index, JSON.stringify(listItem)).exec();
     }
 }
 

@@ -65,3 +65,21 @@ export class NotAuthorizedError extends CustomError {
         super(message);
     }
 }
+
+export class FileTooLargeError extends CustomError {
+    statusCode = HTTP_STATUS.REQUEST_TOO_LONG;
+    status = 'error';
+
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+export class ServerError extends CustomError {
+    statusCode = HTTP_STATUS.SERVICE_UNAVAILABLE;
+    status = 'error';
+
+    constructor(message: string) {
+        super(message);
+    }
+}

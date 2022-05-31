@@ -5,14 +5,9 @@ const imageSchema: Schema = new Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     bgImageVersion: { type: String, default: '' },
     bgImageId: { type: String, default: '' },
-    profilePicture: { type: String, default: '' },
-    images: [
-        {
-            imgVersion: { type: String, default: '' },
-            imgId: { type: String, default: '' },
-            createdAt: { type: Date, default: Date.now, index: true }
-        }
-    ]
+    imgVersion: { type: String, default: '' },
+    imgId: { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now, index: true }
 });
 
 const ImageModel: Model<IFileImageDocument> = model<IFileImageDocument>('Image', imageSchema, 'Image');

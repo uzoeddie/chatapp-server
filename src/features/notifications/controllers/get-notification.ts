@@ -12,7 +12,7 @@ export class Get {
                 path: 'userFrom',
                 select: 'username avatarColor uId profilePicture'
             })
-            .sort({ date: -1 })
+            .sort({ createdAt: -1 })
             .exec();
         res.status(HTTP_STATUS.OK).json({ message: 'User notifications', notifications, notification: false });
     }

@@ -2,13 +2,15 @@
 import { Request, Response } from 'express';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { commentMockRequest, commentMockResponse, commentsData, redisCommentList } from '@root/mocks/comment.mock';
-import { commentCache } from '@service/redis/comment.cache';
+import { CommentCache } from '@service/redis/comment.cache';
 import { Get } from '@comment/controllers/get-comments';
 import { commentService } from '@service/db/comment.service';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/comment.cache');
+
+const commentCache: CommentCache = new CommentCache();
 
 describe('Get', () => {
     beforeEach(() => {

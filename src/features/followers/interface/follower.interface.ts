@@ -1,6 +1,6 @@
 import { ObjectID } from 'mongodb';
 import mongoose from 'mongoose';
-import { IUserBirthDay, IUserDocument } from '@user/interfaces/user.interface';
+import { IUserDocument } from '@user/interfaces/user.interface';
 
 export interface IFollowing {
     userId: string;
@@ -19,8 +19,8 @@ export interface IFollowerDocument extends mongoose.Document {
 
 export interface IFollower {
     _id: mongoose.Types.ObjectId | string;
-    followeeId: IFollowerData;
-    followerId: IFollowerData;
+    followeeId?: IFollowerData;
+    followerId?: IFollowerData;
     createdAt?: Date;
 }
 
@@ -31,8 +31,8 @@ export interface IFollowerData {
     profilePicture: string;
     postCount: number;
     username: string;
+    uId: string;
     _id?: mongoose.Types.ObjectId | string;
-    birthDay?: IUserBirthDay;
     userProfile?: IUserDocument;
 }
 

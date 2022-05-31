@@ -23,7 +23,6 @@ export interface IAuthMock {
     username?: string;
     password?: string;
     email?: string;
-    keepLoggedIn?: boolean;
     cpassword?: string;
     gender?: string;
     month?: string;

@@ -1,7 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { ObjectID } from 'mongodb';
 import publicIP from 'public-ip';
-import { ListType } from '@service/redis/user-info.cache';
 
 declare global {
     namespace Express {
@@ -28,19 +27,16 @@ export interface IUserDocument extends Document {
     password?: string;
     avatarColor: string;
     postsCount: number;
-    work: IUserWork[];
-    school: IUserSchool[];
-    gender: string;
-    birthDay: IUserBirthDay;
-    relationship: string;
-    quotes: string;
-    about: string;
-    placesLived: IUserPlacesLived[];
+    work: string;
+    school: string;
+    quote: string;
+    location: string;
     blocked: [mongoose.Types.ObjectId] | [];
     blockedBy: [mongoose.Types.ObjectId] | [];
     followersCount: number;
     followingCount: number;
     notifications: INotificationSettings;
+    social: ISocialLinks;
     createdAt: Date;
     bgImageVersion: string;
     bgImageId: string;
@@ -67,43 +63,50 @@ export interface IResetPasswordParams {
     date: string;
 }
 
-export interface IUserWork {
-    _id: mongoose.Types.ObjectId | string;
-    company: string;
-    position: string;
-    city: string;
-    description: string;
-    from: string;
-    to: string;
-}
+// export interface IUserWork {
+//     _id: mongoose.Types.ObjectId | string;
+//     company: string;
+//     position: string;
+//     city: string;
+//     description: string;
+//     from: string;
+//     to: string;
+// }
 
-export interface IUserSchool {
-    _id: mongoose.Types.ObjectId | string;
-    name: string;
-    course: string;
-    degree: string;
-    from: string;
-    to: string;
-}
+// export interface IUserSchool {
+//     _id: mongoose.Types.ObjectId | string;
+//     name: string;
+//     course: string;
+//     degree: string;
+//     from: string;
+//     to: string;
+// }
 
-export interface IUserBirthDay {
-    month: string;
-    day: string;
-}
+// export interface IUserBirthDay {
+//     month: string;
+//     day: string;
+// }
 
-export interface IUserPlacesLived {
-    _id: mongoose.Types.ObjectId | string;
-    city: string;
-    country: string;
-    year: string;
-    month: string;
-}
+// export interface IUserPlacesLived {
+//     _id: mongoose.Types.ObjectId | string;
+//     city: string;
+//     country: string;
+//     year: string;
+//     month: string;
+// }
 
 export interface INotificationSettings {
     messages: boolean;
     reactions: boolean;
     comments: boolean;
     follows: boolean;
+}
+
+export interface ISocialLinks {
+    facebook: string;
+    instagram: string;
+    twitter: string;
+    youtube: string;
 }
 
 export interface ISocketData {
@@ -117,11 +120,7 @@ export interface ILogin {
 
 export interface IUserJobInfo {
     key?: string;
-    prop?: string;
-    value?: string | IUserBirthDay | IUserPlacesLived | IUserWork | IUserSchool | null;
-    type?: string;
-    data?: IUserPlacesLived[] | IUserWork[] | IUserSchool[];
-    paramsId?: string;
+    value?: string | ISocialLinks;
 }
 
 export interface IUserJob {
@@ -139,8 +138,6 @@ export interface IEmailJob {
 
 export interface IUserInfoListProp {
     key: string;
-    value: ListType;
+    value: string;
     prop: string;
-    type: string;
-    deletedItemId?: string;
 }

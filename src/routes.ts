@@ -11,13 +11,13 @@ import { followerRoutes } from '@follower/routes/followerRoutes';
 import { userRoutes } from '@user/routes/userRoutes';
 import { healthRoute } from '@user/routes/healthRoutes';
 import { authRoutes } from '@user/routes/authRoutes';
-import { queueRouter } from '@service/queues/base.queue';
+import { serverAdapter } from '@service/queues/base.queue';
 
 const BASE_PATH = '/api/v1';
 
 export default (app: Application) => {
     const routes = () => {
-        app.use('/queues', queueRouter);
+        app.use('/queues', serverAdapter.getRouter());
         app.use('', healthRoute.routes());
         app.use('', healthRoute.fiboRoutes());
         app.use('', healthRoute.instance());

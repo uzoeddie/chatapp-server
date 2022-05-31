@@ -3,13 +3,15 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { followerData, followersMockRequest, followersMockResponse } from '@root/mocks/followers.mock';
-import { followerCache } from '@service/redis/follower.cache';
+import { FollowerCache } from '@service/redis/follower.cache';
 import { Get } from '@follower/controllers/get-followers';
 import { FollowerModel } from '@follower/models/follower.schema';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/follower.cache');
+
+const followerCache: FollowerCache = new FollowerCache();
 
 describe('Get', () => {
     beforeEach(() => {

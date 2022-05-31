@@ -6,7 +6,7 @@ import { imagesMockRequest, imagesMockResponse } from '@root/mocks/image.mock';
 import { Add } from '@image/controllers/add-image';
 import { CustomError } from '@global/helpers/error-handler';
 import { authUserPayload } from '@root/mocks/auth.mock';
-import { userInfoCache } from '@service/redis/user-info.cache';
+import { UserInfoCache } from '@service/redis/user-info.cache';
 import { existingUser } from '@root/mocks/user.mock';
 import { imageQueue } from '@service/queues/image.queue';
 import * as cloudinaryUploads from '@global/helpers/cloudinary-upload';
@@ -16,6 +16,8 @@ jest.mock('@service/queues/base.queue');
 jest.mock('@socket/user');
 jest.mock('@socket/chat');
 jest.mock('@global/helpers/cloudinary-upload');
+
+const userInfoCache: UserInfoCache = new UserInfoCache();
 
 Object.defineProperties(imageServer, {
     socketIOImageObject: {

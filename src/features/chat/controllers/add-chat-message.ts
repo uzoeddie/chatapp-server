@@ -9,12 +9,14 @@ import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { chatQueue } from '@service/queues/chat.queue';
 import { messageCache } from '@service/redis/message.cache';
 import { AuthPayload, IUserDocument } from '@user/interfaces/user.interface';
-import { userCache } from '@service/redis/user.cache';
+import { UserCache } from '@service/redis/user.cache';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
 import { emailQueue } from '@service/queues/email.queue';
 import { INotificationTemplate } from '@notification/interfaces/notification.interface';
 import { connectedUsersMap } from '@socket/user';
 import { socketIOChatObject } from '@socket/chat';
+
+const userCache = new UserCache();
 
 export class Add {
     @joiValidation(addChatSchema)
@@ -92,7 +94,7 @@ export class Add {
     }
 
     private async messageNotification(currentUser: AuthPayload, message: string, receiverName: string, receiverId: string): Promise<void> {
-        const cachedUser: IUserDocument = await userCache.getUserFromCache(`${receiverId}`);
+        const cachedUser: IUserDocument = await userCache.getUserFromCache(`${receiverId}`) as IUserDocument;
         if (cachedUser.notifications.messages) {
             const templateParams: INotificationTemplate = {
                 username: receiverName,

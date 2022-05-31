@@ -2,12 +2,12 @@
 import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
-import { userCache } from '@service/redis/user.cache';
-import { followerCache } from '@service/redis/follower.cache';
+import { UserCache } from '@service/redis/user.cache';
+import { FollowerCache } from '@service/redis/follower.cache';
 import { existingUser } from '@root/mocks/user.mock';
 import { followerData } from '@root/mocks/followers.mock';
 import { Get } from '@user/controllers/user/get-profile';
-import { postCache } from '@service/redis/post.cache';
+import { PostCache } from '@service/redis/post.cache';
 import { postMockData } from '@root/mocks/post.mock';
 
 jest.useFakeTimers();
@@ -15,6 +15,10 @@ jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/post.cache');
 jest.mock('@service/redis/follower.cache');
 jest.mock('@service/redis/user.cache');
+
+const userCache = new UserCache();
+const followerCache: FollowerCache = new FollowerCache();
+const postCache: PostCache = new PostCache();
 
 describe('Get', () => {
     beforeEach(() => {

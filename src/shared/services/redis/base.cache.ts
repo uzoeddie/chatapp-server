@@ -1,21 +1,19 @@
 import { config } from '@root/config';
 import Logger from 'bunyan';
-import redis, { RedisClient } from 'redis';
-
-const REDIS_PORT = 6379;
+import { createClient } from 'redis';
 
 export abstract class BaseCache {
-    client: RedisClient;
+    client: any;
     log: Logger;
 
     constructor(cacheName: string) {
-        this.client = redis.createClient({ host: config.REDIS_HOST || 'localhost', port: REDIS_PORT });
+        this.client = createClient({ url: config.REDIS_HOST });
         this.log = config.createLogger(cacheName);
         this.cacheError();
     }
 
     private cacheError(): void {
-        this.client.on('error', (error) => {
+        this.client.on('error', async (error: unknown) => {
             this.log.error(error);
         });
     }

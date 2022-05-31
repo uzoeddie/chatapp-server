@@ -7,12 +7,14 @@ import { followersMockRequest, followersMockResponse } from '@root/mocks/followe
 import { existingUser } from '@root/mocks/user.mock';
 import { followerQueue } from '@service/queues/follower.queue';
 import { Add } from '@follower/controllers/follower-user';
-import { userCache } from '@service/redis/user.cache';
+import { UserCache } from '@service/redis/user.cache';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/user.cache');
 jest.mock('@service/redis/follower.cache');
+
+const userCache = new UserCache();
 
 Object.defineProperties(followerServer, {
     socketIOFollowerObject: {

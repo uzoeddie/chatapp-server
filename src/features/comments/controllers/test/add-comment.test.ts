@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { commentMockRequest, commentMockResponse } from '@root/mocks/comment.mock';
-import { commentCache } from '@service/redis/comment.cache';
+import { CommentCache } from '@service/redis/comment.cache';
 import { commentQueue } from '@service/queues/comment.queue';
 import { Add } from '@comment/controllers/add-comment';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/comment.cache');
+
+const commentCache: CommentCache = new CommentCache();
 
 describe('Add', () => {
     beforeEach(() => {

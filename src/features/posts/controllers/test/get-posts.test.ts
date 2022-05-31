@@ -2,13 +2,15 @@
 import { Request, Response } from 'express';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { newPost, postMockData, postMockRequest, postMockResponse } from '@root/mocks/post.mock';
-import { postCache } from '@service/redis/post.cache';
+import { PostCache } from '@service/redis/post.cache';
 import { Get } from '@post/controllers/get-post';
 import { postService } from '@service/db/post.service';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/post.cache');
+
+const postCache: PostCache = new PostCache();
 
 describe('Get', () => {
     beforeEach(() => {

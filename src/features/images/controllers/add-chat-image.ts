@@ -7,6 +7,7 @@ import { addChatSchema } from '@chat/schemes/chat';
 import { IChatMessage } from '@chat/interfaces/chat.interface';
 import { connectedUsersMap } from '@socket/user';
 import { socketIOChatObject } from '@socket/chat';
+import { BadRequestError } from '@global/helpers/error-handler';
 
 export class AddMessage {
     @joiValidation(addChatSchema)
@@ -36,7 +37,10 @@ export class AddMessage {
 
         for (const file of selectedImages) {
             const result: UploadApiResponse = (await uploads(file)) as UploadApiResponse;
-            const url = `http://res.cloudinary.com/ratingapp/image/upload/v${result.version}/${result.public_id}`;
+            if (!result?.public_id) {
+                throw new BadRequestError(result.message);
+            }
+            const url = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${result.public_id}`;
             uploadResult = [...uploadResult, url];
         }
 

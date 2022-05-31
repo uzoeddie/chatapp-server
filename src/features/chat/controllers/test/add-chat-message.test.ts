@@ -9,7 +9,9 @@ import { Add } from '@chat/controllers/add-chat-message';
 import { chatQueue } from '@service/queues/chat.queue';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { existingUser } from '@root/mocks/user.mock';
-import { userCache } from '@service/redis/user.cache';
+import { UserCache } from '@service/redis/user.cache';
+
+const userCache = new UserCache();
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');

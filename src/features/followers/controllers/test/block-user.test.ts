@@ -2,12 +2,14 @@ import { Request, Response } from 'express';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { followersMockRequest, followersMockResponse } from '@root/mocks/followers.mock';
 import { AddUser } from '@follower/controllers/block-user';
-import { followerCache } from '@service/redis/follower.cache';
+import { FollowerCache } from '@service/redis/follower.cache';
 import { blockedUserQueue } from '@service/queues/blocked.queue';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/follower.cache');
+
+const followerCache: FollowerCache = new FollowerCache();
 
 describe('AddUser', () => {
     beforeEach(() => {

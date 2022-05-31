@@ -71,4 +71,22 @@ export class Helpers {
     static escapeRegex(text: string): string {
         return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     }
+
+    static shuffle(list: string[]): string[] {
+        for (let i = list.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return list;
+    }
+
+    static generateRandomIntegers(integerLength: number): number {
+        const characters = '0123456789';
+        let result = ' ';
+        const charactersLength = characters.length;
+        for (let i = 0; i < integerLength; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return parseInt(result, 10);
+      }
 }

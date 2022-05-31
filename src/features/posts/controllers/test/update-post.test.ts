@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import * as postServer from '@socket/post';
 import { newPost, postMockData, postMockRequest, postMockResponse } from '@root/mocks/post.mock';
-import { postCache } from '@service/redis/post.cache';
+import { PostCache } from '@service/redis/post.cache';
 import { postQueue } from '@service/queues/post.queue';
 import { Update } from '@post/controllers/update-post';
 import * as cloudinaryUploads from '@global/helpers/cloudinary-upload';
@@ -13,6 +13,8 @@ jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/post.cache');
 jest.mock('@global/helpers/cloudinary-upload');
+
+const postCache: PostCache = new PostCache();
 
 Object.defineProperties(postServer, {
     socketIOPostObject: {

@@ -4,6 +4,8 @@ import { UserModel } from '@user/models/user.schema';
 import { Aggregate, Query, UpdateQuery } from 'mongoose';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { IQuerySort } from '@comment/interfaces/comment.interface';
+import { ReactionModel } from '@reaction/models/reaction.schema';
+import { IReactionDocument } from '@reaction/interfaces/reaction.interface';
 
 class Post {
     public async addPostToDB(userId: string, createdPost: IPostDocument): Promise<void> {
@@ -18,31 +20,7 @@ class Post {
                 { $match: query },
                 { $sort: sort },
                 { $skip: skip },
-                { $limit: limit },
-                { $addFields: { objectReactions: { $objectToArray: '$reactions' } } },
-                {
-                    $addFields: {
-                        reactions: {
-                            $map: {
-                                input: '$objectReactions',
-                                as: 'reaction',
-                                in: { type: '$$reaction.k', value: '$$reaction.v' }
-                            }
-                        }
-                    }
-                },
-                {
-                    $addFields: {
-                        reactions: {
-                            $filter: {
-                                input: '$reactions',
-                                as: 'item',
-                                cond: { $ne: ['$$item.value', 0] }
-                            }
-                        }
-                    }
-                },
-                { $project: { objectReactions: 0 } }
+                { $limit: limit }
             ]);
             resolve(posts);
         });
@@ -50,8 +28,9 @@ class Post {
 
     public async deletePost(postId: string, userId: string): Promise<void> {
         const deletePost: Query<IQueryComplete & IQueryDeleted, IPostDocument> = PostModel.deleteOne({ _id: postId });
+        const deleteReaction: Query<IQueryComplete & IQueryDeleted, IReactionDocument> = ReactionModel.deleteOne({ postId });
         const decrementPostNumber: UpdateQuery<IUserDocument> = UserModel.updateOne({ _id: userId }, { $inc: { postsCount: -1 } });
-        await Promise.all([deletePost, decrementPostNumber]);
+        await Promise.all([deletePost, decrementPostNumber, deleteReaction]);
     }
 
     public async editPost(postId: string, updatedPost: IPostDocument): Promise<void> {

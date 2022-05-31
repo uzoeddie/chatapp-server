@@ -10,8 +10,8 @@ import HTTP_STATUS from 'http-status-codes';
 import 'express-async-errors';
 import apiStats from 'swagger-stats';
 import { Server } from 'socket.io';
-import { createAdapter } from 'socket.io-redis';
-import { RedisClient } from 'redis';
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
 import { config } from '@root/config';
 import applicationRoutes from '@root/routes';
 import { CustomError, IErrorResponse } from '@global/helpers/error-handler';
@@ -24,7 +24,6 @@ import { SocketIOPostHandler } from '@socket/post';
 
 const log: Logger = config.createLogger('server');
 const SERVER_PORT = 5000;
-const REDIS_PORT = 6379;
 
 // 36d827e7e3fe9855427070deacb00b53f0f89629
 
@@ -50,17 +49,19 @@ export class ChatServer {
             cookieSession({
                 name: 'session',
                 keys: [process.env.SECRET_KEY_ONE!, process.env.SECRET_KEY_TWO!],
-                maxAge: 1 * 60 * 60 * 1000
+                maxAge: 10 * 60 * 60 * 1000,
                 // secure: process.env.NODE_ENV !== 'development',
-                // sameSite: 'none'
+                // sameSite: 'none',
             })
         );
         app.use(hpp());
         app.use(helmet());
         app.use(
             cors({
-                origin: process.env.CLIENT_URL,
-                credentials: true
+                // origin: process.env.CLIENT_URL,
+                credentials: true,
+                optionsSuccessStatus: 200,
+                origin: true,
             })
         );
     }
@@ -96,14 +97,14 @@ export class ChatServer {
         });
     }
 
-    private startServer(app: Application): void {
+    private async startServer(app: Application): Promise<void> {
         if (!config.JWT_TOKEN) {
             throw new Error('JWT_TOKEN must be provided');
         }
 
         try {
             const httpServer: http.Server = new http.Server(app);
-            const socketIO: Server = this.createSocketIO(httpServer);
+            const socketIO: Server = await this.createSocketIO(httpServer);
             this.startHttpServer(httpServer);
             this.socketIOConnections(socketIO);
         } catch (error) {
@@ -111,16 +112,17 @@ export class ChatServer {
         }
     }
 
-    private createSocketIO(httpServer: http.Server): Server {
+    private async createSocketIO(httpServer: http.Server): Promise<Server> {
         const io: Server = new Server(httpServer, {
             cors: {
                 origin: config.CLIENT_URL,
                 methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
             }
         });
-        const pubClient: RedisClient = new RedisClient({ host: config.REDIS_HOST || 'localhost', port: REDIS_PORT });
-        const subClient: RedisClient = pubClient.duplicate();
-        io.adapter(createAdapter({ pubClient, subClient }));
+        const pubClient = createClient({ url:  config.REDIS_HOST });
+        const subClient = pubClient.duplicate();
+        await Promise.all([pubClient.connect(), subClient.connect()]);
+        io.adapter(createAdapter(pubClient, subClient));
         return io;
     }
 

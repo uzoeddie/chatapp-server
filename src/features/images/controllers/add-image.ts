@@ -4,25 +4,33 @@ import HTTP_STATUS from 'http-status-codes';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { addImageSchema } from '@image/schemes/images';
-import { userInfoCache } from '@service/redis/user-info.cache';
+import { UserInfoCache } from '@service/redis/user-info.cache';
 import { imageQueue } from '@service/queues/image.queue';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { socketIOImageObject } from '@socket/image';
+import { BadRequestError } from '@global/helpers/error-handler';
+
+const userInfoCache: UserInfoCache = new UserInfoCache();
 
 export class Add {
     @joiValidation(addImageSchema)
     public async image(req: Request, res: Response): Promise<void> {
         const result: UploadApiResponse = (await uploads(req.body.image, req.currentUser?.userId, true, true)) as UploadApiResponse;
-        const url = `https://res.cloudinary.com/ratingapp/image/upload/${result.public_id}`;
+        if (!result?.public_id) {
+            throw new BadRequestError(result.message);
+        }
+        const url = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${result.public_id}`;
         const cachedUser: IUserDocument = await userInfoCache.updateSingleUserItemInCache(
             `${req.currentUser?.userId}`,
             'profilePicture',
             url
         );
         socketIOImageObject.emit('update user', cachedUser);
-        imageQueue.addImageJob('updateImageInDB', {
+        imageQueue.addImageJob('addUserProfileImageToDB', {
             key: `${req.currentUser?.userId}`,
-            value: url
+            value: url,
+            imgId: result.public_id,
+            imgVersion: result.version.toString()
         });
         res.status(HTTP_STATUS.CREATED).json({ message: 'Image added successfully', notification: true });
     }
@@ -30,6 +38,9 @@ export class Add {
     @joiValidation(addImageSchema)
     public async backgroundImage(req: Request, res: Response): Promise<void> {
         const result: UploadApiResponse = (await uploads(req.body.image)) as UploadApiResponse;
+        if (!result?.public_id) {
+            throw new BadRequestError(result.message);
+        }
         const bgImageId: Promise<IUserDocument> = userInfoCache.updateSingleUserItemInCache(
             `${req.currentUser?.userId}`,
             'bgImageId',
@@ -51,6 +62,6 @@ export class Add {
             imgId: result.public_id,
             imgVersion: result.version.toString()
         });
-        res.status(HTTP_STATUS.CREATED).json({ message: 'Image added successfully', notification: true });
+        res.status(HTTP_STATUS.CREATED).json({ message: 'Image added successfully' });
     }
 }

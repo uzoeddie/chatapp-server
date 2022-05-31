@@ -4,12 +4,14 @@ import { authUserPayload } from '@root/mocks/auth.mock';
 import { followersMockRequest, followersMockResponse } from '@root/mocks/followers.mock';
 import { existingUser } from '@root/mocks/user.mock';
 import { followerQueue } from '@service/queues/follower.queue';
-import { followerCache } from '@service/redis/follower.cache';
+import { FollowerCache } from '@service/redis/follower.cache';
 import { Remove } from '@follower/controllers/unfollow-user';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/follower.cache');
+
+const followerCache: FollowerCache = new FollowerCache();
 
 describe('Remove', () => {
     beforeEach(() => {

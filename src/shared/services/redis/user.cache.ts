@@ -1,15 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
 import { INotificationSettings, IUserDocument } from '@user/interfaces/user.interface';
-import { Multi } from 'redis';
+import _ from 'lodash';
 
-class UserCache extends BaseCache {
+export class UserCache extends BaseCache {
     constructor() {
         super('userCache');
     }
 
-    public saveUserToCache(key: string, userId: string, createdUser: IUserDocument): Promise<void> {
+    public async saveUserToCache(key: string, userId: string, createdUser: IUserDocument): Promise<void> {
         const {
             _id,
             uId,
@@ -23,17 +23,14 @@ class UserCache extends BaseCache {
             profilePicture,
             followersCount,
             followingCount,
-            birthDay,
             notifications,
             work,
-            placesLived,
+            location,
             school,
-            gender,
-            quotes,
-            about,
-            relationship,
+            quote,
             bgImageVersion,
-            bgImageId
+            bgImageId,
+            social
         } = createdUser;
         const firstList: string[] = [
             '_id',
@@ -62,111 +59,144 @@ class UserCache extends BaseCache {
             `${followersCount}`,
             'followingCount',
             `${followingCount}`,
-            'birthDay',
-            JSON.stringify(birthDay),
             'notifications',
-            JSON.stringify(notifications)
+            JSON.stringify(notifications),
+            'social',
+            JSON.stringify(social)
         ];
         const thirdList: string[] = [
             'work',
-            JSON.stringify(work),
-            'placesLived',
-            JSON.stringify(placesLived),
+            `${work}`,
+            'location',
+            `${location}`,
             'school',
-            JSON.stringify(school),
-            'gender',
-            `${gender}`,
-            'about',
-            `${about}`,
-            'quotes',
-            `${quotes}`,
-            'relationship',
-            `${relationship}`,
+            `${school}`,
+            'quote',
+            `${quote}`,
             'bgImageVersion',
             `${bgImageVersion}`,
             'bgImageId',
             `${bgImageId}`
         ];
         const dataToSave: string[] = [...firstList, ...secondList, ...thirdList];
-        return new Promise((resolve, reject) => {
-            this.client.hmset(`users:${key}`, dataToSave, (error: Error | null) => {
-                if (error) {
-                    reject(error);
-                }
-                this.client.zadd('user', userId, `${key}`);
-                resolve();
-            });
-        });
+
+        try {
+            if (!this.client.isOpen) {
+                await this.client.connect();
+            }
+            await this.client.ZADD('user', {score: userId, value: `${key}`});
+            await this.client.HSET(`users:${key}`, dataToSave);
+        } catch (error) {
+            throw new ServerError('Server error. Try again.');
+        }
     }
 
-    public getUserFromCache(key: string): Promise<IUserDocument> {
-        return new Promise((resolve, reject) => {
-            this.client.hgetall(`users:${key}`, (error: Error | null, response: any) => {
-                if (error) {
-                    reject(error);
-                }
-                response.createdAt = new Date(Helpers.parseJson(response.createdAt) as Date);
-                response.postsCount = Helpers.parseJson(response.postsCount);
-                response.birthDay = Helpers.parseJson(response.birthDay);
-                response.blocked = Helpers.parseJson(response.blocked);
-                response.blockedBy = Helpers.parseJson(response.blockedBy);
-                response.work = Helpers.parseJson(response.work);
-                response.school = Helpers.parseJson(response.school);
-                response.placesLived = Helpers.parseJson(response.placesLived);
-                response.notifications = Helpers.parseJson(response.notifications);
-                response.followersCount = Helpers.parseJson(response.followersCount);
-                response.followingCount = Helpers.parseJson(response.followingCount);
-                resolve(response);
-            });
-        });
+    public async getUserFromCache(key: string): Promise<IUserDocument> {
+        try {
+            if (!this.client.isOpen) {
+                await this.client.connect();
+            }
+
+            const response = await this.client.HGETALL(`users:${key}`);
+            response.createdAt = new Date(Helpers.parseJson(response.createdAt) as Date);
+            response.postsCount = Helpers.parseJson(response.postsCount);
+            response.blocked = Helpers.parseJson(response.blocked);
+            response.blockedBy = Helpers.parseJson(response.blockedBy);
+            response.work = Helpers.parseJson(response.work);
+            response.school = Helpers.parseJson(response.school);
+            response.location = Helpers.parseJson(response.location);
+            response.quote = Helpers.parseJson(response.quote);
+            response.notifications = Helpers.parseJson(response.notifications);
+            response.social = Helpers.parseJson(response.social);
+            response.followersCount = Helpers.parseJson(response.followersCount);
+            response.followingCount = Helpers.parseJson(response.followingCount);
+
+            return response;
+        } catch (error) {
+            throw new ServerError('Server error. Try again.');
+        }
     }
 
-    public getUsersFromCache(start: number, end: number, excludedKey: string): Promise<IUserDocument[]> {
-        return new Promise((resolve, reject) => {
-            this.client.zrange('user', start, end, (error: Error | null, response: string[]) => {
-                if (error) {
-                    reject(error);
+    public async getUsersFromCache(start: number, end: number, excludedKey: string): Promise<IUserDocument[]> {
+        try {
+            if (!this.client.isOpen) {
+                await this.client.connect();
+            }
+            const response = await this.client.ZRANGE('user', start, end);
+            const multi = this.client.multi();
+            for (const key of response) {
+                if (key !== excludedKey) {
+                    multi.HGETALL(`users:${key}`);
                 }
-                const multi: Multi = this.client.multi();
-                for (const key of response) {
-                    if (key !== excludedKey) {
-                        multi.hgetall(`users:${key}`);
-                    }
-                }
-                multi.exec((err: Error | null, replies: any[]) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    for (const reply of replies) {
-                        reply.createdAt = new Date(Helpers.parseJson(reply.createdAt) as Date);
-                        reply.postsCount = Helpers.parseJson(reply.postsCount);
-                        reply.birthDay = Helpers.parseJson(reply.birthDay);
-                        reply.blocked = Helpers.parseJson(reply.blocked);
-                        reply.blockedBy = Helpers.parseJson(reply.blockedBy);
-                        reply.work = Helpers.parseJson(reply.work);
-                        reply.school = Helpers.parseJson(reply.school);
-                        reply.placesLived = Helpers.parseJson(reply.placesLived);
-                        reply.notifications = Helpers.parseJson(reply.notifications);
-                        reply.followersCount = Helpers.parseJson(reply.followersCount);
-                        reply.followingCount = Helpers.parseJson(reply.followingCount);
-                    }
-                    resolve(replies);
-                });
-            });
-        });
+            }
+            const replies = await multi.exec();
+            for (const reply of replies) {
+                reply.createdAt = new Date(Helpers.parseJson(reply.createdAt) as Date);
+                reply.postsCount = Helpers.parseJson(reply.postsCount);
+                reply.blocked = Helpers.parseJson(reply.blocked);
+                reply.blockedBy = Helpers.parseJson(reply.blockedBy);
+                reply.work = Helpers.parseJson(reply.work);
+                reply.school = Helpers.parseJson(reply.school);
+                reply.location = Helpers.parseJson(reply.location);
+                reply.quote = Helpers.parseJson(reply.quote);
+                reply.notifications = Helpers.parseJson(reply.notifications);
+                reply.social = Helpers.parseJson(reply.social);
+                reply.followersCount = Helpers.parseJson(reply.followersCount);
+                reply.followingCount = Helpers.parseJson(reply.followingCount);
+            }
+            return replies;
+        } catch (error) {
+            throw new ServerError('Server error. Try again.');
+        }
     }
 
-    public updateNotificationSettingsInCache(key: string, prop: string, value: INotificationSettings): Promise<void> {
+    public async getRandomUsersFromCache(excludedKey: string): Promise<IUserDocument[]> {
+        try {
+            if (!this.client.isOpen) {
+                await this.client.connect();
+            }
+            const replies = [];
+            const followers = await this.client.LRANGE(`followers:${excludedKey}`, 0, -1);
+            const users = await this.client.ZRANGE('user', 0, -1);
+            const excludedKeyIndex = _.indexOf(users, excludedKey);
+            users.splice(excludedKeyIndex, 1);
+            const randomUsers = Helpers.shuffle(users).slice(0, 10);
+            for (const key of randomUsers) {
+                const followerIndex = _.indexOf(followers, key);
+                if (followerIndex < 0) {
+                    const userHash = await this.client.HGETALL(`users:${key}`);
+                    replies.push(userHash);
+                }
+            }
+            for (const reply of replies) {
+                reply.createdAt = new Date(Helpers.parseJson(reply.createdAt) as Date);
+                reply.postsCount = Helpers.parseJson(reply.postsCount);
+                reply.blocked = Helpers.parseJson(reply.blocked);
+                reply.blockedBy = Helpers.parseJson(reply.blockedBy);
+                reply.work = Helpers.parseJson(reply.work);
+                reply.school = Helpers.parseJson(reply.school);
+                reply.location = Helpers.parseJson(reply.location);
+                reply.quote = Helpers.parseJson(reply.quote);
+                reply.notifications = Helpers.parseJson(reply.notifications);
+                reply.social = Helpers.parseJson(reply.social);
+                reply.followersCount = Helpers.parseJson(reply.followersCount);
+                reply.followingCount = Helpers.parseJson(reply.followingCount);
+            }
+            return replies;
+        } catch (error) {
+            throw new ServerError('Server error. Try again.');
+        }
+    }
+
+    public async updateNotificationSettingsInCache(key: string, prop: string, value: INotificationSettings): Promise<void> {
         const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
-        return new Promise((resolve, reject) => {
-            this.client.hmset(`users:${key}`, dataToSave, (error: Error | null) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-        });
+        try {
+            if (!this.client.isOpen) {
+                await this.client.connect();
+            }
+            await this.client.HSET(`users:${key}`, dataToSave);
+        } catch (error) {
+            throw new ServerError('Server error. Try again.');
+        }
     }
 }
-
-export const userCache: UserCache = new UserCache();

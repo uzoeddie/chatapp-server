@@ -3,23 +3,21 @@ import mongoose from 'mongoose';
 import HTTP_STATUS from 'http-status-codes';
 
 import { ICommentDocument, ICommentNameList } from '@comment/interfaces/comment.interface';
-import { commentCache } from '@service/redis/comment.cache';
+import { CommentCache } from '@service/redis/comment.cache';
 import { commentService } from '@service/db/comment.service';
 
-const PAGE_SIZE = 2;
+// const PAGE_SIZE = 2;
 const SKIP_SIZE = 0;
 const LIMIT_SIZE = 100;
+const commentCache: CommentCache = new CommentCache();
 
 export class Get {
     public async comments(req: Request, res: Response): Promise<void> {
-        const { postId, page } = req.params;
-        const skip: number = (parseInt(page) - 1) * PAGE_SIZE;
-        const limit: number = PAGE_SIZE * parseInt(page);
-        const newSkip: number = skip === 0 ? skip : skip + 1;
-        const cachedComments: ICommentDocument[] = await commentCache.getCommentsFromCache(postId, newSkip, limit);
+        const { postId } = req.params;
+        const cachedComments: ICommentDocument[] = await commentCache.getCommentsFromCache(postId);
         const comments: ICommentDocument[] = cachedComments.length
             ? cachedComments
-            : await commentService.getPostComments({ postId: mongoose.Types.ObjectId(postId) }, SKIP_SIZE, LIMIT_SIZE, { createdAt: -1 });
+            : await commentService.getPostComments({ postId: mongoose.Types.ObjectId(postId) }, { createdAt: -1 });
         res.status(HTTP_STATUS.OK).json({ message: 'Post comments', comments, notification: false });
     }
 
@@ -39,7 +37,7 @@ export class Get {
         const cachedComment: ICommentDocument[] = await commentCache.getSingleCommentFromCache(postId, commentId);
         const comments: ICommentDocument[] = cachedComment.length
             ? cachedComment
-            : await commentService.getPostComments({ _id: mongoose.Types.ObjectId(commentId) }, 0, 1, {
+            : await commentService.getPostComments({ _id: mongoose.Types.ObjectId(commentId) }, {
                   createdAt: -1
               });
         res.status(HTTP_STATUS.OK).json({ message: 'Single comment', comments: comments[0], notification: false });

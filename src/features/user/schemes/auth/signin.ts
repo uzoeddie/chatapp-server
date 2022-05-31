@@ -12,7 +12,7 @@ const loginSchema: ObjectSchema = Joi.object().keys({
         'string.min': 'Password must have a minimum length of {#limit}',
         'string.max': 'Password must have a maximum length of {#limit}',
         'string.empty': 'Password is a required field'
-    })
+    }),
 });
 
 export { loginSchema };
