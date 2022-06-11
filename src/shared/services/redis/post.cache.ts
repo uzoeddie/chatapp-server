@@ -120,7 +120,7 @@ export class PostCache extends BaseCache {
       const replies = await multi.exec();
       const postWithImages = [];
       for (const post of replies) {
-        if (post.imgId && post.imgVersion) {
+        if ((post.imgId && post.imgVersion) || post.gifUrl) {
           post.commentsCount = Helpers.parseJson(post.commentsCount);
           post.reactions = Helpers.parseJson(post.reactions);
           post.createdAt = new Date(post.createdAt);

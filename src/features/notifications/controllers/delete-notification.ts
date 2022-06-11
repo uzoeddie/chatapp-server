@@ -6,7 +6,7 @@ import { socketIONotificationObject } from '@socket/notification';
 export class Delete {
   public async notification(req: Request, res: Response): Promise<void> {
     socketIONotificationObject.emit('delete notification', req.params.notificationId);
-    // notificationQueue.addNotificationJob('deleteNotification', { key: req.params.notificationId });
+    notificationQueue.addNotificationJob('deleteNotification', { key: req.params.notificationId });
     res.status(HTTP_STATUS.OK).json({ message: 'Notification deleted successfully', notification: false });
   }
 }

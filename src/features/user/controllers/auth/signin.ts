@@ -10,37 +10,37 @@ import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { loginSchema } from '@user/schemes/auth/signin';
 
 export class SignIn {
-    @joiValidation(loginSchema)
-    public async read(req: Request, res: Response): Promise<void> {
-        const { username, password } = req.body;
-        const existingUser: IUserDocument = (await UserModel.findOne({
-            username: Helpers.firstLetterUppercase(username)
-        }).exec()) as IUserDocument;
-        if (!existingUser) {
-            throw new BadRequestError('Invalid credentials');
-        }
-
-        const passwordsMatch: boolean = await existingUser.comparePassword(password);
-        if (!passwordsMatch) {
-            throw new BadRequestError('Invalid credentials');
-        }
-
-        const userJwt: string = JWT.sign(
-            {
-                userId: existingUser._id,
-                uId: existingUser.uId,
-                email: existingUser.email,
-                username: existingUser.username,
-                avatarColor: existingUser.avatarColor
-            },
-            config.JWT_TOKEN!
-        );
-        req.session = { jwt: userJwt };
-        res.status(HTTP_STATUS.CREATED).json({
-            message: 'User login successfully',
-            user: existingUser,
-            token: userJwt,
-            notification: false
-        });
+  @joiValidation(loginSchema)
+  public async read(req: Request, res: Response): Promise<void> {
+    const { username, password } = req.body;
+    const existingUser: IUserDocument = (await UserModel.findOne({
+      username: Helpers.firstLetterUppercase(username)
+    }).exec()) as IUserDocument;
+    if (!existingUser) {
+      throw new BadRequestError('Invalid credentials');
     }
+
+    const passwordsMatch: boolean = await existingUser.comparePassword(password);
+    if (!passwordsMatch) {
+      throw new BadRequestError('Invalid credentials');
+    }
+
+    const userJwt: string = JWT.sign(
+      {
+        userId: existingUser._id,
+        uId: existingUser.uId,
+        email: existingUser.email,
+        username: existingUser.username,
+        avatarColor: existingUser.avatarColor
+      },
+      config.JWT_TOKEN!
+    );
+    req.session = { jwt: userJwt };
+    res.status(HTTP_STATUS.CREATED).json({
+      message: 'User login successfully',
+      user: existingUser,
+      token: userJwt,
+      notification: false
+    });
+  }
 }

@@ -39,33 +39,7 @@ export class SocketIOChatHandler {
       const receiverSocketId: string = connectedUsersMap.get(receiver) as string;
       this.io.to(receiverSocketId).emit('has_stopped_typing', data);
     });
-
-    socket.on('join chat page', (data: any[]) => {
-      this.io.emit('add chat users', data);
-    });
-
-    socket.on('leave chat page', (data: any[]) => {
-      this.io.emit('remove chat users', data);
-    });
   }
-
-  // private chatPageSocket(socket: Socket): void {
-  //   socket.on('join page', (users: ISenderReceiver) => {
-  //     const { senderName, receiverName } = users;
-  //     this.io.emit('chat page', {
-  //       name: senderName.toLowerCase(),
-  //       url: `app/social/chat/messages/${receiverName.toLowerCase()}`,
-  //       type: 'join'
-  //     });
-  //   });
-
-  //   socket.on('leave chat page', (username: string) => {
-  //     this.io.emit('chat page', {
-  //       name: username,
-  //       type: 'leave'
-  //     });
-  //   });
-  // }
 }
 
 export { socketIOChatObject };

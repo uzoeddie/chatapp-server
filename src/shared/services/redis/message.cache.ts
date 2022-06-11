@@ -1,13 +1,9 @@
 import _ from 'lodash';
 import { BaseCache } from '@service/redis/base.cache';
-import { IChatListItemIndex, IChatMessage, IChatRedisData } from '@chat/interfaces/chat.interface';
 import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
-import { UserCache } from '@service/redis/user.cache';
 
-const userCache = new UserCache();
-
-class MessageCache extends BaseCache {
+export class MessageCache extends BaseCache {
   constructor() {
     super('messageCache');
   }
@@ -27,7 +23,6 @@ class MessageCache extends BaseCache {
         }
       }
     } catch (error) {
-      console.log(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -39,7 +34,74 @@ class MessageCache extends BaseCache {
       }
       await this.client.RPUSH(`messages:${key}`, JSON.stringify(value));
     } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async addChatUsersToCache(value: any): Promise<any[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const users = await this.getChatUsersList();
+      const usersIndex: number = _.findIndex(users, (listItem: any) => JSON.stringify(listItem) === JSON.stringify(value));
+      let chatUsers = [];
+      if (usersIndex === -1) {
+        await this.client.RPUSH('chatUsers', JSON.stringify(value));
+        chatUsers = await this.getChatUsersList();
+      } else {
+        chatUsers = users;
+      }
+      return chatUsers;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async updateMessageReaction(key: string, messageId: string, reaction: string, senderName: string, type: string) {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const messages = await this.client.LRANGE(`messages:${key}`, 0, -1);
+      const messageIndex: number = _.findIndex(messages, (listItem: string) => listItem.includes(messageId));
+      const message = await this.client.LINDEX(`messages:${key}`, messageIndex);
+      const parsedMessage = Helpers.parseJson(message) as any;
+      const reactions = [];
+      if (parsedMessage) {
+        _.remove(parsedMessage.reaction, (reaction: any) => reaction.senderName === senderName);
+        if (type === 'add') {
+          reactions.push({ senderName, type: reaction });
+          parsedMessage.reaction = [...parsedMessage.reaction, ...reactions];
+          await this.client.LSET(`messages:${key}`, messageIndex, JSON.stringify(parsedMessage));
+        } else {
+          await this.client.LSET(`messages:${key}`, messageIndex, JSON.stringify(parsedMessage));
+        }
+      }
+      const updatedMessage = await this.client.LINDEX(`messages:${key}`, messageIndex);
+      return Helpers.parseJson(updatedMessage);
+    } catch (error) {
       console.log(error);
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async removeChatUsersFromCache(value: any): Promise<any[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const users = await this.getChatUsersList();
+      const usersIndex: number = _.findIndex(users, (listItem: any) => JSON.stringify(listItem) === JSON.stringify(value));
+      let chatUsers = [];
+      if (usersIndex > -1) {
+        await this.client.LREM('chatUsers', usersIndex, JSON.stringify(value));
+        chatUsers = await this.getChatUsersList();
+      } else {
+        chatUsers = users;
+      }
+      return chatUsers;
+    } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -82,60 +144,40 @@ class MessageCache extends BaseCache {
         return [];
       }
     } catch (error) {
-      console.log(error);
       throw new ServerError('Server error. Try again.');
     }
   }
 
-  public updateIsReadPropInCache(keyOne: string, keyTwo: string, conversationId: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const multi = this.client.multi();
-      multi.LRANGE(`chatList:${keyOne}`, 0, -1);
-      multi.LRANGE(`chatList:${keyTwo}`, 0, -1);
-      multi.LRANGE(`messages:${conversationId}`, 0, -1);
-      multi.exec((error: Error | null, response: any) => {
-        if (error) {
-          reject(error);
+  public async updateChatMessages(senderId: string, receiverId: string): Promise<any> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const userChatList = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
+      const receiver = _.find(userChatList, (listItem: string) => listItem.includes(receiverId));
+      const parsedReceiver = Helpers.parseJson(receiver) as any;
+      const messages = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
+      for (const [index, item] of messages.entries()) {
+        const chatItem = Helpers.parseJson(item) as any;
+        if (!chatItem.isRead) {
+          chatItem.isRead = true;
+          await this.client.LSET(`messages:${parsedReceiver.conversationId}`, index, JSON.stringify(chatItem));
         }
-
-        const sender: IChatListItemIndex = this.getChatItemAndIndex(response[0], keyOne);
-        this.updateIsRead(sender.item, sender.index, `chatList:${keyOne}`, multi);
-
-        const receiver: IChatListItemIndex = this.getChatItemAndIndex(response[1], keyTwo);
-        this.updateIsRead(receiver.item, receiver.index, `chatList:${keyTwo}`, multi);
-
-        for (const [index, value] of response[2].entries()) {
-          const parsedMessage: IChatMessage = Helpers.parseJson(value) as IChatMessage;
-          this.updateIsRead(parsedMessage, index, `messages:${conversationId}`, multi);
-        }
-
-        resolve(response[response.length - 1]);
-      });
-    });
+      }
+      const lastMessage = await this.client.LINDEX(`messages:${parsedReceiver.conversationId}`, -1);
+      return Helpers.parseJson(lastMessage);
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
   }
 
-  private getChatItemAndIndex(list: string[], key: string): IChatListItemIndex {
-    const item: string = _.find(list, (listItem: string) => listItem.includes(key)) as string;
-    const index: number = _.findIndex(list, (listItem: string) => listItem.includes(key));
-    return {
-      item: Helpers.parseJson(item) as IChatMessage,
-      index
-    };
-  }
-
-  // private getChatReceiverAndIndex(list: string[], key: string) {
-  //   const item: string = _.find(list, (listItem: string) => listItem.includes(key)) as string;
-  //   const index: number = _.findIndex(list, (listItem: string) => listItem.includes(key));
-  //   return {
-  //     item,
-  //     index
-  //   };
-  // }
-
-  private updateIsRead(listItem: IChatMessage, index: number, key: string, multi: any): void {
-    listItem.isRead = true;
-    multi.LSET(key, index, JSON.stringify(listItem)).exec();
+  private async getChatUsersList(): Promise<any[]> {
+    const chatUsersList = [];
+    const chatUsers = await this.client.LRANGE('chatUsers', 0, -1);
+    for (const item of chatUsers) {
+      const ChatUser = Helpers.parseJson(item) as any;
+      chatUsersList.push(ChatUser);
+    }
+    return chatUsersList;
   }
 }
-
-export const messageCache: MessageCache = new MessageCache();

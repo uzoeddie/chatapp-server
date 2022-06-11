@@ -5,12 +5,17 @@ export interface IMessageDocument extends Document {
   conversationId: mongoose.Types.ObjectId;
   senderId: mongoose.Types.ObjectId;
   receiverId: mongoose.Types.ObjectId;
-  senderName: string;
-  receiverName: string;
+  senderUsername: string;
+  senderAvatarColor: string;
+  senderProfilePicture: string;
+  receiverUsername: string;
+  receiverAvatarColor: string;
+  receiverProfilePicture: string;
   body: string;
   gifUrl: string;
   isRead: boolean;
-  images: string[];
+  selectedImage: string;
+  reaction: [];
   createdAt: Date;
 }
 
@@ -59,7 +64,12 @@ export interface IChatMessage {
 
 export interface IChatJobData {
   value?: IMessageDocument;
-  conversationId?: mongoose.Types.ObjectId;
+  senderId?: mongoose.Types.ObjectId | string;
+  receiverId?: mongoose.Types.ObjectId | string;
+  messageId?: mongoose.Types.ObjectId | string;
+  senderName?: string;
+  reaction?: string;
+  type?: string;
 }
 
 export interface IChatRedisData {

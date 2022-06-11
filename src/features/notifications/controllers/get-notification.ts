@@ -5,15 +5,15 @@ import { NotificationModel } from '@notification/models/notification.schema';
 import { INotificationDocument } from '@notification/interfaces/notification.interface';
 
 export class Get {
-    public async notification(req: Request, res: Response): Promise<void> {
-        const notifications: LeanDocument<INotificationDocument>[] = await NotificationModel.find({ userTo: req.currentUser?.userId })
-            .lean()
-            .populate({
-                path: 'userFrom',
-                select: 'username avatarColor uId profilePicture'
-            })
-            .sort({ createdAt: -1 })
-            .exec();
-        res.status(HTTP_STATUS.OK).json({ message: 'User notifications', notifications, notification: false });
-    }
+  public async notification(req: Request, res: Response): Promise<void> {
+    const notifications: LeanDocument<INotificationDocument>[] = await NotificationModel.find({ userTo: req.currentUser?.userId })
+      .lean()
+      .populate({
+        path: 'userFrom',
+        select: 'username avatarColor uId profilePicture'
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+    res.status(HTTP_STATUS.OK).json({ message: 'User notifications', notifications });
+  }
 }
