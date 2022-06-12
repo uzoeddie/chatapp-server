@@ -4,7 +4,7 @@ import { PostCache } from '@service/redis/post.cache';
 import HTTP_STATUS from 'http-status-codes';
 import { postService } from '@service/db/post.service';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 10;
 const postCache: PostCache = new PostCache();
 
 export class Get {
@@ -14,9 +14,16 @@ export class Get {
     const limit: number = PAGE_SIZE * parseInt(page);
     const newSkip: number = skip === 0 ? skip : skip + 1;
     let posts: IPostDocument[] = [];
-    const cachedData: IPostDocument[] = await postCache.getPostsFromCache('post', newSkip, limit);
-    posts = cachedData.length ? cachedData : await postService.getPosts({}, skip, limit, { createdAt: -1 });
-    res.status(HTTP_STATUS.OK).json({ message: 'All posts', posts });
+    let totalPosts = 0;
+    const cachedData = await postCache.getPostsFromCache('post', newSkip, limit);
+    if (cachedData.length) {
+      posts = cachedData;
+      totalPosts = await postCache.getTotalPostsCache();
+    } else {
+      posts = await postService.getPosts({}, skip, limit, { createdAt: -1 });
+      totalPosts = await postService.postCount();
+    }
+    res.status(HTTP_STATUS.OK).json({ message: 'All posts', posts, totalPosts });
   }
 
   public async postWithImages(req: Request, res: Response): Promise<void> {

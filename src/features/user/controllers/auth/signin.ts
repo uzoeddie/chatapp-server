@@ -39,8 +39,7 @@ export class SignIn {
     res.status(HTTP_STATUS.CREATED).json({
       message: 'User login successfully',
       user: existingUser,
-      token: userJwt,
-      notification: false
+      token: userJwt
     });
   }
 }

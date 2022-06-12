@@ -25,10 +25,10 @@ export class SignUp {
     // const username = faker.name.middleName();
     // const email = faker.internet.email();
     // const password = 'qwerty';
-    const checkIfUserExist: IUserDocument = (await UserModel.findOne({
-      username: Helpers.firstLetterUppercase(username),
-      email: Helpers.lowerCase(email)
-    }).exec()) as IUserDocument;
+    const query = {
+      $or: [{ username: Helpers.firstLetterUppercase(username) }, { email: Helpers.lowerCase(email) }]
+    };
+    const checkIfUserExist: IUserDocument = (await UserModel.findOne(query).exec()) as IUserDocument;
     if (checkIfUserExist) {
       throw new BadRequestError('Invalid credentials');
     }
@@ -53,7 +53,7 @@ export class SignUp {
     userQueue.addUserJob('addUserToDB', { value: data });
     const userJwt: string = SignUp.prototype.signToken(data);
     req.session = { jwt: userJwt };
-    res.status(HTTP_STATUS.CREATED).json({ message: 'User created succesffuly', user: data, token: userJwt, notification: false });
+    res.status(HTTP_STATUS.CREATED).json({ message: 'User created succesffuly', user: data, token: userJwt });
   }
 
   private signToken(data: IUserDocument): string {

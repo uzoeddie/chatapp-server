@@ -26,6 +26,16 @@ class Post {
     });
   }
 
+  public async postCount(): Promise<number> {
+    const count = await PostModel.find({}).countDocuments();
+    return count;
+  }
+
+  public async postWithImagesCount(query: any): Promise<number> {
+    const count = await PostModel.find(query).countDocuments();
+    return count;
+  }
+
   public async deletePost(postId: string, userId: string): Promise<void> {
     const deletePost: Query<IQueryComplete & IQueryDeleted, IPostDocument> = PostModel.deleteOne({ _id: postId });
     const deleteReaction: Query<IQueryComplete & IQueryDeleted, IReactionDocument> = ReactionModel.deleteOne({ postId });

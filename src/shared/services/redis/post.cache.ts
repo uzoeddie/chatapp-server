@@ -2,7 +2,6 @@ import { BaseCache } from '@service/redis/base.cache';
 import { IPostDocument, ISavePostToCache } from '@post/interfaces/post.interface';
 import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
-import _ from 'lodash';
 
 export class PostCache extends BaseCache {
   constructor() {
@@ -85,12 +84,12 @@ export class PostCache extends BaseCache {
     }
   }
 
-  public async getPostsFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
+  public async getPostsFromCache(key: string, start: number, end: number): Promise<any> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.ZRANGE(key, start, end);
+      const reply = await this.client.ZRANGE(key, start, end, { BY: 'SCORE', REV: true });
       const multi = this.client.multi();
       for (const value of reply) {
         multi.HGETALL(`posts:${value}`);
@@ -101,18 +100,30 @@ export class PostCache extends BaseCache {
         post.reactions = Helpers.parseJson(post.reactions);
         post.createdAt = new Date(post.createdAt);
       }
-      return _.orderBy(replies, ['createdAt'], ['desc']);
+      return replies;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
   }
 
-  public async getPostsWithImagesFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
+  public async getTotalPostsCache(): Promise<number> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.ZRANGE(key, start, end);
+      const count = await this.client.ZCARD('post');
+      return count;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async getPostsWithImagesFromCache(key: string, start: number, end: number): Promise<any> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply = await this.client.ZRANGE(key, start, end, { BY: 'SCORE', REV: true });
       const multi = this.client.multi();
       for (const value of reply) {
         multi.HGETALL(`posts:${value}`);
@@ -127,7 +138,7 @@ export class PostCache extends BaseCache {
           postWithImages.push(post);
         }
       }
-      return _.orderBy(postWithImages, ['createdAt'], ['desc']);
+      return postWithImages;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
@@ -155,7 +166,7 @@ export class PostCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.ZRANGE(key, uId, uId, { BY: 'SCORE' });
+      const reply = await this.client.ZRANGE(key, uId, uId, { BY: 'SCORE', REV: true });
       const multi = this.client.multi();
       for (const value of reply) {
         multi.HGETALL(`posts:${value}`);
@@ -167,7 +178,19 @@ export class PostCache extends BaseCache {
         post.reactions = Helpers.parseJson(post.reactions);
         post.createdAt = new Date(post.createdAt);
       }
-      return _.orderBy(replies, ['createdAt'], ['desc']);
+      return replies;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async getTotalUserPostsCache(uId: number): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const count = await this.client.ZCOUNT('post', uId, uId);
+      return count;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }

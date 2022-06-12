@@ -123,7 +123,7 @@ export class UserCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const response = await this.client.ZRANGE('user', start, end);
+      const response = await this.client.ZRANGE('user', start, end, { BY: 'SCORE', REV: true });
       const multi = this.client.multi();
       for (const key of response) {
         if (key !== excludedKey) {
@@ -146,6 +146,18 @@ export class UserCache extends BaseCache {
         reply.followingCount = Helpers.parseJson(reply.followingCount);
       }
       return replies;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async getTotalUsersCache(): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const count = await this.client.ZCARD('user');
+      return count;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }

@@ -4,7 +4,7 @@ import { UserCache } from '@service/redis/user.cache';
 import { PostModel } from '@post/models/post.schema';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { IPostDocument } from '@post/interfaces/post.interface';
-import { Aggregate, FilterQuery, Query, UpdateQuery } from 'mongoose';
+import { Aggregate, FilterQuery, Query } from 'mongoose';
 import { IQuerySort } from '@comment/interfaces/comment.interface';
 import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
 import { NotificationModel } from '@notification/models/notification.schema';
@@ -89,17 +89,12 @@ class Reaction {
 
   public async getPostReactions(query: IQueryReaction, sort?: IQuerySort): Promise<[IReactionDocument[], number]> {
     const reactions: Aggregate<IReactionDocument[]> = ReactionModel.aggregate([{ $match: query }, { $sort: sort }]);
-    const count: Query<number, IReactionDocument> = ReactionModel.find(
-      query as FilterQuery<IReactionDocument>
-    ).countDocuments();
+    const count: Query<number, IReactionDocument> = ReactionModel.find(query as FilterQuery<IReactionDocument>).countDocuments();
     const response = await Promise.all([reactions, count]);
     return response;
   }
 
-  public async getSinglePostReactionByUsername(
-    postId: string,
-    username: string
-  ): Promise<[IReactionDocument, number] | []> {
+  public async getSinglePostReactionByUsername(postId: string, username: string): Promise<[IReactionDocument, number] | []> {
     const reaction = await ReactionModel.findOne({ postId, username: Helpers.firstLetterUppercase(username) });
     let result: [IReactionDocument, number] | [] = [];
     if (reaction) {

@@ -13,7 +13,7 @@ import { postService } from '@service/db/post.service';
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { followerService } from '@service/db/follower.service';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 12;
 
 interface IUserAll {
   newSkip: number;
@@ -37,12 +37,8 @@ export class Get {
       skip,
       userId: `${req.currentUser?.userId}`
     });
-    const followers: Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> = Get.prototype.followers(`${req.currentUser?.userId}`);
-    const response: [
-      IUserDocument[] | LeanDocument<IUserDocument[]>,
-      IFollowerDocument[] | IFollower[] | IFollowerData[]
-    ] = await Promise.all([allUsers, followers]);
-    res.status(HTTP_STATUS.OK).json({ message: 'Get users', users: response[0], followers: response[1] });
+    const followers: IFollowerDocument[] | IFollower[] | IFollowerData[] = await Get.prototype.followers(`${req.currentUser?.userId}`);
+    res.status(HTTP_STATUS.OK).json({ message: 'Get users', users: allUsers.users, followers, totalUsers: allUsers.totalUsers });
   }
 
   public async profile(req: Request, res: Response): Promise<void> {
@@ -84,12 +80,15 @@ export class Get {
     });
   }
 
-  private async allUsers({ newSkip, limit, skip, userId }: IUserAll): Promise<IUserDocument[] | LeanDocument<IUserDocument[]>> {
+  private async allUsers({ newSkip, limit, skip, userId }: IUserAll): Promise<any> {
     let users;
+    let type = '';
     const cachedUser: IUserDocument[] = (await userCache.getUsersFromCache(newSkip, limit, userId)) as IUserDocument[];
     if (cachedUser.length) {
+      type = 'redis';
       users = cachedUser;
     } else {
+      type = 'mongo';
       users = await UserModel.find({ _id: { $ne: userId } })
         .lean()
         .skip(skip)
@@ -97,7 +96,13 @@ export class Get {
         .sort({ createdAt: -1 })
         .exec();
     }
-    return users;
+    const totalUsers = await Get.prototype.usersCount(type);
+    return { users, totalUsers };
+  }
+
+  private async usersCount(type: string): Promise<number> {
+    const totalUsers = type === 'redis' ? await userCache.getTotalUsersCache() : await UserModel.find({}).countDocuments();
+    return totalUsers;
   }
 
   private async followers(userId: string): Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> {
