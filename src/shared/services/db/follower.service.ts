@@ -13,12 +13,7 @@ import { IQueryComplete, IQueryDeleted } from '@post/interfaces/post.interface';
 import { socketIONotificationObject } from '@socket/notification';
 
 class Follower {
-  public async addFollowerToDB(
-    userId: string,
-    followerId: string,
-    username: string,
-    followerDocumentId: ObjectID
-  ): Promise<void> {
+  public async addFollowerToDB(userId: string, followerId: string, username: string, followerDocumentId: ObjectID): Promise<void> {
     const followeeObjectId: ObjectId = mongoose.Types.ObjectId(followerId);
     const userObjectId: ObjectId = mongoose.Types.ObjectId(userId);
 

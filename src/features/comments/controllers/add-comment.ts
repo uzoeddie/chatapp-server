@@ -10,29 +10,29 @@ import { addCommentSchema } from '@comment/schemes/comment';
 const commentCache: CommentCache = new CommentCache();
 
 export class Add {
-    @joiValidation(addCommentSchema)
-    public async comment(req: Request, res: Response): Promise<void> {
-        const { postId, comment, profilePicture, userTo } = req.body;
-        const commentObjectId: ObjectID = new ObjectID();
-        const commentData: ICommentDocument = ({
-            _id: commentObjectId,
-            postId,
-            username: `${req.currentUser?.username}`,
-            avataColor: `${req.currentUser?.avatarColor}`,
-            comment,
-            profilePicture,
-            createdAt: new Date()
-        } as unknown) as ICommentDocument;
-        await commentCache.savePostCommentToCache(postId, JSON.stringify(commentData));
+  @joiValidation(addCommentSchema)
+  public async comment(req: Request, res: Response): Promise<void> {
+    const { postId, comment, profilePicture, userTo } = req.body;
+    const commentObjectId: ObjectID = new ObjectID();
+    const commentData: ICommentDocument = ({
+      _id: commentObjectId,
+      postId,
+      username: `${req.currentUser?.username}`,
+      avataColor: `${req.currentUser?.avatarColor}`,
+      comment,
+      profilePicture,
+      createdAt: new Date()
+    } as unknown) as ICommentDocument;
+    await commentCache.savePostCommentToCache(postId, JSON.stringify(commentData));
 
-        const dbCommentData: ICommentJob = {
-            postId,
-            userTo,
-            userFrom: req.currentUser!.userId,
-            username: req.currentUser!.username,
-            comment: commentData
-        };
-        commentQueue.addCommentJob('addCommentToDB', dbCommentData);
-        res.status(HTTP_STATUS.OK).json({ message: 'Comment created successfully', notification: false });
-    }
+    const dbCommentData: ICommentJob = {
+      postId,
+      userTo,
+      userFrom: req.currentUser!.userId,
+      username: req.currentUser!.username,
+      comment: commentData
+    };
+    commentQueue.addCommentJob('addCommentToDB', dbCommentData);
+    res.status(HTTP_STATUS.OK).json({ message: 'Comment created successfully', notification: false });
+  }
 }

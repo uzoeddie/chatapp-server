@@ -9,24 +9,23 @@ import { followerService } from '@service/db/follower.service';
 const followerCache: FollowerCache = new FollowerCache();
 
 export class Get {
-    public async userFollowing(req: Request, res: Response): Promise<void> {
-        const userObjectId: ObjectId = mongoose.Types.ObjectId(req.currentUser!.userId);
-        const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${req.currentUser?.userId}`);
-        const following: IFollower[] | IFollowerData[] = cachedFollowers.length
-            ? cachedFollowers
-            : await followerService.getFolloweeData(userObjectId);
+  public async userFollowing(req: Request, res: Response): Promise<void> {
+    const userObjectId: ObjectId = mongoose.Types.ObjectId(req.currentUser!.userId);
+    const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${req.currentUser?.userId}`);
+    const following: IFollower[] | IFollowerData[] = cachedFollowers.length
+      ? cachedFollowers
+      : await followerService.getFolloweeData(userObjectId);
 
-        res.status(HTTP_STATUS.OK).json({ message: 'User following', following });
-    }
+    res.status(HTTP_STATUS.OK).json({ message: 'User following', following });
+  }
 
-    public async userFollowers(req: Request, res: Response): Promise<void> {
-        const userObjectId: ObjectId = mongoose.Types.ObjectId(req.params.userId);
-        const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`following:${req.params.userId}`);
-        const followers: IFollower[] | IFollowerData[] = cachedFollowers.length
-            ? cachedFollowers
-            : await followerService.getFollowerData(userObjectId);
+  public async userFollowers(req: Request, res: Response): Promise<void> {
+    const userObjectId: ObjectId = mongoose.Types.ObjectId(req.params.userId);
+    const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`following:${req.params.userId}`);
+    const followers: IFollower[] | IFollowerData[] = cachedFollowers.length
+      ? cachedFollowers
+      : await followerService.getFollowerData(userObjectId);
 
-
-        res.status(HTTP_STATUS.OK).json({ message: 'User followers', followers });
-    }
+    res.status(HTTP_STATUS.OK).json({ message: 'User followers', followers });
+  }
 }

@@ -2,49 +2,49 @@ import { DoneCallback, Job } from 'bull';
 import { imageService } from '@service/db/image.service';
 
 class ImageWorker {
-    async addUserProfileImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
-        try {
-            const { key, value, imgId, imgVersion } = jobQueue.data;
-            await imageService.addUserProfileImageToDB(key, value, imgId, imgVersion);
-            jobQueue.progress(100);
-            done(null, jobQueue.data);
-        } catch (error) {
-            done(error);
-        }
+  async addUserProfileImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, value, imgId, imgVersion } = jobQueue.data;
+      await imageService.addUserProfileImageToDB(key, value, imgId, imgVersion);
+      jobQueue.progress(100);
+      done(null, jobQueue.data);
+    } catch (error) {
+      done(error);
     }
+  }
 
-    async updateBGImageInDB(jobQueue: Job, done: DoneCallback): Promise<void> {
-        try {
-            const { key, imgId, imgVersion } = jobQueue.data;
-            await imageService.addBackgroundImageToDB(key, imgId, imgVersion);
-            jobQueue.progress(100);
-            done(null, jobQueue.data);
-        } catch (error) {
-            done(error);
-        }
+  async updateBGImageInDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, imgId, imgVersion } = jobQueue.data;
+      await imageService.addBackgroundImageToDB(key, imgId, imgVersion);
+      jobQueue.progress(100);
+      done(null, jobQueue.data);
+    } catch (error) {
+      done(error);
     }
+  }
 
-    async addImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
-        try {
-            const { key, imgId, imgVersion } = jobQueue.data;
-            await imageService.addImage(key, imgId, imgVersion, '');
-            jobQueue.progress(100);
-            done(null, jobQueue.data);
-        } catch (error) {
-            done(error);
-        }
+  async addImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, imgId, imgVersion } = jobQueue.data;
+      await imageService.addImage(key, imgId, imgVersion, '');
+      jobQueue.progress(100);
+      done(null, jobQueue.data);
+    } catch (error) {
+      done(error);
     }
+  }
 
-    async removeImageFromDB(jobQueue: Job, done: DoneCallback): Promise<void> {
-        try {
-            const { imageId } = jobQueue.data;
-            await imageService.removeImageFromDB(imageId);
-            jobQueue.progress(100);
-            done(null, jobQueue.data);
-        } catch (error) {
-            done(error);
-        }
+  async removeImageFromDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { imageId } = jobQueue.data;
+      await imageService.removeImageFromDB(imageId);
+      jobQueue.progress(100);
+      done(null, jobQueue.data);
+    } catch (error) {
+      done(error);
     }
+  }
 }
 
 export const imageWorker: ImageWorker = new ImageWorker();

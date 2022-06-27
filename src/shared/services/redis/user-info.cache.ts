@@ -8,42 +8,42 @@ type UserItem = string | number | null;
 const userCache: UserCache = new UserCache();
 
 export class UserInfoCache extends BaseCache {
-    constructor() {
-        super('userInfoCache');
-    }
+  constructor() {
+    super('userInfoCache');
+  }
 
-    public async updateSingleUserItemInCache(key: string, prop: string, value: UserItem): Promise<IUserDocument> {
-        try {
-            if (!this.client.isOpen) {
-                await this.client.connect();
-            }
-            let dataToSave: string[] = [];
-            if (prop === 'birthDay') {
-                dataToSave = ['birthDay', JSON.stringify(value)];
-            } else {
-                dataToSave = [`${prop}`, `${value}`];
-            }
-            const multi = this.client.multi();
-            multi.HSET(`users:${key}`, dataToSave);
-            await multi.exec();
-            const response = await userCache.getUserFromCache(key);
-            return response;
-        } catch (error) {
-            throw new ServerError('Server error. Try again.');
-        }
+  public async updateSingleUserItemInCache(key: string, prop: string, value: UserItem): Promise<IUserDocument> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      let dataToSave: string[] = [];
+      if (prop === 'birthDay') {
+        dataToSave = ['birthDay', JSON.stringify(value)];
+      } else {
+        dataToSave = [`${prop}`, `${value}`];
+      }
+      const multi = this.client.multi();
+      multi.HSET(`users:${key}`, dataToSave);
+      await multi.exec();
+      const response = await userCache.getUserFromCache(key);
+      return response;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public async updateUserInfoListInCache(key: string, prop: string, value: string | ISocialLinks): Promise<IUserDocument> {
-        const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
-        try {
-            if (!this.client.isOpen) {
-                await this.client.connect();
-            }
-            await this.client.HSET(`users:${key}`, dataToSave);
-            const response = await userCache.getUserFromCache(key);
-            return response;
-        } catch (error) {
-            throw new ServerError('Server error. Try again.');
-        }
+  public async updateUserInfoListInCache(key: string, prop: string, value: string | ISocialLinks): Promise<IUserDocument> {
+    const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.HSET(`users:${key}`, dataToSave);
+      const response = await userCache.getUserFromCache(key);
+      return response;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 }
