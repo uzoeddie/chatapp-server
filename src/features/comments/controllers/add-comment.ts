@@ -2,10 +2,12 @@ import { Request, Response } from 'express';
 import { ObjectID } from 'mongodb';
 import HTTP_STATUS from 'http-status-codes';
 import { ICommentDocument, ICommentJob } from '@comment/interfaces/comment.interface';
-import { commentCache } from '@service/redis/comment.cache';
+import { CommentCache } from '@service/redis/comment.cache';
 import { commentQueue } from '@service/queues/comment.queue';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { addCommentSchema } from '@comment/schemes/comment';
+
+const commentCache: CommentCache = new CommentCache();
 
 export class Add {
     @joiValidation(addCommentSchema)

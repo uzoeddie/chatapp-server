@@ -1,8 +1,8 @@
 import Queue, { Job } from 'bull';
 import Logger from 'bunyan';
-import { Express } from 'express';
-import { createBullBoard } from 'bull-board';
-import { BullAdapter } from 'bull-board/bullAdapter';
+import { createBullBoard } from '@bull-board/api';
+import { BullAdapter } from '@bull-board/api/bullAdapter';
+import { ExpressAdapter } from '@bull-board/express';
 import { config } from '@root/config';
 import { IEmailJob, IUserJob, IUserJobInfo } from '@user/interfaces/user.interface';
 import { IPostJobData } from '@post/interfaces/post.interface';
@@ -12,7 +12,6 @@ import { IChatJobData } from '@chat/interfaces/chat.interface';
 import { IFileImageJobData } from '@image/interface/image.interface';
 import { IBlockedUserJobData } from '@follower/interface/follower.interface';
 
-const REDIS_PORT = 6379;
 type IBaseJobData =
     | IUserJob
     | IPostJobData
@@ -24,18 +23,23 @@ type IBaseJobData =
     | IBlockedUserJobData
     | IUserJobInfo;
 let bullAdaptars: BullAdapter[] = [];
-export let queueRouter: Express;
+export let serverAdapter: ExpressAdapter;
 
 export abstract class BaseQueue {
     queue: Queue.Queue;
     log: Logger;
 
     constructor(queueName: string) {
-        this.queue = new Queue(queueName, `redis://${config.REDIS_HOST}:${REDIS_PORT}`);
+        this.queue = new Queue(queueName, `${config.REDIS_HOST}`);
         bullAdaptars.push(new BullAdapter(this.queue));
         bullAdaptars = [...new Set(bullAdaptars)];
-        const { router } = createBullBoard(bullAdaptars);
-        queueRouter = router;
+        serverAdapter = new ExpressAdapter();
+        serverAdapter.setBasePath('/queues');
+
+        createBullBoard({
+            queues: bullAdaptars,
+            serverAdapter,
+        });
         this.log = config.createLogger(`${queueName}Queue`);
 
         this.queue.on('completed', (job: Job) => {

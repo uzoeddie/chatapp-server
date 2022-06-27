@@ -2,13 +2,15 @@ import { Request, Response } from 'express';
 import { authUserPayload, authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { Settings } from '@user/controllers/user/edit/update-settings';
 import { userQueue } from '@service/queues/user.queue';
-import { userCache } from '@service/redis/user.cache';
+import { UserCache } from '@service/redis/user.cache';
 import { existingUser } from '@root/mocks/user.mock';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/user-info.cache');
 jest.mock('@service/redis/user.cache');
+
+const userCache = new UserCache();
 
 describe('Settings', () => {
     beforeEach(() => {

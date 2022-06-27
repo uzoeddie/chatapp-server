@@ -3,12 +3,14 @@ import { Request, Response } from 'express';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { commentMockRequest, commentMockResponse, reactionData } from '@root/mocks/comment.mock';
 import { reactionService } from '@service/db/reaction.service';
-import { reactionCache } from '@service/redis/reaction.cache';
+import { ReactionCache } from '@service/redis/reaction.cache';
 import { Get } from '@reaction/controllers/get-reactions';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/reaction.cache');
+
+const reactionCache: ReactionCache = new ReactionCache();
 
 describe('Get', () => {
     beforeEach(() => {

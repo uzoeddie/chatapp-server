@@ -15,57 +15,57 @@ import { emailSchema, passwordSchema } from '@user/schemes/auth/password';
 import { emailQueue } from '@service/queues/email.queue';
 
 export class Password {
-    @joiValidation(emailSchema)
-    public async create(req: Request, res: Response): Promise<void> {
-        const { email } = req.body;
-        const existingUser: IUserDocument = (await UserModel.findOne({
-            email: Helpers.lowerCase(email)
-        }).exec()) as IUserDocument;
-        if (!existingUser) {
-            throw new BadRequestError('Invalid credentials');
-        }
-
-        const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20));
-        const randomCharacters: string = randomBytes.toString('hex');
-        existingUser.passwordResetToken = randomCharacters;
-        existingUser.passwordResetExpires = Date.now() + 60 * 60 * 1000;
-        await existingUser.save();
-
-        const resetLink = `${config.CLIENT_URL}/auth/reset-password?token=${randomCharacters}`;
-        const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username, resetLink);
-        emailQueue.addEmailJob('forgotPasswordMail', { template, receiverEmail: email, subject: 'Reset your password' });
-        res.status(HTTP_STATUS.OK).json({ message: 'Password reset email sent.', user: {}, token: '' });
+  @joiValidation(emailSchema)
+  public async create(req: Request, res: Response): Promise<void> {
+    const { email } = req.body;
+    const existingUser: IUserDocument = (await UserModel.findOne({
+      email: Helpers.lowerCase(email)
+    }).exec()) as IUserDocument;
+    if (!existingUser) {
+      throw new BadRequestError('Invalid credentials');
     }
 
-    @joiValidation(passwordSchema)
-    public async update(req: Request, res: Response): Promise<void> {
-        const { token } = req.params;
-        const existingUser: IUserDocument = (await UserModel.findOne({
-            passwordResetToken: token,
-            passwordResetExpires: { $gt: Date.now() }
-        }).exec()) as IUserDocument;
-        if (!existingUser) {
-            throw new BadRequestError('Reset token has expired.');
-        }
+    const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20));
+    const randomCharacters: string = randomBytes.toString('hex');
+    existingUser.passwordResetToken = randomCharacters;
+    existingUser.passwordResetExpires = Date.now() + 60 * 60 * 1000;
+    await existingUser.save();
 
-        existingUser.password = req.body.password;
-        existingUser.passwordResetToken = undefined;
-        existingUser.passwordResetExpires = undefined;
-        await existingUser.save();
+    const resetLink = `${config.CLIENT_URL}/auth/reset-password?token=${randomCharacters}`;
+    const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username, resetLink);
+    emailQueue.addEmailJob('forgotPasswordMail', { template, receiverEmail: email, subject: 'Reset your password' });
+    res.status(HTTP_STATUS.OK).json({ message: 'Password reset email sent.', user: {}, token: '' });
+  }
 
-        const templateParams: IResetPasswordParams = {
-            username: existingUser.username,
-            email: existingUser.email,
-            ipaddress: publicIP.v4(),
-            date: moment().format('DD/MM/YYYY HH:mm')
-        };
-
-        const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
-        emailQueue.addEmailJob('forgotPasswordMail', {
-            template,
-            receiverEmail: existingUser.email,
-            subject: 'Password Reset Confirmation'
-        });
-        res.status(HTTP_STATUS.OK).json({ message: 'Password successfully updated.', user: {}, token: '', notification: false });
+  @joiValidation(passwordSchema)
+  public async update(req: Request, res: Response): Promise<void> {
+    const { token } = req.params;
+    const existingUser: IUserDocument = (await UserModel.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    }).exec()) as IUserDocument;
+    if (!existingUser) {
+      throw new BadRequestError('Reset token has expired.');
     }
+
+    existingUser.password = req.body.password;
+    existingUser.passwordResetToken = undefined;
+    existingUser.passwordResetExpires = undefined;
+    await existingUser.save();
+
+    const templateParams: IResetPasswordParams = {
+      username: existingUser.username,
+      email: existingUser.email,
+      ipaddress: publicIP.v4(),
+      date: moment().format('DD/MM/YYYY HH:mm')
+    };
+
+    const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
+    emailQueue.addEmailJob('forgotPasswordMail', {
+      template,
+      receiverEmail: existingUser.email,
+      subject: 'Password Reset Confirmation'
+    });
+    res.status(HTTP_STATUS.OK).json({ message: 'Password successfully updated.', user: {}, token: '' });
+  }
 }

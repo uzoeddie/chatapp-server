@@ -3,13 +3,15 @@ import { Server } from 'socket.io';
 import * as postServer from '@socket/post';
 import { commentMockRequest, commentMockResponse } from '@root/mocks/comment.mock';
 import { authUserPayload } from '@root/mocks/auth.mock';
-import { reactionCache } from '@service/redis/reaction.cache';
+import { ReactionCache } from '@service/redis/reaction.cache';
 import { reactionQueue } from '@service/queues/reaction.queue';
 import { Remove } from '@reaction/controllers/remove-reaction';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/reaction.cache');
+
+const reactionCache: ReactionCache = new ReactionCache();
 
 Object.defineProperties(postServer, {
     socketIOPostObject: {

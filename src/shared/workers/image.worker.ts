@@ -2,10 +2,10 @@ import { DoneCallback, Job } from 'bull';
 import { imageService } from '@service/db/image.service';
 
 class ImageWorker {
-    async updateImageInDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+    async addUserProfileImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
         try {
-            const { key, value } = jobQueue.data;
-            await imageService.addImageToDB(key, value);
+            const { key, value, imgId, imgVersion } = jobQueue.data;
+            await imageService.addUserProfileImageToDB(key, value, imgId, imgVersion);
             jobQueue.progress(100);
             done(null, jobQueue.data);
         } catch (error) {
@@ -24,10 +24,21 @@ class ImageWorker {
         }
     }
 
+    async addImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+        try {
+            const { key, imgId, imgVersion } = jobQueue.data;
+            await imageService.addImage(key, imgId, imgVersion, '');
+            jobQueue.progress(100);
+            done(null, jobQueue.data);
+        } catch (error) {
+            done(error);
+        }
+    }
+
     async removeImageFromDB(jobQueue: Job, done: DoneCallback): Promise<void> {
         try {
-            const { userId, imageId } = jobQueue.data;
-            await imageService.removeImageFromDB(userId, imageId);
+            const { imageId } = jobQueue.data;
+            await imageService.removeImageFromDB(imageId);
             jobQueue.progress(100);
             done(null, jobQueue.data);
         } catch (error) {

@@ -6,7 +6,7 @@ export function uploads(
     overwrite?: boolean,
     invalidate?: boolean
 ): Promise<UploadApiErrorResponse | UploadApiResponse | undefined> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         cloudinary.v2.uploader.upload(
             file,
             {
@@ -16,7 +16,7 @@ export function uploads(
             },
             (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
                 if (error) {
-                    reject(error);
+                    resolve(error);
                 }
                 resolve(result);
             }

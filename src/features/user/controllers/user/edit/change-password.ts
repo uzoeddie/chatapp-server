@@ -25,7 +25,7 @@ export class ChangePassword {
             throw new BadRequestError('Invalid credentials');
         }
         const hashedPassword: string = await existingUser.hashPassword(newPassword);
-        await ChangePassword.prototype.updateOne(`${req.currentUser?.userId}`, hashedPassword);
+        await UserModel.updateOne({ _id: req.currentUser?.userId }, { $set: { password: hashedPassword } }).exec();
 
         const templateParams: IResetPasswordParams = {
             username: existingUser.username,
@@ -42,14 +42,6 @@ export class ChangePassword {
         });
         res.status(HTTP_STATUS.OK).json({
             message: 'Password updated successfully. You will be redirected shortly to the login page',
-            notification: true
-        });
-    }
-
-    private updateOne(userId: string, hashedPassword: string): Promise<void> {
-        return new Promise((resolve) => {
-            UserModel.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
-            resolve();
         });
     }
 }

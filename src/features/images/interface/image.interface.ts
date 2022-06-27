@@ -16,8 +16,9 @@ export interface IFileImageDocument extends mongoose.Document {
     userId: mongoose.Types.ObjectId | string;
     bgImageVersion: string;
     bgImageId: string;
-    profilePicture: string;
-    images: Images[];
+    imgId: string;
+    imgVersion: string;
+    createdAt: Date;
 }
 
 export interface IFileImageJobData {

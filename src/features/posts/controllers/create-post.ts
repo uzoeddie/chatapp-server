@@ -3,12 +3,16 @@ import { Request, Response } from 'express';
 import { ObjectID } from 'mongodb';
 import HTTP_STATUS from 'http-status-codes';
 import { UploadApiResponse } from 'cloudinary';
-import { postCache } from '@service/redis/post.cache';
+import { PostCache } from '@service/redis/post.cache';
 import { postQueue } from '@service/queues/post.queue';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { postSchema, postWithImageSchema } from '@post/schemes/post.schemes';
 import { socketIOPostObject } from '@socket/post';
+import { BadRequestError } from '@global/helpers/error-handler';
+import { imageQueue } from '@service/queues/image.queue';
+
+const postCache: PostCache = new PostCache();
 
 export class Create {
     @joiValidation(postSchema)
@@ -16,7 +20,7 @@ export class Create {
         const { post, bgColor, privacy, gifUrl, profilePicture } = req.body;
         let { feelings } = req.body;
         if (!feelings) {
-            feelings = {};
+            feelings = '';
         }
 
         const postObjectId: ObjectID = new ObjectID();
@@ -35,7 +39,7 @@ export class Create {
             commentsCount: 0,
             imgVersion: '',
             imgId: '',
-            reactions: [],
+            reactions: {like: 0,love: 0,haha: 0,wow: 0,sad: 0,angry: 0},
             createdAt: new Date()
         } as unknown) as IPostDocument;
 
@@ -45,10 +49,10 @@ export class Create {
             uId: `${req.currentUser?.uId}`,
             createdPost
         });
-        socketIOPostObject.emit('add post', createdPost, 'posts');
+        socketIOPostObject.emit('add post', createdPost);
         delete createdPost.reactions;
         postQueue.addPostJob('savePostToDB', { key: req.currentUser?.userId, value: createdPost });
-        res.status(HTTP_STATUS.CREATED).json({ message: 'Post created successfully', notification: true });
+        res.status(HTTP_STATUS.CREATED).json({ message: 'Post created successfully' });
     }
 
     @joiValidation(postWithImageSchema)
@@ -56,9 +60,12 @@ export class Create {
         const { post, bgColor, privacy, gifUrl, profilePicture, image } = req.body;
         let { feelings } = req.body;
         if (!feelings) {
-            feelings = {};
+            feelings = '';
         }
         const result: UploadApiResponse = (await uploads(image)) as UploadApiResponse;
+        if (!result?.public_id) {
+            throw new BadRequestError(result.message);
+        }
         const postObjectId: ObjectID = new ObjectID();
         const createdPost: IPostDocument = ({
             _id: postObjectId,
@@ -75,7 +82,7 @@ export class Create {
             commentsCount: 0,
             imgVersion: result.version.toString(),
             imgId: result.public_id,
-            reactions: [],
+            reactions: {like: 0,love: 0,haha: 0,wow: 0,sad: 0,angry: 0},
             createdAt: new Date()
         } as unknown) as IPostDocument;
 
@@ -85,9 +92,14 @@ export class Create {
             uId: `${req.currentUser?.uId}`,
             createdPost
         });
-        socketIOPostObject.emit('add post', createdPost, 'posts');
+        socketIOPostObject.emit('add post', createdPost);
         delete createdPost.reactions;
         postQueue.addPostJob('savePostToDB', { key: req.currentUser?.userId, value: createdPost });
-        res.status(HTTP_STATUS.CREATED).json({ message: 'Post created with image successfully', notification: true });
+        imageQueue.addImageJob('addImageToDB', {
+            key: `${req.currentUser?.userId}`,
+            imgId: result.public_id,
+            imgVersion: result.version.toString()
+        });
+        res.status(HTTP_STATUS.CREATED).json({ message: 'Post created with image successfully' });
     }
 }

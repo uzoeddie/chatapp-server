@@ -1,22 +1,23 @@
 import { config } from '@root/config';
 import Logger from 'bunyan';
-import redis, { RedisClient } from 'redis';
+import { createClient } from 'redis';
 
-const REDIS_PORT = 6379;
+// to run redis, use the docker image that has redis search
+// docker run -d -p 6379:6379 redislabs/redisearch:latest
 
 export abstract class BaseCache {
-    client: RedisClient;
-    log: Logger;
+  client: any;
+  log: Logger;
 
-    constructor(cacheName: string) {
-        this.client = redis.createClient({ host: config.REDIS_HOST || 'localhost', port: REDIS_PORT });
-        this.log = config.createLogger(cacheName);
-        this.cacheError();
-    }
+  constructor(cacheName: string) {
+    this.client = createClient({ url: config.REDIS_HOST });
+    this.log = config.createLogger(cacheName);
+    this.cacheError();
+  }
 
-    private cacheError(): void {
-        this.client.on('error', (error) => {
-            this.log.error(error);
-        });
-    }
+  private cacheError(): void {
+    this.client.on('error', async (error: unknown) => {
+      this.log.error(error);
+    });
+  }
 }

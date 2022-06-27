@@ -5,11 +5,13 @@ import * as postServer from '@socket/post';
 import { newPost, postMockRequest, postMockResponse } from '@root/mocks/post.mock';
 import { postQueue } from '@service/queues/post.queue';
 import { Delete } from '@post/controllers/delete-post';
-import { postCache } from '@service/redis/post.cache';
+import { PostCache } from '@service/redis/post.cache';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/post.cache');
+
+const postCache: PostCache = new PostCache();
 
 Object.defineProperties(postServer, {
     socketIOPostObject: {

@@ -11,7 +11,7 @@ class CommentRoutes {
     }
 
     public routes(): Router {
-        this.router.get('/post/comments/:postId/:page', authMiddleware.checkAuthentication, Get.prototype.comments);
+        this.router.get('/post/comments/:postId', authMiddleware.checkAuthentication, Get.prototype.comments);
         this.router.get('/post/commentsnames/:postId', authMiddleware.checkAuthentication, Get.prototype.commentNamesFromCache);
         this.router.get('/post/single/comment/:postId/:commentId', authMiddleware.checkAuthentication, Get.prototype.singleComment);
         this.router.post('/post/comment', authMiddleware.checkAuthentication, Add.prototype.comment);

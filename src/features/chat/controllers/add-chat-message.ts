@@ -2,109 +2,120 @@ import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { ObjectID } from 'mongodb';
 import mongoose from 'mongoose';
-import { unflatten } from 'flat';
-import { IChatConversationId, IChatMessage, IChatRedisData, IMessageDocument } from '@chat/interfaces/chat.interface';
 import { addChatSchema } from '@chat/schemes/chat';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { chatQueue } from '@service/queues/chat.queue';
-import { messageCache } from '@service/redis/message.cache';
-import { AuthPayload, IUserDocument } from '@user/interfaces/user.interface';
-import { userCache } from '@service/redis/user.cache';
+import { MessageCache } from '@service/redis/message.cache';
+import { IUserDocument } from '@user/interfaces/user.interface';
+import { UserCache } from '@service/redis/user.cache';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
 import { emailQueue } from '@service/queues/email.queue';
 import { INotificationTemplate } from '@notification/interfaces/notification.interface';
-import { connectedUsersMap } from '@socket/user';
 import { socketIOChatObject } from '@socket/chat';
+import { UploadApiResponse } from 'cloudinary';
+import { uploads } from '@global/helpers/cloudinary-upload';
+import { BadRequestError } from '@global/helpers/error-handler';
+
+const userCache = new UserCache();
+const messageCache: MessageCache = new MessageCache();
 
 export class Add {
-    @joiValidation(addChatSchema)
-    public async message(req: Request, res: Response): Promise<void> {
-        const { conversationId, receiverId, receiverName, body, gifUrl, isRead, selectedImages } = req.body;
-        const createdAt: Date = new Date();
-        const messageObjectId: ObjectID = new ObjectID();
+  @joiValidation(addChatSchema)
+  public async message(req: Request, res: Response): Promise<void> {
+    const {
+      conversationId,
+      receiverId,
+      receiverUsername,
+      receiverAvatarColor,
+      receiverProfilePicture,
+      body,
+      gifUrl,
+      isRead,
+      selectedImage
+    } = req.body;
+    let fileUrl = '';
+    const messageObjectId: ObjectID = new ObjectID();
 
-        const conversationObjectId: ObjectID = !conversationId ? new ObjectID() : mongoose.Types.ObjectId(conversationId);
-        const data: IChatRedisData = Add.prototype.flattenRedisData(req, {
-            _id: `${messageObjectId}`,
-            conversationId: `${conversationObjectId}`,
-            createdAt
-        });
-        if (!selectedImages.length) {
-            Add.prototype.chatMessage(data);
-        }
+    const conversationObjectId: ObjectID = !conversationId ? new ObjectID() : mongoose.Types.ObjectId(conversationId);
+    const sender = await userCache.getUserFromCache(`${req.currentUser?.userId}`);
 
-        const addChatList: Promise<void> = messageCache.addChatListToCache([`${req.currentUser?.userId}`, `${receiverId._id}`], data);
-        const addChatMessage: Promise<void> = messageCache.addChatMessageToCache(`${conversationObjectId}`, data);
-        await Promise.all([addChatList, addChatMessage]);
-
-        const message: IMessageDocument = {
-            _id: messageObjectId,
-            conversationId: conversationObjectId,
-            senderId: mongoose.Types.ObjectId(req.currentUser?.userId),
-            senderName: `${req.currentUser?.username}`,
-            receiverId: mongoose.Types.ObjectId(receiverId._id),
-            receiverName,
-            body,
-            gifUrl,
-            isRead,
-            images: selectedImages,
-            createdAt
-        } as IMessageDocument;
-
-        chatQueue.addChatJob('addChatMessageToDB', { value: message });
-        Add.prototype.messageNotification(req.currentUser!, body, receiverName, receiverId._id);
-        res.status(HTTP_STATUS.OK).json({ message: 'Message added', conversationId: conversationObjectId, notification: false });
+    if (selectedImage.length) {
+      const result: UploadApiResponse = (await uploads(selectedImage)) as UploadApiResponse;
+      if (!result?.public_id) {
+        throw new BadRequestError(result.message);
+      }
+      fileUrl = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result?.version}/${result?.public_id}`;
     }
 
-    private flattenRedisData(req: Request, conversation: IChatConversationId): IChatRedisData {
-        const { conversationId, _id, createdAt } = conversation;
-        const { receiverId, receiverName, body, gifUrl, isRead, profilePicture, selectedImages } = req.body;
-        return {
-            _id,
-            conversationId,
-            'senderId._id': `${req.currentUser?.userId}`,
-            'senderId.username': `${req.currentUser?.username}`,
-            'senderId.avatarColor': `${req.currentUser?.avatarColor}`,
-            'senderId.email': `${req.currentUser?.email}`,
-            'senderId.profilePicture': profilePicture,
-            'receiverId._id': receiverId._id,
-            'receiverId.username': receiverId.username,
-            'receiverId.avatarColor': receiverId.avatarColor,
-            'receiverId.email': receiverId.email,
-            'receiverId.profilePicture': receiverId.profilePicture,
-            body,
-            isRead,
-            gifUrl,
-            senderName: `${req.currentUser?.username}`,
-            receiverName,
-            createdAt,
-            images: selectedImages
-        };
+    const messageData: any = {
+      _id: `${messageObjectId}`,
+      conversationId: conversationObjectId,
+      receiverId,
+      receiverUsername,
+      receiverAvatarColor,
+      receiverProfilePicture,
+      senderUsername: `${req.currentUser?.username}`,
+      senderId: `${req.currentUser?.userId}`,
+      senderAvatarColor: `${req.currentUser?.avatarColor}`,
+      senderProfilePicture: `${sender?.profilePicture}`,
+      body,
+      isRead,
+      gifUrl,
+      selectedImage: fileUrl,
+      reaction: [],
+      createdAt: new Date()
+    };
+    Add.prototype.emitSocketIOEvent(messageData);
+
+    if (!isRead) {
+      Add.prototype.messageNotification({
+        currentUser: req.currentUser!,
+        message: body,
+        receiverName: receiverUsername,
+        receiverId,
+        messageData
+      });
     }
 
-    private chatMessage(data: IChatRedisData): void {
-        const unflattenedMessageData: IChatMessage = unflatten(data);
-        const senderSocketId: string = connectedUsersMap.get(unflattenedMessageData.senderId._id!) as string;
-        const receiverSocketId: string = connectedUsersMap.get(unflattenedMessageData.receiverId._id!) as string;
-        socketIOChatObject.to(senderSocketId).to(receiverSocketId).emit('message received', unflattenedMessageData);
-        socketIOChatObject.to(senderSocketId).to(receiverSocketId).emit('chat list', unflattenedMessageData);
-        socketIOChatObject.emit('trigger message notification', unflattenedMessageData);
-    }
+    await messageCache.addChatListToCache(`${req.currentUser?.userId}`, `${receiverId}`, `${conversationObjectId}`);
+    await messageCache.addChatListToCache(`${receiverId}`, `${req.currentUser?.userId}`, `${conversationObjectId}`);
+    await messageCache.addChatMessageToCache(`${conversationObjectId}`, messageData);
+    chatQueue.addChatJob('addChatMessageToDB', messageData);
 
-    private async messageNotification(currentUser: AuthPayload, message: string, receiverName: string, receiverId: string): Promise<void> {
-        const cachedUser: IUserDocument = await userCache.getUserFromCache(`${receiverId}`);
-        if (cachedUser.notifications.messages) {
-            const templateParams: INotificationTemplate = {
-                username: receiverName,
-                message,
-                header: `Message Notification from ${currentUser.username}`
-            };
-            const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
-            emailQueue.addEmailJob('directMessageMail', {
-                receiverEmail: currentUser.email,
-                template,
-                subject: `You've received messages from ${receiverName}`
-            });
-        }
+    res.status(HTTP_STATUS.OK).json({ message: 'Message added', conversationId: conversationObjectId });
+  }
+
+  public async addChatUsers(req: Request, res: Response): Promise<void> {
+    const chatUsers = await messageCache.addChatUsersToCache(req.body);
+    socketIOChatObject.emit('add chat users', chatUsers);
+    res.status(HTTP_STATUS.OK).json({ message: 'Users added' });
+  }
+
+  public async removeChatUsers(req: Request, res: Response): Promise<void> {
+    const chatUsers = await messageCache.removeChatUsersFromCache(req.body);
+    socketIOChatObject.emit('add chat users', chatUsers);
+    res.status(HTTP_STATUS.OK).json({ message: 'Users removed' });
+  }
+
+  private emitSocketIOEvent(data: any): void {
+    socketIOChatObject.emit('message received', data);
+    socketIOChatObject.emit('chat list', data);
+  }
+
+  private async messageNotification({ currentUser, message, receiverName, receiverId }: any): Promise<void> {
+    const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${receiverId}`)) as IUserDocument;
+    if (cachedUser.notifications.messages) {
+      const templateParams: INotificationTemplate = {
+        username: receiverName,
+        message,
+        header: `Message Notification from ${currentUser.username}`
+      };
+      const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
+      emailQueue.addEmailJob('directMessageMail', {
+        receiverEmail: currentUser.email,
+        template,
+        subject: `You've received messages from ${receiverName}`
+      });
     }
+  }
 }

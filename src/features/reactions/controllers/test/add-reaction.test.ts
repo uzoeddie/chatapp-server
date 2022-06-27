@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { commentMockRequest, commentMockResponse } from '@root/mocks/comment.mock';
-import { reactionCache } from '@service/redis/reaction.cache';
+import { ReactionCache } from '@service/redis/reaction.cache';
 import { reactionQueue } from '@service/queues/reaction.queue';
 import { Add } from '@reaction/controllers/add-reaction';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/reaction.cache');
+
+const reactionCache: ReactionCache = new ReactionCache();
 
 describe('AddReaction', () => {
     beforeEach(() => {

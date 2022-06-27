@@ -14,9 +14,9 @@ export interface IPostDocument extends Document {
     commentsCount: number;
     imgVersion?: string;
     imgId?: string;
-    feelings?: IFeeling;
+    feelings?: string;
     gifUrl?: string;
-    privacy?: IPostPrivacy;
+    privacy?: string;
     reactions?: IReactions;
     createdAt?: Date;
 }
@@ -24,15 +24,15 @@ export interface IPostDocument extends Document {
 // add every interface below to the downloadable file for the lecture
 export type PostPrivacyType = 'Public' | 'Followers' | 'Private';
 
-export interface IFeeling {
-    name: string;
-    file: string;
-}
+// export interface IFeeling {
+//     name: string;
+//     file: string;
+// }
 
-export interface IPostPrivacy {
-    type: PostPrivacyType;
-    iconName: string;
-}
+// export interface IPostPrivacy {
+//     type: PostPrivacyType;
+//     iconName: string;
+// }
 
 export interface ICreatePost {
     id: ObjectID | string;
@@ -44,8 +44,8 @@ export interface ICreatePost {
     post?: string;
     image?: string;
     bgColor?: string;
-    feelings?: IFeeling;
-    privacy?: IPostPrivacy | string;
+    feelings?: string;
+    privacy?: string;
     gifUrl?: string;
     imgId?: string;
     imgVersion?: string;
@@ -55,6 +55,7 @@ export interface ICreatePost {
 export interface IGetPosts {
     _id?: ObjectID | string;
     username?: string;
+    imgId?: any;
 }
 
 export interface ISavePostToCache {
