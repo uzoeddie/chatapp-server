@@ -40,7 +40,7 @@ export class Update {
     if (imgId && imgVersion) {
       Update.prototype.updatePostWithImage(req);
     } else {
-      const result = await Update.prototype.addImageToExistingPost(req);
+      const result: UploadApiResponse = await Update.prototype.addImageToExistingPost(req);
       if (!result?.public_id) {
         throw new BadRequestError(result.message);
       }

@@ -9,7 +9,7 @@ class UserWorker {
       job.progress(100);
       done(null, job.data);
     } catch (error) {
-      done(error);
+      done(error as Error);
     }
   }
 
@@ -20,7 +20,7 @@ class UserWorker {
       job.progress(100);
       done(null, job.data);
     } catch (error) {
-      done(error);
+      done(error as Error);
     }
   }
 }

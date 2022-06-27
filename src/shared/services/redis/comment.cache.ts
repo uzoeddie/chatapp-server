@@ -15,7 +15,7 @@ export class CommentCache extends BaseCache {
         await this.client.connect();
       }
       await this.client.LPUSH(`comments:${key}`, value);
-      const commentsCount = await this.client.HMGET(`posts:${key}`, 'commentsCount');
+      const commentsCount: string = await this.client.HMGET(`posts:${key}`, 'commentsCount');
       let count = Helpers.parseJson(commentsCount) as number;
       count += 1;
       const dataToSave: string[] = ['commentsCount', `${count}`];
@@ -30,7 +30,7 @@ export class CommentCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.LRANGE(`comments:${key}`, 0, -1);
+      const reply: string[] = await this.client.LRANGE(`comments:${key}`, 0, -1);
       const list: ICommentDocument[] = [];
       for (const item of reply) {
         list.push(Helpers.parseJson(item) as ICommentDocument);
@@ -47,7 +47,7 @@ export class CommentCache extends BaseCache {
         await this.client.connect();
       }
       const reply: number = await this.client.LLEN(`comments:${key}`);
-      const comments = await this.client.LRANGE(`comments:${key}`, 0, -1);
+      const comments: string[] = await this.client.LRANGE(`comments:${key}`, 0, -1);
       const list: string[] = [];
       for (const item of comments) {
         const commentDocument: ICommentDocument = Helpers.parseJson(item) as ICommentDocument;
@@ -68,7 +68,7 @@ export class CommentCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.LRANGE(`comments:${key}`, 0, -1);
+      const reply: string[] = await this.client.LRANGE(`comments:${key}`, 0, -1);
       const list: ICommentDocument[] = [];
       for (const item of reply) {
         list.push(Helpers.parseJson(item) as ICommentDocument);

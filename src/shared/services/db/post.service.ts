@@ -1,5 +1,5 @@
 import { PostModel } from '@post/models/post.schema';
-import { IGetPosts, IPostDocument, IQueryComplete, IQueryDeleted } from '@post/interfaces/post.interface';
+import { IGetPostsQuery, IPostDocument, IQueryComplete, IQueryDeleted } from '@post/interfaces/post.interface';
 import { UserModel } from '@user/models/user.schema';
 import { Aggregate, Query, UpdateQuery } from 'mongoose';
 import { IUserDocument } from '@user/interfaces/user.interface';
@@ -14,10 +14,16 @@ class Post {
     await Promise.all([post, user]);
   }
 
-  public async getPosts(query: IGetPosts | any, skip = 0, limit = 0, sort?: IQuerySort): Promise<IPostDocument[]> {
+  public async getPosts(query: IGetPostsQuery, skip = 0, limit = 0, sort?: IQuerySort): Promise<IPostDocument[]> {
+    let postQuery = {};
+    if (query?.imgId && query?.gifUrl) {
+      postQuery = { $or: [{ imgId: { $ne: '' } }, { gifUrl: { $ne: '' } }] };
+    } else {
+      postQuery = query;
+    }
     return new Promise((resolve) => {
       const posts: Aggregate<IPostDocument[]> = PostModel.aggregate([
-        { $match: query },
+        { $match: postQuery },
         { $sort: sort },
         { $skip: skip },
         { $limit: limit }
@@ -28,11 +34,6 @@ class Post {
 
   public async postCount(): Promise<number> {
     const count = await PostModel.find({}).countDocuments();
-    return count;
-  }
-
-  public async postWithImagesCount(query: any): Promise<number> {
-    const count = await PostModel.find(query).countDocuments();
     return count;
   }
 

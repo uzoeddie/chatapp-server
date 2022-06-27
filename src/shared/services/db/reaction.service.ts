@@ -90,12 +90,12 @@ class Reaction {
   public async getPostReactions(query: IQueryReaction, sort?: IQuerySort): Promise<[IReactionDocument[], number]> {
     const reactions: Aggregate<IReactionDocument[]> = ReactionModel.aggregate([{ $match: query }, { $sort: sort }]);
     const count: Query<number, IReactionDocument> = ReactionModel.find(query as FilterQuery<IReactionDocument>).countDocuments();
-    const response = await Promise.all([reactions, count]);
+    const response: [IReactionDocument[], number] = await Promise.all([reactions, count]);
     return response;
   }
 
   public async getSinglePostReactionByUsername(postId: string, username: string): Promise<[IReactionDocument, number] | []> {
-    const reaction = await ReactionModel.findOne({ postId, username: Helpers.firstLetterUppercase(username) });
+    const reaction: IReactionDocument | null = await ReactionModel.findOne({ postId, username: Helpers.firstLetterUppercase(username) });
     let result: [IReactionDocument, number] | [] = [];
     if (reaction) {
       result = [reaction, 1];
@@ -104,7 +104,7 @@ class Reaction {
   }
 
   public async getReactionsByUsernameFromCache(username: string): Promise<IReactionDocument[]> {
-    const reaction = await ReactionModel.find({ username: Helpers.firstLetterUppercase(username) });
+    const reaction: IReactionDocument[] = await ReactionModel.find({ username: Helpers.firstLetterUppercase(username) });
     return reaction;
   }
 }

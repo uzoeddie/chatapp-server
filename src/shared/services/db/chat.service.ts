@@ -1,12 +1,12 @@
 import { ObjectID } from 'mongodb';
-import { IMessageDocument } from '@chat/interfaces/chat.interface';
+import { IMessageData } from '@chat/interfaces/chat.interface';
 import { IConversationDocument } from '@chat/interfaces/conversation.interface';
 import { MessageModel } from '@chat/models/chat.schema';
 import { ConversationModel } from '@chat/models/conversation.schema';
 import { IQuerySort } from '@comment/interfaces/comment.interface';
 
 class Chat {
-  public async addMessageToDB(data: IMessageDocument): Promise<void> {
+  public async addMessageToDB(data: IMessageData): Promise<void> {
     const conversation: IConversationDocument[] = await ConversationModel.find({ _id: data?.conversationId }).exec();
 
     if (conversation.length === 0) {
@@ -37,18 +37,18 @@ class Chat {
     });
   }
 
-  public async getMessages(senderId: ObjectID, receiverId: ObjectID, sort?: IQuerySort): Promise<any[]> {
+  public async getMessages(senderId: ObjectID, receiverId: ObjectID, sort?: IQuerySort): Promise<IMessageData[]> {
     const query = {
       $or: [
         { senderId, receiverId },
         { senderId: receiverId, receiverId: senderId }
       ]
     };
-    const messages = await MessageModel.aggregate([{ $match: query }, { $sort: sort }]);
+    const messages: IMessageData[] = await MessageModel.aggregate([{ $match: query }, { $sort: sort }]);
     return messages;
   }
 
-  public async getUserConversationList(senderId: ObjectID): Promise<any[]> {
+  public async getUserConversationList(senderId: ObjectID): Promise<IMessageData[]> {
     const messages = await MessageModel.aggregate([
       { $match: { $or: [{ senderId }, { receiverId: senderId }] } },
       {

@@ -15,6 +15,7 @@ import { socketIOChatObject } from '@socket/chat';
 import { UploadApiResponse } from 'cloudinary';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { BadRequestError } from '@global/helpers/error-handler';
+import { IMessageData, IMessageNotification } from '@chat/interfaces/chat.interface';
 
 const userCache = new UserCache();
 const messageCache: MessageCache = new MessageCache();
@@ -47,7 +48,7 @@ export class Add {
       fileUrl = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result?.version}/${result?.public_id}`;
     }
 
-    const messageData: any = {
+    const messageData: IMessageData = {
       _id: `${messageObjectId}`,
       conversationId: conversationObjectId,
       receiverId,
@@ -76,7 +77,6 @@ export class Add {
         messageData
       });
     }
-
     await messageCache.addChatListToCache(`${req.currentUser?.userId}`, `${receiverId}`, `${conversationObjectId}`);
     await messageCache.addChatListToCache(`${receiverId}`, `${req.currentUser?.userId}`, `${conversationObjectId}`);
     await messageCache.addChatMessageToCache(`${conversationObjectId}`, messageData);
@@ -97,12 +97,12 @@ export class Add {
     res.status(HTTP_STATUS.OK).json({ message: 'Users removed' });
   }
 
-  private emitSocketIOEvent(data: any): void {
+  private emitSocketIOEvent(data: IMessageData): void {
     socketIOChatObject.emit('message received', data);
     socketIOChatObject.emit('chat list', data);
   }
 
-  private async messageNotification({ currentUser, message, receiverName, receiverId }: any): Promise<void> {
+  private async messageNotification({ currentUser, message, receiverName, receiverId }: IMessageNotification): Promise<void> {
     const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${receiverId}`)) as IUserDocument;
     if (cachedUser.notifications.messages) {
       const templateParams: INotificationTemplate = {

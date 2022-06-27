@@ -3,6 +3,7 @@ import HTTP_STATUS from 'http-status-codes';
 import mongoose from 'mongoose';
 import { MessageCache } from '@service/redis/message.cache';
 import { chatService } from '@service/db/chat.service';
+import { IMessageData } from '@chat/interfaces/chat.interface';
 
 const messageCache: MessageCache = new MessageCache();
 
@@ -20,8 +21,8 @@ export class Get {
 
   public async messages(req: Request, res: Response): Promise<void> {
     const { receiverId } = req.params;
-    let messages = [];
-    const cachedMessages = await messageCache.getChatMessagesFromCache(`${req.currentUser?.userId}`, `${receiverId}`);
+    let messages: IMessageData[] = [];
+    const cachedMessages: IMessageData[] = await messageCache.getChatMessagesFromCache(`${req.currentUser?.userId}`, `${receiverId}`);
     if (cachedMessages.length) {
       messages = cachedMessages;
     } else {

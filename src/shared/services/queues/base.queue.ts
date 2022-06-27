@@ -8,7 +8,7 @@ import { IEmailJob, IUserJob, IUserJobInfo } from '@user/interfaces/user.interfa
 import { IPostJobData } from '@post/interfaces/post.interface';
 import { ICommentJob } from '@comment/interfaces/comment.interface';
 import { IReactionJob } from '@reaction/interfaces/reaction.interface';
-import { IChatJobData } from '@chat/interfaces/chat.interface';
+import { IChatJobData, IMessageData } from '@chat/interfaces/chat.interface';
 import { IFileImageJobData } from '@image/interface/image.interface';
 import { IBlockedUserJobData } from '@follower/interface/follower.interface';
 
@@ -18,7 +18,7 @@ type IBaseJobData =
   | IEmailJob
   | ICommentJob
   | IReactionJob
-  | IChatJobData
+  | IChatJobData | IMessageData
   | IFileImageJobData
   | IBlockedUserJobData
   | IUserJobInfo;

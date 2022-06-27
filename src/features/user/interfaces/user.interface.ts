@@ -31,8 +31,8 @@ export interface IUserDocument extends Document {
   school: string;
   quote: string;
   location: string;
-  blocked: [mongoose.Types.ObjectId] | [];
-  blockedBy: [mongoose.Types.ObjectId] | [];
+  blocked: mongoose.Types.ObjectId[];
+  blockedBy: mongoose.Types.ObjectId[];
   followersCount: number;
   followingCount: number;
   notifications: INotificationSettings;
@@ -62,38 +62,6 @@ export interface IResetPasswordParams {
   ipaddress: publicIP.CancelablePromise<string>;
   date: string;
 }
-
-// export interface IUserWork {
-//     _id: mongoose.Types.ObjectId | string;
-//     company: string;
-//     position: string;
-//     city: string;
-//     description: string;
-//     from: string;
-//     to: string;
-// }
-
-// export interface IUserSchool {
-//     _id: mongoose.Types.ObjectId | string;
-//     name: string;
-//     course: string;
-//     degree: string;
-//     from: string;
-//     to: string;
-// }
-
-// export interface IUserBirthDay {
-//     month: string;
-//     day: string;
-// }
-
-// export interface IUserPlacesLived {
-//     _id: mongoose.Types.ObjectId | string;
-//     city: string;
-//     country: string;
-//     year: string;
-//     month: string;
-// }
 
 export interface INotificationSettings {
   messages: boolean;
@@ -136,8 +104,7 @@ export interface IEmailJob {
   subject: string;
 }
 
-export interface IUserInfoListProp {
-  key: string;
-  value: string;
-  prop: string;
+export interface IAllUsers {
+  users: IUserDocument[];
+  totalUsers: number;
 }

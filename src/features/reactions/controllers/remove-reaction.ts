@@ -9,7 +9,7 @@ const reactionCache: ReactionCache = new ReactionCache();
 export class Remove {
   public async reaction(req: Request, res: Response): Promise<void> {
     const { postId, previousReaction, postReactions } = req.params;
-    await reactionCache.removePostReactionFromCache(postId, `${req.currentUser?.username}`, previousReaction, JSON.parse(postReactions));
+    await reactionCache.removePostReactionFromCache(postId, `${req.currentUser?.username}`, JSON.parse(postReactions));
     const dbReactionData: IReactionJob = {
       postId,
       username: req.currentUser!.username,

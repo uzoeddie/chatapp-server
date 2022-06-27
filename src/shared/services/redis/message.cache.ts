@@ -2,6 +2,8 @@ import _ from 'lodash';
 import { BaseCache } from '@service/redis/base.cache';
 import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
+import { IChatList, IChatUsers, IMessageData } from '@chat/interfaces/chat.interface';
+import { IReaction } from '@reaction/interfaces/reaction.interface';
 
 export class MessageCache extends BaseCache {
   constructor() {
@@ -27,7 +29,7 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async addChatMessageToCache(key: string, value: any): Promise<void> {
+  public async addChatMessageToCache(key: string, value: IMessageData): Promise<void> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
@@ -38,14 +40,14 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async addChatUsersToCache(value: any): Promise<any[]> {
+  public async addChatUsersToCache(value: IChatUsers): Promise<IChatUsers[]> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const users = await this.getChatUsersList();
-      const usersIndex: number = _.findIndex(users, (listItem: any) => JSON.stringify(listItem) === JSON.stringify(value));
-      let chatUsers = [];
+      const users: IChatUsers[] = await this.getChatUsersList();
+      const usersIndex: number = _.findIndex(users, (listItem: IChatUsers) => JSON.stringify(listItem) === JSON.stringify(value));
+      let chatUsers: IChatUsers[] = [];
       if (usersIndex === -1) {
         await this.client.RPUSH('chatUsers', JSON.stringify(value));
         chatUsers = await this.getChatUsersList();
@@ -58,18 +60,18 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async updateMessageReaction(key: string, messageId: string, reaction: string, senderName: string, type: string) {
+  public async updateMessageReaction(key: string, messageId: string, reaction: string, senderName: string, type: string): Promise<IMessageData> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const messages = await this.client.LRANGE(`messages:${key}`, 0, -1);
+      const messages: string[] = await this.client.LRANGE(`messages:${key}`, 0, -1);
       const messageIndex: number = _.findIndex(messages, (listItem: string) => listItem.includes(messageId));
-      const message = await this.client.LINDEX(`messages:${key}`, messageIndex);
-      const parsedMessage = Helpers.parseJson(message) as any;
-      const reactions = [];
+      const message: string = await this.client.LINDEX(`messages:${key}`, messageIndex);
+      const parsedMessage: IMessageData = Helpers.parseJson(message) as IMessageData;
+      const reactions: IReaction[] = [];
       if (parsedMessage) {
-        _.remove(parsedMessage.reaction, (reaction: any) => reaction.senderName === senderName);
+        _.remove(parsedMessage.reaction, (reaction: IReaction) => reaction.senderName === senderName);
         if (type === 'add') {
           reactions.push({ senderName, type: reaction });
           parsedMessage.reaction = [...parsedMessage.reaction, ...reactions];
@@ -79,21 +81,20 @@ export class MessageCache extends BaseCache {
         }
       }
       const updatedMessage = await this.client.LINDEX(`messages:${key}`, messageIndex);
-      return Helpers.parseJson(updatedMessage);
+      return Helpers.parseJson(updatedMessage) as IMessageData;
     } catch (error) {
-      console.log(error);
       throw new ServerError('Server error. Try again.');
     }
   }
 
-  public async removeChatUsersFromCache(value: any): Promise<any[]> {
+  public async removeChatUsersFromCache(value: IChatUsers): Promise<IChatUsers[]> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const users = await this.getChatUsersList();
-      const usersIndex: number = _.findIndex(users, (listItem: any) => JSON.stringify(listItem) === JSON.stringify(value));
-      let chatUsers = [];
+      const users: IChatUsers[] = await this.getChatUsersList();
+      const usersIndex: number = _.findIndex(users, (listItem: IChatUsers) => JSON.stringify(listItem) === JSON.stringify(value));
+      let chatUsers: IChatUsers[] = [];
       if (usersIndex > -1) {
         await this.client.LREM('chatUsers', usersIndex, JSON.stringify(value));
         chatUsers = await this.getChatUsersList();
@@ -106,17 +107,17 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async getUserConversationList(key: string) {
+  public async getUserConversationList(key: string): Promise<IChatList[]> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const userChatList = await this.client.LRANGE(`chatList:${key}`, 0, -1);
-      const conversationChatList = [];
+      const userChatList: string[] = await this.client.LRANGE(`chatList:${key}`, 0, -1);
+      const conversationChatList: IChatList[] = [];
       for (const item of userChatList) {
-        const chatItem = Helpers.parseJson(item) as any;
+        const chatItem = Helpers.parseJson(item) as IChatList;
         const lastMessage = await this.client.LINDEX(`messages:${chatItem.conversationId}`, -1);
-        conversationChatList.push(Helpers.parseJson(lastMessage));
+        conversationChatList.push(Helpers.parseJson(lastMessage) as IChatList);
       }
       return conversationChatList;
     } catch (error) {
@@ -124,19 +125,19 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async getChatMessagesFromCache(senderId: string, receiverId: string): Promise<any[]> {
+  public async getChatMessagesFromCache(senderId: string, receiverId: string): Promise<IMessageData[]> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const userChatList = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
-      const receiver = _.find(userChatList, (listItem: string) => listItem.includes(receiverId));
-      const parsedReceiver = Helpers.parseJson(receiver) as any;
+      const userChatList: string[] = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
+      const receiver: string = _.find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
+      const parsedReceiver: IChatList = Helpers.parseJson(receiver) as IChatList;
       if (parsedReceiver) {
-        const userMessages = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
-        const chatMessages = [];
+        const userMessages: string[] = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
+        const chatMessages: IMessageData[] = [];
         for (const item of userMessages) {
-          const chatItem = Helpers.parseJson(item) as any;
+          const chatItem = Helpers.parseJson(item) as IMessageData;
           chatMessages.push(chatItem);
         }
         return chatMessages;
@@ -148,34 +149,34 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async updateChatMessages(senderId: string, receiverId: string): Promise<any> {
+  public async updateChatMessages(senderId: string, receiverId: string): Promise<IMessageData> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const userChatList = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
-      const receiver = _.find(userChatList, (listItem: string) => listItem.includes(receiverId));
-      const parsedReceiver = Helpers.parseJson(receiver) as any;
+      const userChatList: string[] = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
+      const receiver: string = _.find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
+      const parsedReceiver: IChatList = Helpers.parseJson(receiver) as IChatList;
       const messages = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
       for (const [index, item] of messages.entries()) {
-        const chatItem = Helpers.parseJson(item) as any;
+        const chatItem = Helpers.parseJson(item) as IMessageData;
         if (!chatItem.isRead) {
           chatItem.isRead = true;
           await this.client.LSET(`messages:${parsedReceiver.conversationId}`, index, JSON.stringify(chatItem));
         }
       }
-      const lastMessage = await this.client.LINDEX(`messages:${parsedReceiver.conversationId}`, -1);
-      return Helpers.parseJson(lastMessage);
+      const lastMessage: string = await this.client.LINDEX(`messages:${parsedReceiver.conversationId}`, -1);
+      return Helpers.parseJson(lastMessage) as IMessageData;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
   }
 
-  private async getChatUsersList(): Promise<any[]> {
-    const chatUsersList = [];
+  private async getChatUsersList(): Promise<IChatUsers[]> {
+    const chatUsersList: IChatUsers[] = [];
     const chatUsers = await this.client.LRANGE('chatUsers', 0, -1);
     for (const item of chatUsers) {
-      const ChatUser = Helpers.parseJson(item) as any;
+      const ChatUser: IChatUsers = Helpers.parseJson(item) as IChatUsers;
       chatUsersList.push(ChatUser);
     }
     return chatUsersList;

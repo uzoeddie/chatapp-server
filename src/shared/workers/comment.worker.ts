@@ -9,7 +9,7 @@ class CommentWorker {
       job.progress(100);
       done(null, data);
     } catch (error) {
-      done(error);
+      done(error as Error);
     }
   }
 }
