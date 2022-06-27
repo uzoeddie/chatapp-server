@@ -3,7 +3,7 @@ import Logger from 'bunyan';
 import { createClient } from 'redis';
 
 // to run redis, use the docker image that has redis search
-// docker run -p 6379:6379 redislabs/redisearch:latest
+// docker run -d -p 6379:6379 redislabs/redisearch:latest
 
 export abstract class BaseCache {
   client: any;
