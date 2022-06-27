@@ -8,10 +8,10 @@ import { userQueue } from '@service/queues/user.queue';
 const userCache: UserCache = new UserCache();
 
 export class Settings {
-    @joiValidation(notificationSettingsSchema)
-    public async update(req: Request, res: Response): Promise<void> {
-        await userCache.updateNotificationSettingsInCache(`${req.currentUser?.userId}`, 'notifications', req.body);
-        userQueue.addUserJob('updateNotificationSettings', { key: `${req.currentUser?.username}`, value: req.body });
-        res.status(HTTP_STATUS.OK).json({ message: 'Notification settings updated successfully', settings: req.body });
-    }
+  @joiValidation(notificationSettingsSchema)
+  public async update(req: Request, res: Response): Promise<void> {
+    await userCache.updateNotificationSettingsInCache(`${req.currentUser?.userId}`, 'notifications', req.body);
+    userQueue.addUserJob('updateNotificationSettings', { key: `${req.currentUser?.username}`, value: req.body });
+    res.status(HTTP_STATUS.OK).json({ message: 'Notification settings updated successfully', settings: req.body });
+  }
 }

@@ -15,7 +15,6 @@ export class SocketIOChatHandler {
   public listen(): void {
     this.io.on('connection', (socket: Socket) => {
       this.socketIOChat(socket);
-      // this.chatPageSocket(socket);
     });
   }
 

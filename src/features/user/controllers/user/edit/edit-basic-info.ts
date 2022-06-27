@@ -9,35 +9,27 @@ import { basicInfoSchema, socialLinksSchema } from '@user/schemes/user/info';
 const userInfoCache: UserInfoCache = new UserInfoCache();
 
 export class EditBasicInfo {
-    @joiValidation(basicInfoSchema)
-    public async info(req: Request, res: Response): Promise<void> {
-        for(const [key, value] of Object.entries(req.body)) {
-            await userInfoCache.updateUserInfoListInCache(
-                `${req.currentUser?.userId}`,
-                key,
-                `${value}`
-            );
-        }
-        // socketIOUserObject.emit('update user', cachedUser);
-        userInfoQueue.addUserInfoJob('updateUserInfoInCache', {
-            key: `${req.currentUser?.userId}`,
-            value: req.body,
-        });
-        res.status(HTTP_STATUS.OK).json({ message: 'Updated successfully' });
+  @joiValidation(basicInfoSchema)
+  public async info(req: Request, res: Response): Promise<void> {
+    for (const [key, value] of Object.entries(req.body)) {
+      await userInfoCache.updateUserInfoListInCache(`${req.currentUser?.userId}`, key, `${value}`);
     }
+    // socketIOUserObject.emit('update user', cachedUser);
+    userInfoQueue.addUserInfoJob('updateUserInfoInCache', {
+      key: `${req.currentUser?.userId}`,
+      value: req.body
+    });
+    res.status(HTTP_STATUS.OK).json({ message: 'Updated successfully' });
+  }
 
-    @joiValidation(socialLinksSchema)
-    public async social(req: Request, res: Response): Promise<void> {
-        await userInfoCache.updateUserInfoListInCache(
-            `${req.currentUser?.userId}`,
-            'social',
-            req.body
-        );
-        // socketIOUserObject.emit('update user', cachedUser);
-        userInfoQueue.addUserInfoJob('updateSocialLinksInCache', {
-            key: `${req.currentUser?.userId}`,
-            value: req.body,
-        });
-        res.status(HTTP_STATUS.OK).json({ message: 'Updated successfully' });
-    }
+  @joiValidation(socialLinksSchema)
+  public async social(req: Request, res: Response): Promise<void> {
+    await userInfoCache.updateUserInfoListInCache(`${req.currentUser?.userId}`, 'social', req.body);
+    // socketIOUserObject.emit('update user', cachedUser);
+    userInfoQueue.addUserInfoJob('updateSocialLinksInCache', {
+      key: `${req.currentUser?.userId}`,
+      value: req.body
+    });
+    res.status(HTTP_STATUS.OK).json({ message: 'Updated successfully' });
+  }
 }

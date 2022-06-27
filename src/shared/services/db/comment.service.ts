@@ -1,10 +1,4 @@
-import {
-  ICommentJob,
-  ICommentDocument,
-  ICommentNameList,
-  IQueryComment,
-  IQuerySort
-} from '@comment/interfaces/comment.interface';
+import { ICommentJob, ICommentDocument, ICommentNameList, IQueryComment, IQuerySort } from '@comment/interfaces/comment.interface';
 import { CommentsModel } from '@comment/models/comment.schema';
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { PostModel } from '@post/models/post.schema';
@@ -55,7 +49,7 @@ class Comment {
         header: 'Comment Notification'
       };
       const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
-      // emailQueue.addEmailJob('commentsMail', { receiverEmail: response[2].email, template, subject: 'Post Notification' });
+      emailQueue.addEmailJob('commentsMail', { receiverEmail: response[2].email, template, subject: 'Post Notification' });
     }
   }
 
@@ -66,12 +60,7 @@ class Comment {
     });
   }
 
-  public async getPostCommentNames(
-    query: IQueryComment,
-    skip = 0,
-    limit = 0,
-    sort?: IQuerySort
-  ): Promise<ICommentNameList[]> {
+  public async getPostCommentNames(query: IQueryComment, skip = 0, limit = 0, sort?: IQuerySort): Promise<ICommentNameList[]> {
     return new Promise((resolve) => {
       const commentsNameList: Aggregate<ICommentNameList[]> = CommentsModel.aggregate([
         { $match: query },

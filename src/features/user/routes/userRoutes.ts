@@ -1,13 +1,6 @@
 import { authMiddleware } from '@global/helpers/auth-middleware';
-// import { AddBasicInfo } from '@user/controllers/user/add/add-basic-info';
-// import { AddDetails } from '@user/controllers/user/add/add-details';
-// import { AddPlaces } from '@user/controllers/user/add/add-places';
-// import { AddWorkAndEducation } from '@user/controllers/user/add/add-work-and-education';
-// import { DeletePlacesLived } from '@user/controllers/user/delete/delete-places';
-// import { DeleteWorkAndEducation } from '@user/controllers/user/delete/delete-work-and-education';
 import { ChangePassword } from '@user/controllers/user/edit/change-password';
 import { EditBasicInfo } from '@user/controllers/user/edit/edit-basic-info';
-// import { EditWorkAndEducation } from '@user/controllers/user/edit/edit-work-and-education';
 import { Settings } from '@user/controllers/user/edit/update-settings';
 import { Get } from '@user/controllers/user/get-profile';
 import { Search } from '@user/controllers/user/search-user';
