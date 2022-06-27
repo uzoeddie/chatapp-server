@@ -2,10 +2,6 @@ import { ObjectID } from 'mongodb';
 import mongoose from 'mongoose';
 import { IUserDocument } from '@user/interfaces/user.interface';
 
-export interface IFollowing {
-  userId: string;
-}
-
 export interface IFollowers {
   userId: string;
 }

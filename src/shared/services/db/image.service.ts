@@ -5,12 +5,12 @@ import { UserModel } from '@user/models/user.schema';
 class Image {
   public async addUserProfileImageToDB(userId: string, url: string, imgId: string, imgVersion: string): Promise<void> {
     const updateUserProfile = UserModel.updateOne({ _id: userId }, { $set: { profilePicture: url } });
-    const image = this.addImage(userId, imgId, imgVersion, 'profile');
+    const image: Promise<void> = this.addImage(userId, imgId, imgVersion, 'profile');
     await Promise.all([updateUserProfile, image]);
   }
 
   public async addBackgroundImageToDB(userId: string, imgId: string, imgVersion: string): Promise<void> {
-    const image = this.addImage(userId, imgId, imgVersion, 'background');
+    const image: Promise<void> = this.addImage(userId, imgId, imgVersion, 'background');
     const backgroundImage = UserModel.updateOne(
       { _id: userId },
       {

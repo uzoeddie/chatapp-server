@@ -10,6 +10,7 @@ import { IUserDocument } from '@user/interfaces/user.interface';
 import { socketIOImageObject } from '@socket/image';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
+import { IBgUploadResponse } from '@image/interface/image.interface';
 
 const userInfoCache: UserInfoCache = new UserInfoCache();
 
@@ -34,7 +35,7 @@ export class Add {
 
   @joiValidation(addImageSchema)
   public async backgroundImage(req: Request, res: Response): Promise<void> {
-    const { version, publicId } = await Add.prototype.backgroundUpload(req.body.image);
+    const { version, publicId }: IBgUploadResponse = await Add.prototype.backgroundUpload(req.body.image);
     const bgImageId: Promise<IUserDocument> = userInfoCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'bgImageId',
@@ -59,7 +60,7 @@ export class Add {
     res.status(HTTP_STATUS.CREATED).json({ message: 'Image added successfully' });
   }
 
-  private async backgroundUpload(image: any) {
+  private async backgroundUpload(image: string): Promise<IBgUploadResponse> {
     const isDataURL = Helpers.isDataURL(image);
     let version = '';
     let publicId = '';

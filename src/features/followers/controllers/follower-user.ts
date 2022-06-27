@@ -3,7 +3,7 @@ import HTTP_STATUS from 'http-status-codes';
 import { UserCache } from '@service/redis/user.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { ObjectID } from 'mongodb';
-import { IFollower, IFollowerData } from '@follower/interface/follower.interface';
+import { IFollowerData } from '@follower/interface/follower.interface';
 import { FollowerCache } from '@service/redis/follower.cache';
 import { followerQueue } from '@service/queues/follower.queue';
 import { socketIOFollowerObject } from '@socket/follower';
@@ -25,7 +25,6 @@ export class Add {
 
     const followerObjectId: ObjectID = new ObjectID();
     const addFolloweeData: IFollowerData = Add.prototype.userData(response[0]);
-    // const addFollowerData: IFollowerData = Add.prototype.userData(response[1]);
     socketIOFollowerObject.emit('add follower', addFolloweeData);
     const addFollowerToCache: Promise<void> = followerCache.saveFollowerToCache(`followers:${req.currentUser!.userId}`, `${followerId}`);
     const addFolloweeToCache: Promise<void> = followerCache.saveFollowerToCache(`following:${followerId}`, `${req.currentUser!.userId}`);

@@ -9,7 +9,7 @@ class FollowerWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
-      done(error);
+      done(error as Error);
     }
   }
 
@@ -20,7 +20,7 @@ class FollowerWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
-      done(error);
+      done(error as Error);
     }
   }
 }

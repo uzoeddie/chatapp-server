@@ -6,6 +6,7 @@ import { chatQueue } from '@service/queues/chat.queue';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { markChatSchema } from '@chat/schemes/chat';
 import { socketIOChatObject } from '@socket/chat';
+import { IMessageData } from '@chat/interfaces/chat.interface';
 
 const messageCache: MessageCache = new MessageCache();
 
@@ -13,7 +14,7 @@ export class Mark {
   @joiValidation(markChatSchema)
   public async message(req: Request, res: Response): Promise<void> {
     const { senderId, receiverId } = req.body;
-    const updatedMessage = await messageCache.updateChatMessages(`${senderId}`, `${receiverId}`);
+    const updatedMessage: IMessageData = await messageCache.updateChatMessages(`${senderId}`, `${receiverId}`);
     socketIOChatObject.emit('message read', updatedMessage);
     socketIOChatObject.emit('chat list', updatedMessage);
     chatQueue.addChatJob('markMessagesAsReadInDB', {

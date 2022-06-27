@@ -22,7 +22,7 @@ export class ReactionCache extends BaseCache {
       }
       const reaction: IReactionDocument = Helpers.parseJson(value) as IReactionDocument;
       if (previousReaction) {
-        this.removePostReactionFromCache(key, reaction.username, previousReaction, postReactions);
+        this.removePostReactionFromCache(key, reaction.username, postReactions);
       }
       if (type) {
         await this.client.LPUSH(`reactions:${key}`, JSON.stringify(reaction));
@@ -37,14 +37,13 @@ export class ReactionCache extends BaseCache {
   public async removePostReactionFromCache(
     key: string,
     username: string,
-    previousReaction: string,
     postReactions: IReactions
   ): Promise<void> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const response = await this.client.LRANGE(`reactions:${key}`, 0, -1);
+      const response: string[] = await this.client.LRANGE(`reactions:${key}`, 0, -1);
       const multi = this.client.multi();
       const userPreviousReaction: IReactionDocument = this.getPreviousReaction(response, username) as IReactionDocument;
       multi.LREM(`reactions:${key}`, 1, JSON.stringify(userPreviousReaction));
@@ -63,12 +62,12 @@ export class ReactionCache extends BaseCache {
         await this.client.connect();
       }
       await this.client.LLEN(`reactions:${key}`);
-      const response = await this.client.LRANGE(`reactions:${key}`, 0, -1);
+      const response: string[] = await this.client.LRANGE(`reactions:${key}`, 0, -1);
       const list: IReactionDocument[] = [];
       for (const item of response) {
         list.push(Helpers.parseJson(item) as IReactionDocument);
       }
-      return response.length ? [list, response] : [[], 0];
+      return response.length ? [list, response.length] : [[], 0];
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
@@ -79,7 +78,7 @@ export class ReactionCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.LRANGE(`reactions:${key}`, 0, -1);
+      const reply: string[] = await this.client.LRANGE(`reactions:${key}`, 0, -1);
       const list: IReactionDocument[] = [];
       for (const item of reply) {
         list.push(Helpers.parseJson(item) as IReactionDocument);
@@ -98,7 +97,7 @@ export class ReactionCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const reply = await this.client.LRANGE(`reactions:${key}`, 0, -1);
+      const reply: string[] = await this.client.LRANGE(`reactions:${key}`, 0, -1);
       const list: IReactionDocument[] = [];
       for (const item of reply) {
         list.push(Helpers.parseJson(item) as IReactionDocument);

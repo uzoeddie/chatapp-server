@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { UserCache } from '@service/redis/user.cache';
 import { Helpers } from '@global/helpers/helpers';
+import { ISearchUser } from '@chat/interfaces/chat.interface';
 
 const userCache: UserCache = new UserCache();
 
 export class Search {
   public async user(req: Request, res: Response): Promise<void> {
-    const users = await userCache.searchForUserInCache(Helpers.escapeRegex(req.params.query), `${req.currentUser?.userId}`);
+    const users: ISearchUser[] = await userCache.searchForUserInCache(Helpers.escapeRegex(req.params.query), `${req.currentUser?.userId}`);
     res.status(HTTP_STATUS.OK).json({ message: 'Search results', search: users });
   }
 }

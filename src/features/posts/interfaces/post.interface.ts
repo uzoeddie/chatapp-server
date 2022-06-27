@@ -52,10 +52,11 @@ export interface ICreatePost {
   createdAt?: Date;
 }
 
-export interface IGetPosts {
+export interface IGetPostsQuery {
   _id?: ObjectID | string;
   username?: string;
-  imgId?: any;
+  imgId?: string;
+  gifUrl?: string;
 }
 
 export interface ISavePostToCache {

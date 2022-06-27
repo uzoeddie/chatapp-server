@@ -41,3 +41,8 @@ export interface IQueryReaction {
   _id?: string | ObjectID;
   postId?: string | ObjectID;
 }
+
+export interface IReaction {
+  senderName: string;
+  type: string;
+}

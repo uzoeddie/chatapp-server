@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import _ from 'lodash';
-import { IUserDocument } from '@user/interfaces/user.interface';
+import { IAllUsers, IUserDocument } from '@user/interfaces/user.interface';
 import { LeanDocument } from 'mongoose';
 import { UserCache } from '@service/redis/user.cache';
 import { UserModel } from '@user/models/user.schema';
@@ -80,36 +80,6 @@ export class Get {
     });
   }
 
-  private async allUsers({ newSkip, limit, skip, userId }: IUserAll): Promise<any> {
-    let users;
-    let type = '';
-    const cachedUser: IUserDocument[] = (await userCache.getUsersFromCache(newSkip, limit, userId)) as IUserDocument[];
-    if (cachedUser.length) {
-      type = 'redis';
-      users = cachedUser;
-    } else {
-      type = 'mongo';
-      users = await UserModel.find({ _id: { $ne: userId } })
-        .lean()
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .exec();
-    }
-    const totalUsers = await Get.prototype.usersCount(type);
-    return { users, totalUsers };
-  }
-
-  private async usersCount(type: string): Promise<number> {
-    const totalUsers = type === 'redis' ? await userCache.getTotalUsersCache() : await UserModel.find({}).countDocuments();
-    return totalUsers;
-  }
-
-  private async followers(userId: string): Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> {
-    const cachedFollowers: IFollower[] | IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
-    return cachedFollowers.length ? cachedFollowers : await followerService.getFollowers(userId);
-  }
-
   public async randomUserSuggestions(req: Request, res: Response): Promise<void> {
     let randomUsers: IUserDocument[] = [];
     const cachedUser: IUserDocument[] = await userCache.getRandomUsersFromCache(`${req.currentUser?.userId}`);
@@ -129,5 +99,34 @@ export class Get {
       }
     }
     res.status(HTTP_STATUS.OK).json({ message: 'User suggestions', users: randomUsers });
+  }
+
+  private async allUsers({ newSkip, limit, skip, userId }: IUserAll): Promise<IAllUsers> {
+    let users;
+    let type = '';
+    const cachedUser: IUserDocument[] = (await userCache.getUsersFromCache(newSkip, limit, userId)) as IUserDocument[];
+    if (cachedUser.length) {
+      type = 'redis';
+      users = cachedUser;
+    } else {
+      type = 'mongo';
+      users = await UserModel.find({ _id: { $ne: userId } })
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec();
+    }
+    const totalUsers = await Get.prototype.usersCount(type);
+    return { users, totalUsers };
+  }
+
+  private async usersCount(type: string): Promise<number> {
+    const totalUsers: number = type === 'redis' ? await userCache.getTotalUsersCache() : await UserModel.find({}).countDocuments();
+    return totalUsers;
+  }
+
+  private async followers(userId: string): Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> {
+    const cachedFollowers: IFollower[] | IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
+    return cachedFollowers.length ? cachedFollowers : await followerService.getFollowers(userId);
   }
 }

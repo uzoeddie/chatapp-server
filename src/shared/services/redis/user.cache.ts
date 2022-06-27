@@ -1,8 +1,9 @@
+import mongoose from 'mongoose';
 import { ISearchUser } from '@chat/interfaces/chat.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
-import { INotificationSettings, IUserDocument } from '@user/interfaces/user.interface';
+import { INotificationSettings, ISocialLinks, IUserDocument } from '@user/interfaces/user.interface';
 import _ from 'lodash';
 
 export class UserCache extends BaseCache {
@@ -98,19 +99,19 @@ export class UserCache extends BaseCache {
         await this.client.connect();
       }
 
-      const response = await this.client.HGETALL(`users:${key}`);
-      response.createdAt = new Date(Helpers.parseJson(response.createdAt) as Date);
-      response.postsCount = Helpers.parseJson(response.postsCount);
-      response.blocked = Helpers.parseJson(response.blocked);
-      response.blockedBy = Helpers.parseJson(response.blockedBy);
-      response.work = Helpers.parseJson(response.work);
-      response.school = Helpers.parseJson(response.school);
-      response.location = Helpers.parseJson(response.location);
-      response.quote = Helpers.parseJson(response.quote);
-      response.notifications = Helpers.parseJson(response.notifications);
-      response.social = Helpers.parseJson(response.social);
-      response.followersCount = Helpers.parseJson(response.followersCount);
-      response.followingCount = Helpers.parseJson(response.followingCount);
+      const response: IUserDocument = await this.client.HGETALL(`users:${key}`);
+      response.createdAt = new Date(Helpers.parseJson(`${response.createdAt}`) as Date);
+      response.postsCount = Helpers.parseJson(`${response.postsCount}`) as number;
+      response.blocked = Helpers.parseJson(`${response.blocked}`) as mongoose.Types.ObjectId[];
+      response.blockedBy = Helpers.parseJson(`${response.blockedBy}`) as mongoose.Types.ObjectId[];
+      response.work = Helpers.parseJson(response.work) as string;
+      response.school = Helpers.parseJson(response.school) as string;
+      response.location = Helpers.parseJson(response.location) as string;
+      response.quote = Helpers.parseJson(response.quote) as string;
+      response.notifications = Helpers.parseJson(`${response.notifications}`) as INotificationSettings;
+      response.social = Helpers.parseJson(`${response.social}`) as ISocialLinks;
+      response.followersCount = Helpers.parseJson(`${response.followersCount}`) as number;
+      response.followingCount = Helpers.parseJson(`${response.followingCount}`) as number;
 
       return response;
     } catch (error) {
@@ -123,27 +124,27 @@ export class UserCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const response = await this.client.ZRANGE('user', start, end, { BY: 'SCORE', REV: true });
+      const response: string[]  = await this.client.ZRANGE('user', start, end, { BY: 'SCORE', REV: true });
       const multi = this.client.multi();
       for (const key of response) {
         if (key !== excludedKey) {
           multi.HGETALL(`users:${key}`);
         }
       }
-      const replies = await multi.exec();
+      const replies: IUserDocument[] = await multi.exec();
       for (const reply of replies) {
-        reply.createdAt = new Date(Helpers.parseJson(reply.createdAt) as Date);
-        reply.postsCount = Helpers.parseJson(reply.postsCount);
-        reply.blocked = Helpers.parseJson(reply.blocked);
-        reply.blockedBy = Helpers.parseJson(reply.blockedBy);
-        reply.work = Helpers.parseJson(reply.work);
-        reply.school = Helpers.parseJson(reply.school);
-        reply.location = Helpers.parseJson(reply.location);
-        reply.quote = Helpers.parseJson(reply.quote);
-        reply.notifications = Helpers.parseJson(reply.notifications);
-        reply.social = Helpers.parseJson(reply.social);
-        reply.followersCount = Helpers.parseJson(reply.followersCount);
-        reply.followingCount = Helpers.parseJson(reply.followingCount);
+        reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`) as Date);
+        reply.postsCount = Helpers.parseJson(`${reply.postsCount}`) as number;
+        reply.blocked = Helpers.parseJson(`${reply.blocked}`) as mongoose.Types.ObjectId[];
+        reply.blockedBy = Helpers.parseJson(`${reply.blockedBy}`) as mongoose.Types.ObjectId[];
+        reply.work = Helpers.parseJson(reply.work) as string;
+        reply.school = Helpers.parseJson(reply.school) as string;
+        reply.location = Helpers.parseJson(reply.location) as string;
+        reply.quote = Helpers.parseJson(reply.quote) as string;
+        reply.notifications = Helpers.parseJson(`${reply.notifications}`) as INotificationSettings;
+        reply.social = Helpers.parseJson(`${reply.social}`) as ISocialLinks;
+        reply.followersCount = Helpers.parseJson(`${reply.followersCount}`) as number;
+        reply.followingCount = Helpers.parseJson(`${reply.followingCount}`) as number;
       }
       return replies;
     } catch (error) {
@@ -156,7 +157,7 @@ export class UserCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const count = await this.client.ZCARD('user');
+      const count: number = await this.client.ZCARD('user');
       return count;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
@@ -169,31 +170,31 @@ export class UserCache extends BaseCache {
         await this.client.connect();
       }
       const replies = [];
-      const followers = await this.client.LRANGE(`followers:${excludedKey}`, 0, -1);
-      const users = await this.client.ZRANGE('user', 0, -1);
+      const followers: string[] = await this.client.LRANGE(`followers:${excludedKey}`, 0, -1);
+      const users: string[] = await this.client.ZRANGE('user', 0, -1);
       const excludedKeyIndex = _.indexOf(users, excludedKey);
       users.splice(excludedKeyIndex, 1);
-      const randomUsers = Helpers.shuffle(users).slice(0, 10);
+      const randomUsers: string[] = Helpers.shuffle(users).slice(0, 10);
       for (const key of randomUsers) {
         const followerIndex = _.indexOf(followers, key);
         if (followerIndex < 0) {
-          const userHash = await this.client.HGETALL(`users:${key}`);
+          const userHash: IUserDocument = await this.client.HGETALL(`users:${key}`);
           replies.push(userHash);
         }
       }
       for (const reply of replies) {
-        reply.createdAt = new Date(Helpers.parseJson(reply.createdAt) as Date);
-        reply.postsCount = Helpers.parseJson(reply.postsCount);
-        reply.blocked = Helpers.parseJson(reply.blocked);
-        reply.blockedBy = Helpers.parseJson(reply.blockedBy);
-        reply.work = Helpers.parseJson(reply.work);
-        reply.school = Helpers.parseJson(reply.school);
-        reply.location = Helpers.parseJson(reply.location);
-        reply.quote = Helpers.parseJson(reply.quote);
-        reply.notifications = Helpers.parseJson(reply.notifications);
-        reply.social = Helpers.parseJson(reply.social);
-        reply.followersCount = Helpers.parseJson(reply.followersCount);
-        reply.followingCount = Helpers.parseJson(reply.followingCount);
+        reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`) as Date);
+        reply.postsCount = Helpers.parseJson(`${reply.postsCount}`) as number;
+        reply.blocked = Helpers.parseJson(`${reply.blocked}`) as mongoose.Types.ObjectId[];
+        reply.blockedBy = Helpers.parseJson(`${reply.blockedBy}`) as mongoose.Types.ObjectId[];
+        reply.work = Helpers.parseJson(reply.work) as string;
+        reply.school = Helpers.parseJson(reply.school) as string;
+        reply.location = Helpers.parseJson(reply.location) as string;
+        reply.quote = Helpers.parseJson(reply.quote) as string;
+        reply.notifications = Helpers.parseJson(`${reply.notifications}`) as INotificationSettings;
+        reply.social = Helpers.parseJson(`${reply.social}`) as ISocialLinks;
+        reply.followersCount = Helpers.parseJson(`${reply.followersCount}`) as number;
+        reply.followingCount = Helpers.parseJson(`${reply.followingCount}`) as number;
       }
       return replies;
     } catch (error) {
