@@ -103,7 +103,7 @@ class Reaction {
     return result;
   }
 
-  public async getReactionsByUsernameFromCache(username: string): Promise<IReactionDocument[]> {
+  public async getReactionsByUsername(username: string): Promise<IReactionDocument[]> {
     const reaction: IReactionDocument[] = await ReactionModel.find({ username: Helpers.firstLetterUppercase(username) });
     return reaction;
   }

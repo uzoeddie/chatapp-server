@@ -43,9 +43,9 @@ export class Get {
     });
   }
 
-  public async reactionsByUsernameFromCache(req: Request, res: Response): Promise<void> {
+  public async reactionsByUsername(req: Request, res: Response): Promise<void> {
     const { username } = req.params;
-    const reactions: IReactionDocument[] = await reactionService.getReactionsByUsernameFromCache(username);
+    const reactions: IReactionDocument[] = await reactionService.getReactionsByUsername(username);
     res.status(HTTP_STATUS.OK).json({
       message: 'Single post reaction by username',
       reactions

@@ -43,9 +43,9 @@ export class Get {
 
   public async profile(req: Request, res: Response): Promise<void> {
     const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${req.currentUser?.userId}`)) as IUserDocument;
-    const existingUser: LeanDocument<IUserDocument> | null = cachedUser
+    const existingUser: IUserDocument | null = cachedUser
       ? cachedUser
-      : await UserModel.findOne({ _id: req.currentUser?.userId }).lean().exec();
+      : await UserModel.findOne({ _id: req.currentUser?.userId }).exec();
     res.status(HTTP_STATUS.OK).json({ message: 'Get user profile', user: existingUser });
   }
 
@@ -58,7 +58,7 @@ export class Get {
 
     const existingUser: IUserDocument = (cachedResponse[0]
       ? cachedResponse[0]
-      : UserModel.findOne({ username: userName }).lean()) as IUserDocument;
+      : UserModel.findOne({ username: userName }).exec()) as IUserDocument;
     const userPosts: IPostDocument[] | Promise<IPostDocument[]> = cachedResponse[1]
       ? cachedResponse[1]
       : postService.getPosts({ username: userName }, 0, 100, { createdAt: -1 });
@@ -73,7 +73,7 @@ export class Get {
   public async profileByUserId(req: Request, res: Response): Promise<void> {
     const { userId } = req.params;
     const cachedUser: IUserDocument = await userCache.getUserFromCache(userId);
-    const existingUser: IUserDocument = (cachedUser ? cachedUser : UserModel.findOne({ _id: userId }).lean()) as IUserDocument;
+    const existingUser: IUserDocument = (cachedUser ? cachedUser : UserModel.findOne({ _id: userId }).exec()) as IUserDocument;
     res.status(HTTP_STATUS.OK).json({
       message: 'Get user profile',
       user: existingUser
@@ -127,6 +127,7 @@ export class Get {
 
   private async followers(userId: string): Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> {
     const cachedFollowers: IFollower[] | IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
-    return cachedFollowers.length ? cachedFollowers : await followerService.getFollowers(userId);
+    const result = cachedFollowers.length ? cachedFollowers : await followerService.getFollowers(userId);
+    return result;
   }
 }
