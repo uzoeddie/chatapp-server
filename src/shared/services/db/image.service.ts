@@ -31,7 +31,8 @@ class Image {
   }
 
   public async removeImageFromDB(imageId: string): Promise<void> {
-    await ImageModel.deleteOne({ _id: mongoose.Types.ObjectId(imageId) }).exec();
+    const imgId = new mongoose.Types.ObjectId(imageId);
+    await ImageModel.deleteOne({ _id: imgId }).exec();
   }
 }
 

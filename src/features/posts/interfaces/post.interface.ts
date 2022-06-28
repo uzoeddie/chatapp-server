@@ -1,9 +1,9 @@
 import { IReactions } from '@reaction/interfaces/reaction.interface';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Document } from 'mongoose';
 
 export interface IPostDocument extends Document {
-  _id?: string | ObjectID;
+  _id?: string | ObjectId;
   userId: string;
   username: string;
   email: string;
@@ -35,7 +35,7 @@ export type PostPrivacyType = 'Public' | 'Followers' | 'Private';
 // }
 
 export interface ICreatePost {
-  id: ObjectID | string;
+  id: ObjectId | string;
   userId?: string;
   email?: string;
   username?: string;
@@ -53,14 +53,14 @@ export interface ICreatePost {
 }
 
 export interface IGetPostsQuery {
-  _id?: ObjectID | string;
+  _id?: ObjectId | string;
   username?: string;
   imgId?: string;
   gifUrl?: string;
 }
 
 export interface ISavePostToCache {
-  key: ObjectID | string;
+  key: ObjectId | string;
   currentUserId: string;
   uId: string;
   createdPost: IPostDocument;

@@ -25,8 +25,8 @@ export interface INotification {
   userFrom: string;
   message: string;
   notificationType: string;
-  entityId: mongoose.Types.ObjectId | string;
-  createdItemId: mongoose.Types.ObjectId | string;
+  entityId: mongoose.Types.ObjectId;
+  createdItemId: mongoose.Types.ObjectId;
   createdAt: Date;
   comment: string;
   reaction: string;

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 import { addChatSchema } from '@chat/schemes/chat';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
@@ -35,9 +35,9 @@ export class Add {
       selectedImage
     } = req.body;
     let fileUrl = '';
-    const messageObjectId: ObjectID = new ObjectID();
+    const messageObjectId: ObjectId = new ObjectId();
 
-    const conversationObjectId: ObjectID = !conversationId ? new ObjectID() : mongoose.Types.ObjectId(conversationId);
+    const conversationObjectId: ObjectId = !conversationId ? new ObjectId() : new mongoose.Types.ObjectId(conversationId);
     const sender = await userCache.getUserFromCache(`${req.currentUser?.userId}`);
 
     if (selectedImage.length) {
@@ -50,7 +50,7 @@ export class Add {
 
     const messageData: IMessageData = {
       _id: `${messageObjectId}`,
-      conversationId: conversationObjectId,
+      conversationId: new mongoose.Types.ObjectId(conversationObjectId),
       receiverId,
       receiverUsername,
       receiverAvatarColor,

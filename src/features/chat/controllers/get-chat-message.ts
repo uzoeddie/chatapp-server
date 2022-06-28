@@ -14,7 +14,7 @@ export class Get {
     if (cachedList.length) {
       list = cachedList;
     } else {
-      list = await chatService.getUserConversationList(mongoose.Types.ObjectId(req.currentUser?.userId));
+      list = await chatService.getUserConversationList(new mongoose.Types.ObjectId(req.currentUser?.userId));
     }
     res.status(HTTP_STATUS.OK).json({ message: 'User conversation list', list });
   }
@@ -26,7 +26,7 @@ export class Get {
     if (cachedMessages.length) {
       messages = cachedMessages;
     } else {
-      messages = await chatService.getMessages(mongoose.Types.ObjectId(req.currentUser!.userId), mongoose.Types.ObjectId(receiverId), {
+      messages = await chatService.getMessages(new mongoose.Types.ObjectId(req.currentUser!.userId), new mongoose.Types.ObjectId(receiverId), {
         createdAt: 1
       });
     }

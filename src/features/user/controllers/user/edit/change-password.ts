@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import moment from 'moment';
-import publicIP from 'public-ip';
+import publicIP from 'ip';
 import { IResetPasswordParams, IUserDocument } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
 import { BadRequestError } from '@global/helpers/error-handler';
@@ -30,7 +30,7 @@ export class ChangePassword {
     const templateParams: IResetPasswordParams = {
       username: existingUser.username,
       email: existingUser.email,
-      ipaddress: publicIP.v4(),
+      ipaddress: publicIP.address(),
       date: moment().format('DD/MM/YYYY HH:mm')
     };
 

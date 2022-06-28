@@ -13,7 +13,7 @@ export class Get {
     const cachedReactions: [IReactionDocument[], number] = await reactionCache.getReactionsFromCache(postId);
     const reactions: [IReactionDocument[], number] = cachedReactions[0].length
       ? cachedReactions
-      : await reactionService.getPostReactions({ postId: mongoose.Types.ObjectId(postId) }, { createdAt: -1 });
+      : await reactionService.getPostReactions({ postId: new mongoose.Types.ObjectId(postId) }, { createdAt: -1 });
     res.status(HTTP_STATUS.OK).json({ message: 'Post reactions', reactions: reactions[0], count: reactions[1] });
   }
 
@@ -22,7 +22,7 @@ export class Get {
     const cachedReaction: [IReactionDocument[], number] = await reactionCache.getSingleReactionFromCache(postId, reactionId);
     const reactions: [IReactionDocument[], number] = cachedReaction[0].length
       ? cachedReaction
-      : await reactionService.getPostReactions({ _id: mongoose.Types.ObjectId(reactionId) });
+      : await reactionService.getPostReactions({ _id: new mongoose.Types.ObjectId(reactionId) }, { createdAt: 1 });
     res.status(HTTP_STATUS.OK).json({
       message: 'Single post reaction',
       reactions: reactions[0],

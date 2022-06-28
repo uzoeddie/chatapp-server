@@ -1,9 +1,8 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { IMessageData } from '@chat/interfaces/chat.interface';
 import { IConversationDocument } from '@chat/interfaces/conversation.interface';
 import { MessageModel } from '@chat/models/chat.schema';
 import { ConversationModel } from '@chat/models/conversation.schema';
-import { IQuerySort } from '@comment/interfaces/comment.interface';
 
 class Chat {
   public async addMessageToDB(data: IMessageData): Promise<void> {
@@ -37,7 +36,7 @@ class Chat {
     });
   }
 
-  public async getMessages(senderId: ObjectID, receiverId: ObjectID, sort?: IQuerySort): Promise<IMessageData[]> {
+  public async getMessages(senderId: ObjectId, receiverId: ObjectId, sort: Record<string, 1 | -1>): Promise<IMessageData[]> {
     const query = {
       $or: [
         { senderId, receiverId },
@@ -48,7 +47,7 @@ class Chat {
     return messages;
   }
 
-  public async getUserConversationList(senderId: ObjectID): Promise<IMessageData[]> {
+  public async getUserConversationList(senderId: ObjectId): Promise<IMessageData[]> {
     const messages = await MessageModel.aggregate([
       { $match: { $or: [{ senderId }, { receiverId: senderId }] } },
       {
@@ -83,7 +82,7 @@ class Chat {
     return messages;
   }
 
-  public async markMessagesAsRead(senderId: ObjectID, receiverId: ObjectID): Promise<void> {
+  public async markMessagesAsRead(senderId: ObjectId, receiverId: ObjectId): Promise<void> {
     const query = {
       $or: [
         { senderId, receiverId },
@@ -93,7 +92,7 @@ class Chat {
     await MessageModel.updateMany(query, { $set: { isRead: true } }).exec();
   }
 
-  public async addMessageReaction(messageId: ObjectID, senderName: string, reaction: string, type: string): Promise<void> {
+  public async addMessageReaction(messageId: ObjectId, senderName: string, reaction: string, type: string): Promise<void> {
     if (type === 'add') {
       await MessageModel.updateOne({ _id: messageId }, { $push: { reaction: { senderName, type: reaction } } }).exec();
     } else {

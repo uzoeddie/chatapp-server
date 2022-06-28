@@ -1,15 +1,15 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Document } from 'mongoose';
 
 export interface IReactionDocument extends Document {
-  _id?: string | ObjectID;
+  _id?: string | ObjectId;
   username: string;
   avataColor: string;
   type: string;
   postId: string;
   profilePicture: string;
   createdAt?: Date;
-  userTo?: string | ObjectID;
+  userTo?: string | ObjectId;
   comment?: string;
 }
 
@@ -38,8 +38,8 @@ export interface IReactionJob {
 }
 
 export interface IQueryReaction {
-  _id?: string | ObjectID;
-  postId?: string | ObjectID;
+  _id?: string | ObjectId;
+  postId?: string | ObjectId;
 }
 
 export interface IReaction {

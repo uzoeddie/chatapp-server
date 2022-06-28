@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import HTTP_STATUS from 'http-status-codes';
 import { UserCache } from '@service/redis/user.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { IFollowerData } from '@follower/interface/follower.interface';
 import { FollowerCache } from '@service/redis/follower.cache';
 import { followerQueue } from '@service/queues/follower.queue';
@@ -23,7 +24,7 @@ export class Add {
     const cachedFollower: Promise<IUserDocument> = userCache.getUserFromCache(`${req.currentUser?.userId}`) as Promise<IUserDocument>;
     const response: [IUserDocument, IUserDocument] = await Promise.all([cachedFollowee, cachedFollower]);
 
-    const followerObjectId: ObjectID = new ObjectID();
+    const followerObjectId: ObjectId = new ObjectId();
     const addFolloweeData: IFollowerData = Add.prototype.userData(response[0]);
     socketIOFollowerObject.emit('add follower', addFolloweeData);
     const addFollowerToCache: Promise<void> = followerCache.saveFollowerToCache(`followers:${req.currentUser!.userId}`, `${followerId}`);
@@ -41,7 +42,7 @@ export class Add {
 
   private userData(user: IUserDocument): IFollowerData {
     return {
-      _id: user._id,
+      _id: new mongoose.Types.ObjectId(user._id),
       username: user.username,
       avatarColor: user.avatarColor,
       postCount: user.postsCount,

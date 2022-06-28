@@ -1,4 +1,4 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Request, Response } from 'express';
 import Jimp from 'jimp';
 import JWT from 'jsonwebtoken';
@@ -33,7 +33,7 @@ export class SignUp {
       throw new BadRequestError('Invalid credentials');
     }
 
-    const createdObjectId: ObjectID = new ObjectID();
+    const createdObjectId: ObjectId = new ObjectId();
     const uId = `${Helpers.generateRandomIntegers(12)}`;
     const data: IUserDocument = SignUp.prototype.signupData({
       createdObjectId,

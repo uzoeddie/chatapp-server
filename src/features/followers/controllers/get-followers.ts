@@ -10,7 +10,7 @@ const followerCache: FollowerCache = new FollowerCache();
 
 export class Get {
   public async userFollowing(req: Request, res: Response): Promise<void> {
-    const userObjectId: ObjectId = mongoose.Types.ObjectId(req.currentUser!.userId);
+    const userObjectId: ObjectId = new mongoose.Types.ObjectId(req.currentUser!.userId);
     const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${req.currentUser?.userId}`);
     const following: IFollower[] | IFollowerData[] = cachedFollowers.length
       ? cachedFollowers
@@ -20,7 +20,7 @@ export class Get {
   }
 
   public async userFollowers(req: Request, res: Response): Promise<void> {
-    const userObjectId: ObjectId = mongoose.Types.ObjectId(req.params.userId);
+    const userObjectId: ObjectId = new mongoose.Types.ObjectId(req.params.userId);
     const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`following:${req.params.userId}`);
     const followers: IFollower[] | IFollowerData[] = cachedFollowers.length
       ? cachedFollowers

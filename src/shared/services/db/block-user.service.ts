@@ -1,4 +1,5 @@
 import { UserModel } from '@user/models/user.schema';
+import { PushOperator } from 'mongodb';
 import mongoose from 'mongoose';
 
 class Block {
@@ -6,21 +7,21 @@ class Block {
     UserModel.bulkWrite([
       {
         updateOne: {
-          filter: { _id: userId, blocked: { $ne: mongoose.Types.ObjectId(followerId) } },
+          filter: { _id: userId, blocked: { $ne: new mongoose.Types.ObjectId(followerId) } },
           update: {
             $push: {
-              blocked: mongoose.Types.ObjectId(followerId)
-            }
+              blocked:  new mongoose.Types.ObjectId(followerId)
+            } as PushOperator<Document>
           }
         }
       },
       {
         updateOne: {
-          filter: { _id: followerId, blockedBy: { $ne: mongoose.Types.ObjectId(userId) } },
+          filter: { _id: followerId, blockedBy: { $ne: new mongoose.Types.ObjectId(userId) } },
           update: {
             $push: {
-              blockedBy: mongoose.Types.ObjectId(userId)
-            }
+              blockedBy: new mongoose.Types.ObjectId(userId)
+            } as PushOperator<Document>
           }
         }
       }
@@ -34,8 +35,8 @@ class Block {
           filter: { _id: userId },
           update: {
             $pull: {
-              blocked: mongoose.Types.ObjectId(followerId)
-            }
+              blocked: new mongoose.Types.ObjectId(followerId)
+            } as PushOperator<Document>
           }
         }
       },
@@ -44,8 +45,8 @@ class Block {
           filter: { _id: followerId },
           update: {
             $pull: {
-              blockedBy: mongoose.Types.ObjectId(userId)
-            }
+              blockedBy: new mongoose.Types.ObjectId(userId)
+            } as PushOperator<Document>
           }
         }
       }

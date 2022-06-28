@@ -1,6 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import { ObjectID } from 'mongodb';
-import publicIP from 'public-ip';
+import { ObjectId } from 'mongodb';
 
 declare global {
   namespace Express {
@@ -20,7 +19,7 @@ export interface AuthPayload {
 }
 
 export interface IUserDocument extends Document {
-  _id: string | ObjectID;
+  _id: string | ObjectId;
   uId: string;
   username: string;
   email: string;
@@ -49,7 +48,7 @@ export interface IUserDocument extends Document {
 }
 
 export interface ISignUpData {
-  createdObjectId: ObjectID;
+  createdObjectId: ObjectId;
   uId: string;
   email: string;
   username: string;
@@ -59,7 +58,7 @@ export interface ISignUpData {
 export interface IResetPasswordParams {
   username: string;
   email: string;
-  ipaddress: publicIP.CancelablePromise<string>;
+  ipaddress: string;
   date: string;
 }
 
@@ -68,6 +67,13 @@ export interface INotificationSettings {
   reactions: boolean;
   comments: boolean;
   follows: boolean;
+}
+
+export interface IBasicInfo {
+  quote: string;
+  work: string;
+  school: string;
+  location: string;
 }
 
 export interface ISocialLinks {

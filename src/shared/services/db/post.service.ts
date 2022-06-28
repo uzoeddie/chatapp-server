@@ -3,7 +3,7 @@ import { IGetPostsQuery, IPostDocument, IQueryComplete, IQueryDeleted } from '@p
 import { UserModel } from '@user/models/user.schema';
 import { Aggregate, Query, UpdateQuery } from 'mongoose';
 import { IUserDocument } from '@user/interfaces/user.interface';
-import { IQuerySort } from '@comment/interfaces/comment.interface';
+
 import { ReactionModel } from '@reaction/models/reaction.schema';
 import { IReactionDocument } from '@reaction/interfaces/reaction.interface';
 
@@ -14,7 +14,7 @@ class Post {
     await Promise.all([post, user]);
   }
 
-  public async getPosts(query: IGetPostsQuery, skip = 0, limit = 0, sort?: IQuerySort): Promise<IPostDocument[]> {
+  public async getPosts(query: IGetPostsQuery, skip = 0, limit = 0, sort: Record<string, 1 | -1>): Promise<IPostDocument[]> {
     let postQuery = {};
     if (query?.imgId && query?.gifUrl) {
       postQuery = { $or: [{ imgId: { $ne: '' } }, { gifUrl: { $ne: '' } }] };

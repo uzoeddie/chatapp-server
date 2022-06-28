@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import { UserModel } from '@user/models/user.schema';
+import { IBasicInfo, ISocialLinks } from '@user/interfaces/user.interface';
 
 class UserInfo {
-  public async updateUserInfo(userId: string, info: any): Promise<void> {
+  public async updateUserInfo(userId: string, info: IBasicInfo): Promise<void> {
     await UserModel.updateOne(
-      { _id: mongoose.Types.ObjectId(userId) },
+      { _id: new mongoose.Types.ObjectId(userId) },
       {
         $set: {
           work: info['work'],
@@ -16,9 +17,9 @@ class UserInfo {
     ).exec();
   }
 
-  public async updateSocialLinks(userId: string, links: any): Promise<void> {
+  public async updateSocialLinks(userId: string, links: ISocialLinks): Promise<void> {
     await UserModel.updateOne(
-      { _id: mongoose.Types.ObjectId(userId) },
+      { _id: new mongoose.Types.ObjectId(userId) },
       {
         $set: { social: links }
       }

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { IQueryReaction, IReactionDocument, IReactionJob } from '@reaction/interfaces/reaction.interface';
 import { ReactionModel } from '@reaction/models/reaction.schema';
 import { UserCache } from '@service/redis/user.cache';
@@ -5,7 +6,6 @@ import { PostModel } from '@post/models/post.schema';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { Aggregate, FilterQuery, Query } from 'mongoose';
-import { IQuerySort } from '@comment/interfaces/comment.interface';
 import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
 import { NotificationModel } from '@notification/models/notification.schema';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
@@ -45,8 +45,8 @@ class Reaction {
         userTo: userTo as string,
         message: `${username} reacted on your post.`,
         notificationType: 'reactions',
-        entityId: postId,
-        createdItemId: (updatedReaction[1] as IReactionDocument)._id as string,
+        entityId: new mongoose.Types.ObjectId(postId),
+        createdItemId: new mongoose.Types.ObjectId((updatedReaction[1] as IReactionDocument)._id),
         createdAt: new Date(),
         comment: '',
         reaction: type!,
@@ -87,7 +87,7 @@ class Reaction {
     ]);
   }
 
-  public async getPostReactions(query: IQueryReaction, sort?: IQuerySort): Promise<[IReactionDocument[], number]> {
+  public async getPostReactions(query: IQueryReaction, sort: Record<string, 1 | -1>): Promise<[IReactionDocument[], number]> {
     const reactions: Aggregate<IReactionDocument[]> = ReactionModel.aggregate([{ $match: query }, { $sort: sort }]);
     const count: Query<number, IReactionDocument> = ReactionModel.find(query as FilterQuery<IReactionDocument>).countDocuments();
     const response: [IReactionDocument[], number] = await Promise.all([reactions, count]);

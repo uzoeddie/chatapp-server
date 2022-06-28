@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import HTTP_STATUS from 'http-status-codes';
 import { IReactionDocument, IReactionJob } from '@reaction/interfaces/reaction.interface';
 import { ReactionCache } from '@service/redis/reaction.cache';
@@ -14,7 +14,7 @@ export class Add {
   public async reaction(req: Request, res: Response): Promise<void> {
     const { userTo, postId, type, previousReaction, postReactions, profilePicture } = req.body;
     const reactionObject: IReactionDocument = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       postId,
       type,
       avataColor: req.currentUser!.avatarColor,

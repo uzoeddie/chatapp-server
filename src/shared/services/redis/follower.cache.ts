@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import mongoose from 'mongoose';
 import { BaseCache } from '@service/redis/base.cache';
 import { Helpers } from '@global/helpers/helpers';
 import { IFollowerData } from '@follower/interface/follower.interface';
@@ -34,7 +35,7 @@ export class FollowerCache extends BaseCache {
       for (const item of response) {
         const user: IUserDocument = await userCache.getUserFromCache(item);
         const data: IFollowerData = {
-          _id: user._id,
+          _id: new mongoose.Types.ObjectId(user._id),
           username: user.username,
           avatarColor: user.avatarColor,
           postCount: user.postsCount,

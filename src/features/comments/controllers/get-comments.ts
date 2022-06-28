@@ -17,7 +17,7 @@ export class Get {
     const cachedComments: ICommentDocument[] = await commentCache.getCommentsFromCache(postId);
     const comments: ICommentDocument[] = cachedComments.length
       ? cachedComments
-      : await commentService.getPostComments({ postId: mongoose.Types.ObjectId(postId) }, { createdAt: -1 });
+      : await commentService.getPostComments({ postId: new mongoose.Types.ObjectId(postId) }, { createdAt: -1 });
     res.status(HTTP_STATUS.OK).json({ message: 'Post comments', comments });
   }
 
@@ -26,7 +26,7 @@ export class Get {
     const cachedComments: ICommentNameList[] = await commentCache.getCommentNamesFromCache(postId);
     const comments = cachedComments.length
       ? cachedComments
-      : await commentService.getPostCommentNames({ postId: mongoose.Types.ObjectId(postId) }, SKIP_SIZE, LIMIT_SIZE, {
+      : await commentService.getPostCommentNames({ postId: new mongoose.Types.ObjectId(postId) }, SKIP_SIZE, LIMIT_SIZE, {
           createdAt: -1
         });
     res.status(HTTP_STATUS.OK).json({ message: 'Post comments names', comments: comments[0] });
@@ -38,7 +38,7 @@ export class Get {
     const comments: ICommentDocument[] = cachedComment.length
       ? cachedComment
       : await commentService.getPostComments(
-          { _id: mongoose.Types.ObjectId(commentId) },
+          { _id: new mongoose.Types.ObjectId(commentId) },
           {
             createdAt: -1
           }

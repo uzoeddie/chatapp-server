@@ -1,6 +1,5 @@
 import { BaseCache } from '@service/redis/base.cache';
 import { SchemaFieldTypes } from 'redis';
-// import { UserCache } from './user.cache';
 
 class RedisConnection extends BaseCache {
   constructor() {
@@ -10,10 +9,6 @@ class RedisConnection extends BaseCache {
   async connect(): Promise<void> {
     try {
       await this.client.connect();
-      // const userCache = new UserCache();
-      // userCache.init();
-      const ping = await this.client.ping();
-      console.log(ping);
       this.createUserHashIndex();
     } catch (error) {
       console.log(error);

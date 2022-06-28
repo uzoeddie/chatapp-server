@@ -1,6 +1,6 @@
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { Request, Response } from 'express';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import HTTP_STATUS from 'http-status-codes';
 import { UploadApiResponse } from 'cloudinary';
 import { PostCache } from '@service/redis/post.cache';
@@ -23,7 +23,7 @@ export class Create {
       feelings = '';
     }
 
-    const postObjectId: ObjectID = new ObjectID();
+    const postObjectId: ObjectId = new ObjectId();
     const createdPost: IPostDocument = ({
       _id: postObjectId,
       userId: req.currentUser?.userId,
@@ -66,7 +66,7 @@ export class Create {
     if (!result?.public_id) {
       throw new BadRequestError(result.message);
     }
-    const postObjectId: ObjectID = new ObjectID();
+    const postObjectId: ObjectId = new ObjectId();
     const createdPost: IPostDocument = ({
       _id: postObjectId,
       userId: req.currentUser?.userId,

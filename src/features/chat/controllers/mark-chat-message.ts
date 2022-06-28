@@ -18,8 +18,8 @@ export class Mark {
     socketIOChatObject.emit('message read', updatedMessage);
     socketIOChatObject.emit('chat list', updatedMessage);
     chatQueue.addChatJob('markMessagesAsReadInDB', {
-      senderId: mongoose.Types.ObjectId(senderId),
-      receiverId: mongoose.Types.ObjectId(receiverId)
+      senderId: new mongoose.Types.ObjectId(senderId),
+      receiverId: new mongoose.Types.ObjectId(receiverId)
     });
     res.status(HTTP_STATUS.OK).json({ message: 'Message marked as read' });
   }

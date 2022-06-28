@@ -1,15 +1,15 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Document } from 'mongoose';
 
 export interface ICommentDocument extends Document {
-  _id?: string | ObjectID;
+  _id?: string | ObjectId;
   username: string;
   avataColor: string;
   postId: string;
   profilePicture: string;
   comment: string;
   createdAt?: Date;
-  userTo?: string | ObjectID;
+  userTo?: string | ObjectId;
 }
 
 export interface ICommentJob {
@@ -26,8 +26,8 @@ export interface ICommentNameList {
 }
 
 export interface IQueryComment {
-  _id?: string | ObjectID;
-  postId?: string | ObjectID;
+  _id?: string | ObjectId;
+  postId?: string | ObjectId;
 }
 
 export interface IQuerySort {

@@ -1,5 +1,5 @@
 import mongoose, { Query } from 'mongoose';
-import { BulkWriteOpResultObject, ObjectId, ObjectID } from 'mongodb';
+import { BulkWriteResult, ObjectId } from 'mongodb';
 import _ from 'lodash';
 import { UserModel } from '@user/models/user.schema';
 import { IUserDocument } from '@user/interfaces/user.interface';
@@ -13,16 +13,16 @@ import { IQueryComplete, IQueryDeleted } from '@post/interfaces/post.interface';
 import { socketIONotificationObject } from '@socket/notification';
 
 class Follower {
-  public async addFollowerToDB(userId: string, followerId: string, username: string, followerDocumentId: ObjectID): Promise<void> {
-    const followeeObjectId: ObjectId = mongoose.Types.ObjectId(followerId);
-    const userObjectId: ObjectId = mongoose.Types.ObjectId(userId);
+  public async addFollowerToDB(userId: string, followerId: string, username: string, followerDocumentId: ObjectId): Promise<void> {
+    const followeeObjectId: ObjectId = new mongoose.Types.ObjectId(followerId);
+    const userObjectId: ObjectId = new mongoose.Types.ObjectId(userId);
 
-    const following: Promise<IFollowerDocument> = FollowerModel.create({
+    const following = await FollowerModel.create({
       _id: followerDocumentId,
       followeeId: followeeObjectId,
       followerId: userObjectId
     });
-    const users: Promise<BulkWriteOpResultObject> = UserModel.bulkWrite([
+    const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
       {
         updateOne: {
           filter: { _id: userId },
@@ -36,21 +36,20 @@ class Follower {
         }
       }
     ]);
-    const response: [IFollowerDocument, BulkWriteOpResultObject, IUserDocument | null] = await Promise.all([
-      following,
+    const response: [BulkWriteResult, IUserDocument | null] = await Promise.all([
       users,
       UserModel.findOne({ _id: followerId })
     ]);
 
-    if (response[2]?.notifications.follows && userId !== followerId) {
+    if (response[1]?.notifications.follows && userId !== followerId) {
       const notificationModel: INotificationDocument = new NotificationModel();
       const notifications = await notificationModel.insertNotification({
         userFrom: userId,
         userTo: followerId,
         message: `${username} is now following you.`,
         notificationType: 'follows',
-        entityId: userId,
-        createdItemId: response[0]._id,
+        entityId: new mongoose.Types.ObjectId(userId),
+        createdItemId: new mongoose.Types.ObjectId(following._id),
         createdAt: new Date(),
         comment: '',
         reaction: '',
@@ -61,13 +60,13 @@ class Follower {
       });
       socketIONotificationObject.emit('insert notification', notifications, { userTo: followerId });
       const templateParams: INotificationTemplate = {
-        username: response[2].username,
+        username: response[1].username,
         message: `${username} is now following you.`,
         header: 'Follower Notification'
       };
       const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
       emailQueue.addEmailJob('commentsMail', {
-        receiverEmail: response[2].email,
+        receiverEmail: response[1].email,
         template,
         subject: `${username} is now following you.`
       });
@@ -75,14 +74,14 @@ class Follower {
   }
 
   public async removeFollowerFromDB(followeeId: string, followerId: string): Promise<void> {
-    const followeeObjectId: ObjectId = mongoose.Types.ObjectId(followeeId);
-    const userObjectId: ObjectId = mongoose.Types.ObjectId(followerId);
+    const followeeObjectId: ObjectId = new mongoose.Types.ObjectId(followeeId);
+    const userObjectId: ObjectId = new mongoose.Types.ObjectId(followerId);
 
     const unfollow: Query<IQueryComplete & IQueryDeleted, IFollowerDocument> = FollowerModel.deleteOne({
       followerId: userObjectId,
       followeeId: followeeObjectId
     });
-    const users: Promise<BulkWriteOpResultObject> = UserModel.bulkWrite([
+    const users: Promise<BulkWriteResult> = UserModel.bulkWrite([
       {
         updateOne: {
           filter: { _id: followerId },
@@ -173,7 +172,7 @@ class Follower {
 
   public async getFolloweeIds(userId: string): Promise<string[]> {
     const followee = await FollowerModel.aggregate([
-      { $match: { followerId: mongoose.Types.ObjectId(userId) } },
+      { $match: { followerId: new mongoose.Types.ObjectId(userId) } },
       {
         $project: {
           followeeId: 1,

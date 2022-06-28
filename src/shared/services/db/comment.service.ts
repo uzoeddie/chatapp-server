@@ -1,4 +1,5 @@
-import { ICommentJob, ICommentDocument, ICommentNameList, IQueryComment, IQuerySort } from '@comment/interfaces/comment.interface';
+import mongoose from 'mongoose';
+import { ICommentJob, ICommentDocument, ICommentNameList, IQueryComment } from '@comment/interfaces/comment.interface';
 import { CommentsModel } from '@comment/models/comment.schema';
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { PostModel } from '@post/models/post.schema';
@@ -32,8 +33,8 @@ class Comment {
         userTo,
         message: `${username} commented on your post.`,
         notificationType: 'comment',
-        entityId: postId,
-        createdItemId: response[0]._id!,
+        entityId: new mongoose.Types.ObjectId(postId),
+        createdItemId: new mongoose.Types.ObjectId(response[0]._id!),
         createdAt: new Date(),
         comment: comment.comment,
         post: response[1].post,
@@ -53,14 +54,14 @@ class Comment {
     }
   }
 
-  public async getPostComments(query: IQueryComment, sort?: IQuerySort): Promise<ICommentDocument[]> {
+  public async getPostComments(query: IQueryComment, sort: Record<string, 1 | -1>): Promise<ICommentDocument[]> {
     return new Promise((resolve) => {
       const comments: Aggregate<ICommentDocument[]> = CommentsModel.aggregate([{ $match: query }, { $sort: sort }]);
       resolve(comments);
     });
   }
 
-  public async getPostCommentNames(query: IQueryComment, skip = 0, limit = 0, sort?: IQuerySort): Promise<ICommentNameList[]> {
+  public async getPostCommentNames(query: IQueryComment, skip = 0, limit = 0, sort: Record<string, 1 | -1>): Promise<ICommentNameList[]> {
     return new Promise((resolve) => {
       const commentsNameList: Aggregate<ICommentNameList[]> = CommentsModel.aggregate([
         { $match: query },

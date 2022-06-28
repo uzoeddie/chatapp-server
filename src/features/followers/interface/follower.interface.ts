@@ -1,4 +1,4 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 import { IUserDocument } from '@user/interfaces/user.interface';
 
@@ -28,7 +28,7 @@ export interface IFollowerData {
   postCount: number;
   username: string;
   uId: string;
-  _id?: mongoose.Types.ObjectId | string;
+  _id?: mongoose.Types.ObjectId;
   userProfile?: IUserDocument;
 }
 
@@ -36,7 +36,7 @@ export interface IFollowerJobData {
   keyOne?: string;
   keyTwo?: string;
   username?: string;
-  followerDocumentId?: ObjectID;
+  followerDocumentId?: ObjectId;
 }
 
 export interface IBlockedUserJobData {
