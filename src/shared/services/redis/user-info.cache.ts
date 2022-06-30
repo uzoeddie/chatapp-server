@@ -12,7 +12,7 @@ export class UserInfoCache extends BaseCache {
     super('userInfoCache');
   }
 
-  public async updateSingleUserItemInCache(key: string, prop: string, value: UserItem): Promise<IUserDocument> {
+  public async updateSingleUserItemInCache(key: string, prop: string, value: UserItem): Promise<IUserDocument | null> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
@@ -33,7 +33,7 @@ export class UserInfoCache extends BaseCache {
     }
   }
 
-  public async updateUserInfoListInCache(key: string, prop: string, value: string | ISocialLinks): Promise<IUserDocument> {
+  public async updateUserInfoListInCache(key: string, prop: string, value: string | ISocialLinks): Promise<IUserDocument | null> {
     const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
     try {
       if (!this.client.isOpen) {

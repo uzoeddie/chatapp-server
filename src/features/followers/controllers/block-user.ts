@@ -21,7 +21,7 @@ export class AddUser {
     const { followerId } = req.params;
     AddUser.prototype.updateBlockedUser(followerId, req.currentUser!.userId, 'unblock');
     blockedUserQueue.addBlockedUserJob('removeBlockedUserFromDB', {
-      keyOne: `${req.currentUser?.userId}`,
+      keyOne: `${req.currentUser!.userId}`,
       keyTwo: `${followerId}`,
       type: 'unblock'
     });

@@ -1,11 +1,11 @@
 import { IFileImageDocument } from '@image/interface/image.interface';
-import { ImageModel } from '@image/models/image.schema';
 import { imageQueue } from '@service/queues/image.queue';
 import { UserInfoCache } from '@service/redis/user-info.cache';
 import { socketIOImageObject } from '@socket/image';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
+import { imageService } from '@service/db/image.service';
 
 const userInfoCache: UserInfoCache = new UserInfoCache();
 
@@ -19,10 +19,10 @@ export class Delete {
   }
 
   public async backgroundImage(req: Request, res: Response): Promise<void> {
-    const image: IFileImageDocument | null = await ImageModel.findOne({ bgImageId: req.params.bgImageId }).exec();
+    const image: IFileImageDocument = await imageService.getImageByBackgroundId(req.params.bgImageId);
     socketIOImageObject.emit('delete image', image?._id);
-    const bgImgId: Promise<IUserDocument> = userInfoCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, 'bgImageId', '');
-    const bgImgVersion: Promise<IUserDocument> = userInfoCache.updateSingleUserItemInCache(
+    const bgImgId: Promise<IUserDocument | null> = userInfoCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, 'bgImageId', '');
+    const bgImgVersion: Promise<IUserDocument | null> = userInfoCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'bgImageVersion',
       ''

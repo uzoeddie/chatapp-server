@@ -3,6 +3,7 @@ import { IFileImageDocument } from '@image/interface/image.interface';
 import { IMessage } from '@root/mocks/chat.mock';
 import { AuthPayload } from '@user/interfaces/user.interface';
 import { IJwt } from './auth.mock';
+import mongoose from 'mongoose';
 
 export const imagesMockRequest = (sessionData: IJwt, body: IMessage, currentUser?: AuthPayload | null, params?: IParams) => ({
   session: sessionData,
@@ -22,19 +23,14 @@ export interface IParams {
   followerId?: string;
   userId?: string;
   imageId?: string;
+  bgImageId?: string;
 }
 
-export const fileDocument: IFileImageDocument = {
-  userId: '60263f14648fed5246e322d9',
-  bgImageVersion: '',
-  bgImageId: '',
-  profilePicture: '',
-  images: [
-    {
-      imgVersion: '',
-      imgId: '',
-      createdAt: new Date(),
-      _id: '60263f14642ded5246e322d9'
-    }
-  ]
+export const fileDocumentMock: IFileImageDocument = {
+  userId: new mongoose.Types.ObjectId('60263f14648fed5246e322d9'),
+  bgImageVersion: '2468',
+  bgImageId: '12345',
+  imgVersion: '',
+  imgId: '',
+  createdAt: new Date(),
 } as IFileImageDocument;

@@ -43,6 +43,6 @@ export class Get {
             createdAt: -1
           }
         );
-    res.status(HTTP_STATUS.OK).json({ message: 'Single comment', comments: comments[0], notification: false });
+    res.status(HTTP_STATUS.OK).json({ message: 'Single comment', comments: comments[0] });
   }
 }

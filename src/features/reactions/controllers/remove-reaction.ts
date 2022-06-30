@@ -16,6 +16,6 @@ export class Remove {
       previousReaction
     };
     reactionQueue.addReactionJob('removeReactionFromDB', dbReactionData);
-    res.status(HTTP_STATUS.OK).json({ message: 'Reaction removed from post', notification: false });
+    res.status(HTTP_STATUS.OK).json({ message: 'Reaction removed from post' });
   }
 }

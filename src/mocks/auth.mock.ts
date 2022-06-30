@@ -22,29 +22,23 @@ export interface IAuthMock {
   _id?: string;
   username?: string;
   password?: string;
-  email?: string;
   cpassword?: string;
-  gender?: string;
-  month?: string;
-  day?: string;
-  relationship?: string;
-  about?: string;
-  quotes?: string;
-  city?: string;
-  country?: string;
-  year?: string;
-  company?: string;
-  position?: string;
-  description?: string;
-  from?: string;
-  to?: string;
+  email?: string;
+  quote?: string,
+  work?: string,
+  school?: string,
+  location?: string,
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  youtube?: string;
   messages?: boolean;
   reactions?: boolean;
   comments?: boolean;
   follows?: boolean;
-  currentPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
 }
 
 export interface IJwt {

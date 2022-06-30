@@ -3,50 +3,47 @@ import { authUserPayload, authMockRequest, authMockResponse } from '@root/mocks/
 import { Settings } from '@user/controllers/user/edit/update-settings';
 import { userQueue } from '@service/queues/user.queue';
 import { UserCache } from '@service/redis/user.cache';
-import { existingUser } from '@root/mocks/user.mock';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/redis/user-info.cache');
 jest.mock('@service/redis/user.cache');
 
-const userCache = new UserCache();
-
 describe('Settings', () => {
-    beforeEach(() => {
-        jest.restoreAllMocks();
-    });
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    afterAll(async () => {
-        jest.clearAllMocks();
-        jest.clearAllTimers();
-    });
+  afterAll(async () => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
+  });
 
-    describe('update', () => {
-        it('should call "addUserJob" methods', async () => {
-            const settings = {
-                messages: true,
-                reactions: false,
-                comments: true,
-                follows: false
-            };
-            const req: Request = authMockRequest({}, settings, authUserPayload) as Request;
-            const res: Response = authMockResponse();
-            jest.spyOn(userCache, 'updateNotificationSettingsInCache');
-            jest.spyOn(userQueue, 'addUserJob');
+  describe('update', () => {
+    it('should call "addUserJob" methods', async () => {
+      const settings = {
+        messages: true,
+        reactions: false,
+        comments: true,
+        follows: false
+      };
+      const req: Request = authMockRequest({}, settings, authUserPayload) as Request;
+      const res: Response = authMockResponse();
+      jest.spyOn(UserCache.prototype, 'updateNotificationSettingsInCache');
+      jest.spyOn(userQueue, 'addUserJob');
 
-            await Settings.prototype.update(req, res);
-            expect(userCache.updateNotificationSettingsInCache).toHaveBeenCalledWith(existingUser._id, 'notifications', settings);
-            expect(userQueue.addUserJob).toHaveBeenCalledWith('updateNotificationSettings', {
-                key: 'Manny',
-                value: settings
-            });
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith({
-                message: 'Notification settings updated successfully',
-                notification: false,
-                settings: settings
-            });
-        });
+      await Settings.prototype.update(req, res);
+      expect(UserCache.prototype.updateNotificationSettingsInCache).toHaveBeenCalledWith(
+        `${req.currentUser?.userId}`,
+        'notifications',
+        req.body
+      );
+      expect(userQueue.addUserJob).toHaveBeenCalledWith('updateNotificationSettings', {
+        key: `${req.currentUser?.username}`,
+        value: req.body
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Notification settings updated successfully', settings: req.body });
     });
+  });
 });

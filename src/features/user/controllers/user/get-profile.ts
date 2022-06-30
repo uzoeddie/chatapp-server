@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import _ from 'lodash';
 import { IAllUsers, IUserDocument } from '@user/interfaces/user.interface';
-import { LeanDocument } from 'mongoose';
+import mongoose from 'mongoose';
 import { UserCache } from '@service/redis/user.cache';
-import { UserModel } from '@user/models/user.schema';
 import { IFollower, IFollowerData, IFollowerDocument } from '@follower/interface/follower.interface';
 import { FollowerCache } from '@service/redis/follower.cache';
 import { Helpers } from '@global/helpers/helpers';
@@ -12,6 +10,7 @@ import { PostCache } from '@service/redis/post.cache';
 import { postService } from '@service/db/post.service';
 import { IPostDocument } from '@post/interfaces/post.interface';
 import { followerService } from '@service/db/follower.service';
+import { userService } from '@service/db/user.service';
 
 const PAGE_SIZE = 12;
 
@@ -42,10 +41,10 @@ export class Get {
   }
 
   public async profile(req: Request, res: Response): Promise<void> {
-    const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${req.currentUser?.userId}`)) as IUserDocument;
+    const cachedUser: IUserDocument | null = await userCache.getUserFromCache(`${req.currentUser?.userId}`);
     const existingUser: IUserDocument | null = cachedUser
       ? cachedUser
-      : await UserModel.findOne({ _id: req.currentUser?.userId }).exec();
+      : await userService.getUserById(`${req.currentUser?.userId}`);
     res.status(HTTP_STATUS.OK).json({ message: 'Get user profile', user: existingUser });
   }
 
@@ -58,22 +57,21 @@ export class Get {
 
     const existingUser: IUserDocument = (cachedResponse[0]
       ? cachedResponse[0]
-      : UserModel.findOne({ username: userName }).exec()) as IUserDocument;
-    const userPosts: IPostDocument[] | Promise<IPostDocument[]> = cachedResponse[1]
+      : await userService.getUserByUsername(userName));
+    const userPosts: IPostDocument[] = cachedResponse[1].length
       ? cachedResponse[1]
-      : postService.getPosts({ username: userName }, 0, 100, { createdAt: -1 });
-    const response: [LeanDocument<IUserDocument> | null, IPostDocument[]] = await Promise.all([existingUser, userPosts]);
+      : await postService.getPosts({ username: userName }, 0, 100, { createdAt: -1 });
     res.status(HTTP_STATUS.OK).json({
       message: 'Get user profile and posts',
-      user: response[0],
-      posts: response[1]
+      user: existingUser,
+      posts: userPosts
     });
   }
 
   public async profileByUserId(req: Request, res: Response): Promise<void> {
     const { userId } = req.params;
-    const cachedUser: IUserDocument = await userCache.getUserFromCache(userId);
-    const existingUser: IUserDocument = (cachedUser ? cachedUser : UserModel.findOne({ _id: userId }).exec()) as IUserDocument;
+    const cachedUser: IUserDocument | null = await userCache.getUserFromCache(userId);
+    const existingUser: IUserDocument = (cachedUser ? cachedUser : await userService.getUserById(userId)) as IUserDocument;
     res.status(HTTP_STATUS.OK).json({
       message: 'Get user profile',
       user: existingUser
@@ -86,17 +84,8 @@ export class Get {
     if (cachedUser.length) {
       randomUsers = [...cachedUser];
     } else {
-      const users = await UserModel.aggregate([
-        { $match: { username: { $not: { $eq: req.currentUser!.username } } } },
-        { $sample: { size: 10 } }
-      ]);
-      const followers: string[] = await followerService.getFolloweeIds(`${req.currentUser?.userId}`);
-      for (const user of users) {
-        const followerIndex = _.indexOf(followers, user._id.toString());
-        if (followerIndex < 0) {
-          randomUsers.push(user);
-        }
-      }
+      const users = await userService.getRandomUsers(req.currentUser!.userId, req.currentUser!.username);
+      randomUsers = [...users];
     }
     res.status(HTTP_STATUS.OK).json({ message: 'User suggestions', users: randomUsers });
   }
@@ -110,24 +99,21 @@ export class Get {
       users = cachedUser;
     } else {
       type = 'mongo';
-      users = await UserModel.find({ _id: { $ne: userId } })
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .exec();
+      users = await userService.getAllUsers(userId, skip, limit);
     }
     const totalUsers = await Get.prototype.usersCount(type);
     return { users, totalUsers };
   }
 
   private async usersCount(type: string): Promise<number> {
-    const totalUsers: number = type === 'redis' ? await userCache.getTotalUsersCache() : await UserModel.find({}).countDocuments();
+    const totalUsers: number = type === 'redis' ? await userCache.getTotalUsersCache() : await userService.usersCount();
     return totalUsers;
   }
 
-  private async followers(userId: string): Promise<IFollowerDocument[] | IFollower[] | IFollowerData[]> {
-    const cachedFollowers: IFollower[] | IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
-    const result = cachedFollowers.length ? cachedFollowers : await followerService.getFollowers(userId);
+  private async followers(userId: string): Promise<IFollowerData[]> {
+    const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
+    // const result = cachedFollowers.length > 0 ? cachedFollowers : await followerService.getFollowers(userId);
+    const result = cachedFollowers.length > 0 ? cachedFollowers : await followerService.getFolloweeData(new mongoose.Types.ObjectId(userId));
     return result;
   }
 }

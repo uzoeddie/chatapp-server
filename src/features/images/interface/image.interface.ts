@@ -21,4 +21,5 @@ export interface IFileImageJobData {
 export interface IBgUploadResponse {
   version: string;
   publicId: string;
+  public_id?: string;
 }

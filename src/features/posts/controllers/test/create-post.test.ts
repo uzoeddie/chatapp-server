@@ -9,8 +9,7 @@ import { Create } from '@post/controllers/create-post';
 import { PostCache } from '@service/redis/post.cache';
 import { CustomError } from '@global/helpers/error-handler';
 import * as cloudinaryUploads from '@global/helpers/cloudinary-upload';
-
-const postCache: PostCache = new PostCache();
+import { imageQueue } from '@service/queues/image.queue';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
@@ -18,74 +17,102 @@ jest.mock('@service/redis/post.cache');
 jest.mock('@global/helpers/cloudinary-upload');
 
 Object.defineProperties(postServer, {
-    socketIOPostObject: {
-        value: new Server(),
-        writable: true
-    }
+  socketIOPostObject: {
+    value: new Server(),
+    writable: true
+  }
 });
 
 describe('Create', () => {
-    beforeEach(() => {
-        jest.restoreAllMocks();
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
+  });
+
+  describe('post', () => {
+    it('should send correct json response', async () => {
+      const req: Request = postMockRequest(newPost, authUserPayload) as Request;
+      const res: Response = postMockResponse();
+      jest.spyOn(postServer.socketIOPostObject, 'emit');
+      const spy = jest.spyOn(PostCache.prototype, 'savePostToCache');
+      jest.spyOn(postQueue, 'addPostJob');
+
+      await Create.prototype.post(req, res);
+      const createdPost = spy.mock.calls[0][0].createdPost;
+      expect(postServer.socketIOPostObject.emit).toHaveBeenCalledWith('add post', createdPost);
+      expect(PostCache.prototype.savePostToCache).toHaveBeenCalledWith({
+        key: spy.mock.calls[0][0].key,
+        currentUserId: `${req.currentUser?.userId}`,
+        uId: `${req.currentUser?.uId}`,
+        createdPost
+      });
+      expect(postQueue.addPostJob).toHaveBeenCalledWith('savePostToDB', { key: req.currentUser?.userId, value: createdPost });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Post created successfully'
+      });
+    });
+  });
+
+  describe('postWithImage', () => {
+    it('should throw an error if image is not available', () => {
+      delete newPost.image;
+      const req: Request = postMockRequest(newPost, authUserPayload) as Request;
+      const res: Response = postMockResponse();
+
+      Create.prototype.postWithImage(req, res).catch((error: CustomError) => {
+        expect(error.statusCode).toEqual(400);
+        expect(error.serializeErrors().message).toEqual('Image is a required field');
+      });
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-        jest.clearAllTimers();
+    it('should throw an upload error', () => {
+      newPost.image = 'data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==';
+      const req: Request = postMockRequest(newPost, authUserPayload) as Request;
+      const res: Response = postMockResponse();
+      jest
+        .spyOn(cloudinaryUploads, 'uploads')
+        .mockImplementation((): any => Promise.resolve({ version: '', public_id: '', message: 'Upload error' }));
+
+      Create.prototype.postWithImage(req, res).catch((error: CustomError) => {
+        expect(error.statusCode).toEqual(400);
+        expect(error.serializeErrors().message).toEqual('Upload error');
+      });
     });
 
-    describe('post', () => {
-        it('should send correct json response', async () => {
-            delete newPost.image;
-            const req: Request = postMockRequest(newPost, authUserPayload) as Request;
-            const res: Response = postMockResponse();
-            jest.spyOn(postServer.socketIOPostObject, 'emit');
-            jest.spyOn(postCache, 'savePostToCache');
-            jest.spyOn(postQueue, 'addPostJob');
+    it('should send correct json response', async () => {
+      newPost.image = 'testing image';
+      const req: Request = postMockRequest(newPost, authUserPayload) as Request;
+      const res: Response = postMockResponse();
+      jest.spyOn(postServer.socketIOPostObject, 'emit');
+      const spy = jest.spyOn(PostCache.prototype, 'savePostToCache');
+      jest.spyOn(postQueue, 'addPostJob');
+      jest.spyOn(imageQueue, 'addImageJob');
+      jest.spyOn(cloudinaryUploads, 'uploads').mockImplementation((): any => Promise.resolve({ version: '1234', public_id: '123456' }));
 
-            await Create.prototype.post(req, res);
-            expect(postServer.socketIOPostObject.emit).toHaveBeenCalled();
-            expect(postCache.savePostToCache).toHaveBeenCalled();
-            expect(postQueue.addPostJob).toHaveBeenCalled();
-            expect(res.status).toHaveBeenCalledWith(201);
-            expect(res.json).toHaveBeenCalledWith({
-                message: 'Post created successfully',
-                notification: true
-            });
-        });
+      await Create.prototype.postWithImage(req, res);
+      const createdPost = spy.mock.calls[0][0].createdPost;
+      expect(postServer.socketIOPostObject.emit).toHaveBeenCalledWith('add post', createdPost);
+      expect(PostCache.prototype.savePostToCache).toHaveBeenCalledWith({
+        key: spy.mock.calls[0][0].key,
+        currentUserId: `${req.currentUser?.userId}`,
+        uId: `${req.currentUser?.uId}`,
+        createdPost
+      });
+      expect(postQueue.addPostJob).toHaveBeenCalledWith('savePostToDB', { key: req.currentUser?.userId, value: createdPost });
+      expect(imageQueue.addImageJob).toHaveBeenCalledWith('addImageToDB', {
+        key: `${req.currentUser?.userId}`,
+        imgId: '123456',
+        imgVersion: '1234'
+      });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Post created with image successfully'
+      });
     });
-
-    describe('postWithImage', () => {
-        it('should throw an error if image is not available', () => {
-            newPost.image = undefined;
-            const req: Request = postMockRequest(newPost, authUserPayload) as Request;
-            const res: Response = postMockResponse();
-            Create.prototype.postWithImage(req, res).catch((error: CustomError) => {
-                expect(error.statusCode).toEqual(400);
-                expect(error.serializeErrors().message).toEqual('Image is a required field');
-            });
-        });
-
-        it('should send correct json response', async () => {
-            newPost.image = 'testing image';
-            const req: Request = postMockRequest(newPost, authUserPayload) as Request;
-            const res: Response = postMockResponse();
-            jest.spyOn(postServer.socketIOPostObject, 'emit');
-            jest.spyOn(postQueue, 'addPostJob');
-            jest.spyOn(postCache, 'savePostToCache');
-            jest.spyOn(cloudinaryUploads, 'uploads').mockImplementation((): any =>
-                Promise.resolve({ version: '1234', public_id: '123456' })
-            );
-
-            await Create.prototype.postWithImage(req, res);
-            expect(postServer.socketIOPostObject.emit).toHaveBeenCalled();
-            expect(postQueue.addPostJob).toHaveBeenCalled();
-            expect(postCache.savePostToCache).toHaveBeenCalled();
-            expect(res.status).toHaveBeenCalledWith(201);
-            expect(res.json).toHaveBeenCalledWith({
-                message: 'Post created with image successfully',
-                notification: true
-            });
-        });
-    });
+  });
 });

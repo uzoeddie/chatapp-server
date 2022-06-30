@@ -9,6 +9,7 @@ import { resetPasswordTemplate } from '@service/emails/templates/reset/reset-tem
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { emailQueue } from '@service/queues/email.queue';
 import { changePasswordSchema } from '@user/schemes/user/info';
+import { userService } from '@service/db/user.service';
 
 export class ChangePassword {
   @joiValidation(changePasswordSchema)
@@ -25,7 +26,7 @@ export class ChangePassword {
       throw new BadRequestError('Invalid credentials');
     }
     const hashedPassword: string = await existingUser.hashPassword(newPassword);
-    await UserModel.updateOne({ _id: req.currentUser?.userId }, { $set: { password: hashedPassword } }).exec();
+    userService.updatePassword(`${req.currentUser?.userId}`, hashedPassword);
 
     const templateParams: IResetPasswordParams = {
       username: existingUser.username,
