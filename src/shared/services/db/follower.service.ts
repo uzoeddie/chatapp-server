@@ -1,9 +1,9 @@
 import mongoose, { Query } from 'mongoose';
 import { BulkWriteResult, ObjectId } from 'mongodb';
-import _ from 'lodash';
+import { map } from 'lodash';
 import { UserModel } from '@user/models/user.schema';
 import { IUserDocument } from '@user/interfaces/user.interface';
-import { IFollower, IFollowerDocument } from '@follower/interface/follower.interface';
+import { IFollowerData, IFollowerDocument } from '@follower/interface/follower.interface';
 import { FollowerModel } from '@follower/models/follower.schema';
 import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
 import { NotificationModel } from '@notification/models/notification.schema';
@@ -36,10 +36,7 @@ class Follower {
         }
       }
     ]);
-    const response: [BulkWriteResult, IUserDocument | null] = await Promise.all([
-      users,
-      UserModel.findOne({ _id: followerId })
-    ]);
+    const response: [BulkWriteResult, IUserDocument | null] = await Promise.all([users, UserModel.findOne({ _id: followerId })]);
 
     if (response[1]?.notifications.follows && userId !== followerId) {
       const notificationModel: INotificationDocument = new NotificationModel();
@@ -98,7 +95,7 @@ class Follower {
     await Promise.all([unfollow, users]);
   }
 
-  public async getFolloweeData(userObjectId: ObjectId): Promise<IFollower[]> {
+  public async getFolloweeData(userObjectId: ObjectId): Promise<IFollowerData[]> {
     const followee = await FollowerModel.aggregate([
       { $match: { followerId: userObjectId } },
       { $lookup: { from: 'User', localField: 'followeeId', foreignField: '_id', as: 'followeeId' } },
@@ -126,7 +123,7 @@ class Follower {
     return followee;
   }
 
-  public async getFollowerData(userObjectId: ObjectId): Promise<IFollower[]> {
+  public async getFollowerData(userObjectId: ObjectId): Promise<IFollowerData[]> {
     const follower = await FollowerModel.aggregate([
       { $match: { followeeId: userObjectId } },
       { $lookup: { from: 'User', localField: 'followerId', foreignField: '_id', as: 'followerId' } },
@@ -154,22 +151,6 @@ class Follower {
     return follower;
   }
 
-  public async getFollowers(userId: string): Promise<IFollowerDocument[]> {
-    const followers = await FollowerModel.find({ followerId: userId })
-      .populate({
-        path: 'followerId',
-        select: 'username avatarColor postsCount followersCount followingCount profilePicture'
-      })
-      .populate({
-        path: 'followeeId',
-        select: 'username avatarColor postsCount followersCount followingCount profilePicture'
-      })
-      .sort({ createdAt: -1 })
-      .exec();
-
-    return followers;
-  }
-
   public async getFolloweeIds(userId: string): Promise<string[]> {
     const followee = await FollowerModel.aggregate([
       { $match: { followerId: new mongoose.Types.ObjectId(userId) } },
@@ -180,7 +161,7 @@ class Follower {
         }
       }
     ]);
-    return _.map(followee, (res) => res.followeeId.toString());
+    return map(followee, (res) => res.followeeId.toString());
   }
 }
 

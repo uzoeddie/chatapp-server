@@ -1,8 +1,9 @@
 import { Response } from 'express';
 import { IJwt } from './auth.mock';
-import mongoose from 'mongoose';
 import { AuthPayload } from '@user/interfaces/user.interface';
-import { IFollower, IFollowerDocument } from '@follower/interface/follower.interface';
+import { existingUserTwo } from '@root/mocks/user.mock';
+import mongoose from 'mongoose';
+import { IFollowerData } from '@follower/interface/follower.interface';
 
 export const followersMockRequest = (sessionData: IJwt, currentUser?: AuthPayload | null, params?: IParams) => ({
   session: sessionData,
@@ -19,10 +20,22 @@ export const followersMockResponse = (): Response => {
 
 export interface IParams {
   followerId?: string;
+  followeeId?: string;
   userId?: string;
 }
 
-export const followerData: IFollower = {
+export const mockFollowerData: IFollowerData = {
+  avatarColor: `${existingUserTwo.avatarColor}`,
+  followersCount: existingUserTwo.followersCount,
+  followingCount: existingUserTwo.followingCount,
+  profilePicture: `${existingUserTwo.profilePicture}`,
+  postCount: existingUserTwo.postsCount,
+  username: `${existingUserTwo.username}`,
+  uId: `${existingUserTwo.uId}`,
+  _id: new mongoose.Types.ObjectId(existingUserTwo._id),
+};
+
+export const followerData = {
   _id: '605727cd646cb50e668a4e13',
   followerId: {
     username: 'Manny',
@@ -41,9 +54,3 @@ export const followerData: IFollower = {
     profilePicture: 'https://res.cloudinary.com/ratingapp/image/upload/605727cd646eb50e668a4e13'
   }
 };
-
-export const followerDocument: IFollowerDocument = {
-  _id: mongoose.Types.ObjectId('605727cd646cb50e668a4e13'),
-  followerId: mongoose.Types.ObjectId('605727cd646cb50e668a4e13'),
-  followeeId: mongoose.Types.ObjectId('605727cd646cb50e668a4e14')
-} as IFollowerDocument;

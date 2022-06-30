@@ -107,17 +107,17 @@ export class MessageCache extends BaseCache {
     }
   }
 
-  public async getUserConversationList(key: string): Promise<IChatList[]> {
+  public async getUserConversationList(key: string): Promise<IMessageData[]> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
       const userChatList: string[] = await this.client.LRANGE(`chatList:${key}`, 0, -1);
-      const conversationChatList: IChatList[] = [];
+      const conversationChatList: IMessageData[] = [];
       for (const item of userChatList) {
         const chatItem = Helpers.parseJson(item) as IChatList;
         const lastMessage = await this.client.LINDEX(`messages:${chatItem.conversationId}`, -1);
-        conversationChatList.push(Helpers.parseJson(lastMessage) as IChatList);
+        conversationChatList.push(Helpers.parseJson(lastMessage) as IMessageData);
       }
       return conversationChatList;
     } catch (error) {

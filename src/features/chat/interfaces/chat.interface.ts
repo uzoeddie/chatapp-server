@@ -54,7 +54,7 @@ export interface IChatUsers {
 }
 
 export interface IChatList {
-  recieverId: string;
+  receiverId: string;
   conversationId: string;
 }
 

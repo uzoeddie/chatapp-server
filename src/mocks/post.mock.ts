@@ -1,7 +1,8 @@
-import { IPostDocument } from '@post/interfaces/post.interface';
 import { AuthPayload } from '@user/interfaces/user.interface';
 import { Response } from 'express';
 import mongoose from 'mongoose';
+import { existingUser } from '@root/mocks/user.mock';
+import { IPostDocument } from '@post/interfaces/post.interface';
 
 export const postMockRequest = (body: IBody, currentUser?: AuthPayload | null, params?: IParams) => ({
   body,
@@ -26,17 +27,11 @@ interface IBody {
   post?: string;
   gifUrl?: string;
   image?: string;
-  privacy?: IPostPrivacy;
+  privacy?: string;
   imgId?: string;
   imgVersion?: string;
   profilePicture?: string;
-  feelings?: { name: string; file: string };
-}
-
-type Privacy = 'Public' | 'Followers' | 'Private';
-interface IPostPrivacy {
-  type: Privacy | string;
-  iconName: string;
+  feelings?: string;
 }
 
 export const newPost: IBody = {
@@ -45,39 +40,57 @@ export const newPost: IBody = {
   gifUrl: '',
   imgId: '',
   imgVersion: '',
-  image: 'testing image',
-  privacy: { type: 'Public', iconName: 'fas fa-globe dropdown-icon' },
-  profilePicture: 'https://res.cloudinary.com/ratingapp/image/upload/602740b43eaf201998cd9297',
-  feelings: { name: 'happy', file: '/assets/feelings/happy.jpg' }
+  image: '',
+  privacy: 'Public',
+  profilePicture: 'http://place-hold.it/500x500',
+  feelings: 'happy'
 };
 
-export const postMockData: IPostDocument = ({
-  avatarColor: '#4caf50',
-  bgColor: '#f44336',
-  comments: 3,
-  createdAt: new Date(),
-  email: 'danny@me.com',
-  feelings: { name: 'happy', file: '/assets/feelings/happy.jpg' },
-  gifUrl: '',
-  imgId: '',
-  imgVersion: '',
+export const postMockData: IPostDocument = {
+  _id: new mongoose.Types.ObjectId('6027f77087c9d9ccb1555268'),
+  userId: existingUser._id,
+  username: existingUser.username,
+  email: existingUser.email,
+  avatarColor: existingUser.avatarColor,
+  profilePicture: existingUser.profilePicture,
   post: 'how are you?',
-  privacy: { type: 'Public', iconName: 'fas fa-globe dropdown-icon' },
-  profilePicture: 'https://res.cloudinary.com/ratingapp/image/upload/602740b43eaf201998cd9297',
-  reactions: [{ type: 'love', value: 1 }],
-  userId: '602740b43eaf201998cd9297',
-  username: 'Danny',
-  _id: mongoose.Types.ObjectId('6027f77087c9d9ccb1555268')
-} as unknown) as IPostDocument;
-
-export const updatedPost: IPostDocument = {
-  profilePicture: 'https://res.cloudinary.com/ratingapp/image/upload/602740b43eaf201998cd9297',
-  post: 'This is an updated post',
   bgColor: '#f44336',
-  feelings: { name: 'happy', file: '/assets/feelings/happy.jpg' },
-  privacy: { type: 'Public', iconName: 'fas fa-globe dropdown-icon' },
+  imgId: '',
+  imgVersion: '',
+  feelings: 'happy',
+  gifUrl: '',
+  privacy: 'Public',
+  commentsCount: 0,
+  createdAt: new Date(),
+  reactions: {
+    like: 0,
+    love: 0,
+    haha: 0,
+    wow: 0,
+    sad: 0,
+    angry: 0
+  }
+} as IPostDocument;
+
+export const updatedPost = {
+  profilePicture: postMockData.profilePicture,
+  post: postMockData.post,
+  bgColor: postMockData.bgColor,
+  feelings: 'wow',
+  privacy: 'Private',
   gifUrl: '',
   imgId: '',
   imgVersion: '',
-  createdAt: new Date()
-} as IPostDocument;
+};
+
+export const updatedPostWithImage = {
+  profilePicture: postMockData.profilePicture,
+  post: 'Wonderful',
+  bgColor: postMockData.bgColor,
+  feelings: 'wow',
+  privacy: 'Private',
+  gifUrl: '',
+  imgId: '',
+  imgVersion: '',
+  image: ''
+};

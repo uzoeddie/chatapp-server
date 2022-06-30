@@ -1,9 +1,9 @@
 import { IReactions } from '@reaction/interfaces/reaction.interface';
 import { ObjectId } from 'mongodb';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 export interface IPostDocument extends Document {
-  _id?: string | ObjectId;
+  _id?: string | mongoose.Types.ObjectId;
   userId: string;
   username: string;
   email: string;

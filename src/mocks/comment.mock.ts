@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { ICommentDocument, ICommentNameList } from '@comment/interfaces/comment.interface';
 import { AuthPayload } from '@user/interfaces/user.interface';
 import { IJwt } from './auth.mock';
-import { IReactionDocument } from '@reaction/interfaces/reaction.interface';
+import { IReactionDocument, IReactions } from '@reaction/interfaces/reaction.interface';
 
 export const commentMockRequest = (sessionData: IJwt, body: IBody, currentUser?: AuthPayload | null, params?: IParams) => ({
   session: sessionData,
@@ -25,6 +25,7 @@ export interface IBody {
   userTo?: string;
   type?: string;
   previousReaction?: string;
+  postReactions?: IReactions;
 }
 
 export interface IParams {
@@ -33,6 +34,8 @@ export interface IParams {
   commentId?: string;
   reactionId?: string;
   previousReaction?: string;
+  username?: string;
+  postReactions?: string;
 }
 
 export const commentsData: ICommentDocument = ({
@@ -61,3 +64,8 @@ export const reactionData: IReactionDocument = {
   userTo: '60263f14648fed5246e322d9',
   type: 'love'
 } as IReactionDocument;
+
+export const commentNames: ICommentNameList = {
+  count: 1,
+  names: ['Danny']
+};

@@ -9,28 +9,27 @@ jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 
 describe('Get', () => {
-    beforeEach(() => {
-        jest.restoreAllMocks();
-    });
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-        jest.clearAllTimers();
-    });
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
+  });
 
-    it('should send correct json response', async () => {
-        const req: Request = notificationMockRequest({}, authUserPayload, { notificationId: '12345' }) as Request;
-        const res: Response = notificationMockResponse();
-        jest.spyOn(NotificationModel, 'find');
-        jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce([notificationData]);
+  it('should send correct json response', async () => {
+    const req: Request = notificationMockRequest({}, authUserPayload, { notificationId: '12345' }) as Request;
+    const res: Response = notificationMockResponse();
+    jest.spyOn(NotificationModel, 'find');
+    jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce([notificationData]);
 
-        await Get.prototype.notification(req, res);
-        expect(NotificationModel.find).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'User notifications',
-            notifications: [notificationData],
-            notification: false
-        });
+    await Get.prototype.notification(req, res);
+    expect(NotificationModel.find).toHaveBeenCalledWith({ userTo: req.currentUser!.userId });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'User notifications',
+      notifications: [notificationData]
     });
+  });
 });

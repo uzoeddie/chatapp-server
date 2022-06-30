@@ -22,7 +22,7 @@ export class Add {
       throw new BadRequestError(result.message);
     }
     const url = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${result.public_id}`;
-    const cachedUser: IUserDocument = await userInfoCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, 'profilePicture', url);
+    const cachedUser: IUserDocument | null = await userInfoCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, 'profilePicture', url);
     socketIOImageObject.emit('update user', cachedUser);
     imageQueue.addImageJob('addUserProfileImageToDB', {
       key: `${req.currentUser?.userId}`,
@@ -36,17 +36,17 @@ export class Add {
   @joiValidation(addImageSchema)
   public async backgroundImage(req: Request, res: Response): Promise<void> {
     const { version, publicId }: IBgUploadResponse = await Add.prototype.backgroundUpload(req.body.image);
-    const bgImageId: Promise<IUserDocument> = userInfoCache.updateSingleUserItemInCache(
+    const bgImageId: Promise<IUserDocument | null> = userInfoCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'bgImageId',
       publicId
     );
-    const bgImageVersion: Promise<IUserDocument> = userInfoCache.updateSingleUserItemInCache(
+    const bgImageVersion: Promise<IUserDocument | null> = userInfoCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'bgImageVersion',
       version
     );
-    const response: [IUserDocument, IUserDocument] = await Promise.all([bgImageId, bgImageVersion]);
+    const response: [IUserDocument | null, IUserDocument | null] = await Promise.all([bgImageId, bgImageVersion]);
     socketIOImageObject.emit('update user', {
       bgImageId: publicId,
       bgImageVersion: version,

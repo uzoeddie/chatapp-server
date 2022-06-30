@@ -2,7 +2,7 @@ import HTTP_STATUS from 'http-status-codes';
 import { Request, Response } from 'express';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { UserCache } from '@service/redis/user.cache';
-import { UserModel } from '@user/models/user.schema';
+import { userService } from '@service/db/user.service';
 
 const userCache = new UserCache();
 
@@ -14,8 +14,8 @@ export class CurrentUser {
     const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${req.currentUser?.userId}`)) as IUserDocument;
     const existingUser: IUserDocument = cachedUser
       ? cachedUser
-      : ((await UserModel.findById({ _id: `${req.currentUser?.userId}` }).exec()) as IUserDocument);
-    if (existingUser) {
+      : await userService.getUserById(`${req.currentUser?.userId}`);
+    if (Object.keys(existingUser).length) {
       isUser = true;
       token = req.session?.jwt;
       user = existingUser;

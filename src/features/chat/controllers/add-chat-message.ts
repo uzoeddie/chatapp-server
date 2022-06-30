@@ -36,8 +36,8 @@ export class Add {
     } = req.body;
     let fileUrl = '';
     const messageObjectId: ObjectId = new ObjectId();
-
     const conversationObjectId: ObjectId = !conversationId ? new ObjectId() : new mongoose.Types.ObjectId(conversationId);
+
     const sender = await userCache.getUserFromCache(`${req.currentUser?.userId}`);
 
     if (selectedImage.length) {

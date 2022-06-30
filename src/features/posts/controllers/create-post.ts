@@ -50,7 +50,6 @@ export class Create {
       createdPost
     });
     socketIOPostObject.emit('add post', createdPost);
-    delete createdPost.reactions;
     postQueue.addPostJob('savePostToDB', { key: req.currentUser?.userId, value: createdPost });
     res.status(HTTP_STATUS.CREATED).json({ message: 'Post created successfully' });
   }
@@ -93,7 +92,6 @@ export class Create {
       createdPost
     });
     socketIOPostObject.emit('add post', createdPost);
-    delete createdPost.reactions;
     postQueue.addPostJob('savePostToDB', { key: req.currentUser?.userId, value: createdPost });
     imageQueue.addImageJob('addImageToDB', {
       key: `${req.currentUser?.userId}`,

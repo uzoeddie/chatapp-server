@@ -10,7 +10,7 @@
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "prettier:check": "prettier --check 'src/**/*.{ts,json}'",
     "prettier:fix": "prettier --write 'src/**/*.{ts,json}'",
-    "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles",
+    "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false",
     "build": "ttsc -p ."
   },
   "keywords": [],
@@ -22,6 +22,7 @@
     "@sendgrid/mail": "^7.7.0",
     "@socket.io/redis-adapter": "^7.2.0",
     "@types/bull": "^3.15.8",
+    "@types/ioredis-mock": "^5.6.0",
     "@zerollup/ts-transform-paths": "^1.7.18",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
@@ -35,10 +36,10 @@
     "ejs": "^3.1.8",
     "express": "^4.18.1",
     "express-async-errors": "^3.1.1",
-    "flat": "^5.0.2",
     "helmet": "^5.1.0",
     "hpp": "^0.2.3",
     "http-status-codes": "^2.2.0",
+    "ioredis-mock": "^8.2.2",
     "ip": "^1.1.8",
     "jimp": "^0.16.0",
     "joi": "^17.6.0",
@@ -61,7 +62,6 @@
     "@types/cors": "^2.8.12",
     "@types/ejs": "^3.1.1",
     "@types/express": "^4.17.13",
-    "@types/flat": "^5.0.1",
     "@types/hpp": "^0.2.2",
     "@types/ip": "^1.1.0",
     "@types/jest": "^28.1.3",
@@ -76,7 +76,6 @@
     "eslint": "^8.18.0",
     "jest": "^28.1.1",
     "prettier": "^2.7.1",
-    "redis-mock": "^0.56.3",
     "ts-jest": "^28.0.5",
     "ts-node": "^10.8.1",
     "tsconfig-paths": "^4.0.0",
@@ -91,6 +90,9 @@
     "testPathIgnorePatterns": [
       "/node_modules/"
     ],
+    "transform": {
+      "^.+\\.ts?$": "ts-jest"
+    },
     "testMatch": [
       "<rootDir>/src/**/test/*.ts"
     ],
@@ -110,10 +112,6 @@
     "coverageReporters": [
       "text-summary",
       "lcov"
-    ],
-    "moduleDirectories": [
-      "node_modules",
-      "src"
     ],
     "setupFilesAfterEnv": [
       "./jest.setup.redis-mock.js"
