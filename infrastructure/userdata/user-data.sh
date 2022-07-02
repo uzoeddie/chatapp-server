@@ -32,7 +32,7 @@ fi
 # Check if docker is installed
 if [ $(program_is_installed docker) == 0 ]; then
     # for amazon linux 2
-    sudo amazon-linux-extras install docker
+    sudo amazon-linux-extras install docker -y
     # start docker service
     sudo systemctl start docker
     # start docker redis server in detach mode
