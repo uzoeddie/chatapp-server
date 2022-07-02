@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 import { Request, Response } from 'express';
-import Jimp from 'jimp';
 import JWT from 'jsonwebtoken';
 import HTTP_STATUS from 'http-status-codes';
 import { Helpers } from '@global/helpers/helpers';
@@ -21,7 +20,7 @@ const userCache = new UserCache();
 export class SignUp {
   @joiValidation(signupSchema)
   public async create(req: Request, res: Response): Promise<void> {
-    const { username, email, password } = req.body;
+    const { username, email, password, avatarColor, avatarImage } = req.body;
     // const username = faker.name.middleName();
     // const email = faker.internet.email();
     // const password = 'qwerty';
@@ -40,11 +39,10 @@ export class SignUp {
       uId,
       username,
       email,
-      password
+      password,
+      avatarColor
     });
-    const image: Jimp = await SignUp.prototype.loadJimpImage(Helpers.firstLetterUppercase(username), data.avatarColor);
-    const dataFile: string = await image.getBase64Async('image/png');
-    const result: UploadApiResponse = (await uploads(dataFile, `${createdObjectId}`, true, true)) as UploadApiResponse;
+    const result: UploadApiResponse = (await uploads(avatarImage, `${createdObjectId}`, true, true)) as UploadApiResponse;
     if (!result?.public_id) {
       throw new BadRequestError('Error occurred. Try again.');
     }
@@ -70,14 +68,14 @@ export class SignUp {
   }
 
   private signupData(data: ISignUpData): IUserDocument {
-    const { createdObjectId, username, email, uId, password } = data;
+    const { createdObjectId, username, email, uId, password, avatarColor } = data;
     return ({
       _id: createdObjectId,
       uId,
       username: Helpers.firstLetterUppercase(username),
       email,
       password,
-      avatarColor: Helpers.avatarColor(),
+      avatarColor,
       createdAt: new Date(),
       blocked: [],
       blockedBy: [],
@@ -103,23 +101,5 @@ export class SignUp {
         youtube: ''
       }
     } as unknown) as IUserDocument;
-  }
-
-  private async loadJimpImage(username: string, avatarColor: string): Promise<Jimp> {
-    const image: Jimp = new Jimp(256, 256, avatarColor);
-    const font = await Jimp.loadFont(Jimp.FONT_SANS_128_WHITE);
-    image.print(
-      font,
-      65,
-      70,
-      {
-        text: username.charAt(0),
-        alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-        alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-      },
-      image.bitmap.width / 2,
-      image.bitmap.height / 2
-    );
-    return image;
   }
 }

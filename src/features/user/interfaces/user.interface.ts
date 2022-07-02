@@ -53,6 +53,7 @@ export interface ISignUpData {
   email: string;
   username: string;
   password: string;
+  avatarColor: string;
 }
 
 export interface IResetPasswordParams {

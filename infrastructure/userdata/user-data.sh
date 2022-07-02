@@ -17,9 +17,11 @@ sudo ./install auto
 
 # Check if NodeJs is installed. if not, install it
 if [ $(program_is_installed node) == 0 ]; then
-    sudo curl --silent --location https://rpm.nodesource.com/setup_current.x | sudo bash -
-    sudo yum -y install nodejs
-    sudo npm install -g npm-check-updates
+    # sudo curl --silent --location https://rpm.nodesource.com/setup_17.x | sudo bash -
+    curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+    . ~/.nvm/nvm.sh
+    # install nodejs lts
+    nvm install --lts
 fi
 
 # Check if git is installed
@@ -35,20 +37,21 @@ if [ $(program_is_installed docker) == 0 ]; then
     sudo systemctl start docker
     # start docker redis server in detach mode
     sudo docker run --name chatapp-redis -p 6379:6379 --restart always --detach redis
+    # sudo docker run --name chatapp-redis -d -p 6379:6379 --restart always --detach redislabs/redisearch:latest
 fi
 
 # Check if git is installed
 if [ $(program_is_installed pm2) == 0 ]; then
-    sudo npm install -g pm2
+  npm install -g pm2
 fi
 
 cd /home/ec2-user
 
 git clone -b develop https://github.com/uzoeddie/chatapp-server.git
 cd chatapp-server
-sudo npm install
+npm install
 aws s3 sync s3://chatapp-env-files/develop .
-sudo unzip env-file.zip
-sudo cp .env.develop .env
-sudo npm run build
-sudo npm start
+unzip env-file.zip
+cp .env.develop .env
+npm run build
+npm start
