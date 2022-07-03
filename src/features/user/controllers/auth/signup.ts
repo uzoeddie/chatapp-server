@@ -4,7 +4,6 @@ import JWT from 'jsonwebtoken';
 import HTTP_STATUS from 'http-status-codes';
 import { Helpers } from '@global/helpers/helpers';
 import { ISignUpData, IUserDocument } from '@user/interfaces/user.interface';
-import { UserModel } from '@user/models/user.schema';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { config } from '@root/config';
 import { UserCache } from '@service/redis/user.cache';
@@ -13,6 +12,7 @@ import { BadRequestError } from '@global/helpers/error-handler';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { signupSchema } from '@user/schemes/auth/signup';
 import { UploadApiResponse } from 'cloudinary';
+import { userService } from '@service/db/user.service';
 // import { faker } from '@faker-js/faker';
 
 const userCache = new UserCache();
@@ -24,10 +24,7 @@ export class SignUp {
     // const username = faker.name.middleName();
     // const email = faker.internet.email();
     // const password = 'qwerty';
-    const query = {
-      $or: [{ username: Helpers.firstLetterUppercase(username) }, { email: Helpers.lowerCase(email) }]
-    };
-    const checkIfUserExist: IUserDocument = (await UserModel.findOne(query).exec()) as IUserDocument;
+    const checkIfUserExist: IUserDocument = await userService.getUserByUsernameOrEmail(username, email) as IUserDocument;
     if (checkIfUserExist) {
       throw new BadRequestError('Invalid credentials');
     }
@@ -51,7 +48,7 @@ export class SignUp {
     userQueue.addUserJob('addUserToDB', { value: data });
     const userJwt: string = SignUp.prototype.signToken(data);
     req.session = { jwt: userJwt };
-    res.status(HTTP_STATUS.CREATED).json({ message: 'User created succesffuly', user: data, token: userJwt });
+    res.status(HTTP_STATUS.CREATED).json({ message: 'User created successfully', user: data, token: userJwt });
   }
 
   private signToken(data: IUserDocument): string {

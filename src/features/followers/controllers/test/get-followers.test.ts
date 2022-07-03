@@ -68,7 +68,7 @@ describe('Get', () => {
 
   describe('userFollowers', () => {
     it('should send correct json response if user follower exist in cache', async () => {
-      const req: Request = followersMockRequest({}, authUserPayload, {userId: existingUserTwo._id}) as Request;
+      const req: Request = followersMockRequest({}, authUserPayload, { userId: `${existingUserTwo._id}` }) as Request;
       const res: Response = followersMockResponse();
       jest.spyOn(FollowerCache.prototype, 'getFollowersFromCache').mockResolvedValue([mockFollowerData]);
 
@@ -82,7 +82,7 @@ describe('Get', () => {
     });
 
     it('should send correct json response if user following exist in database', async () => {
-      const req: Request = followersMockRequest({}, authUserPayload, {userId: existingUserTwo._id}) as Request;
+      const req: Request = followersMockRequest({}, authUserPayload, { userId: `${existingUserTwo._id}` }) as Request;
       const res: Response = followersMockResponse();
       jest.spyOn(FollowerCache.prototype, 'getFollowersFromCache').mockResolvedValue([]);
       jest.spyOn(followerService, 'getFollowerData').mockResolvedValue([mockFollowerData]);
@@ -97,7 +97,7 @@ describe('Get', () => {
     });
 
     it('should return empty following if user following does not exist', async () => {
-      const req: Request = followersMockRequest({}, authUserPayload, {userId: existingUserTwo._id}) as Request;
+      const req: Request = followersMockRequest({}, authUserPayload, { userId: `${existingUserTwo._id}` }) as Request;
       const res: Response = followersMockResponse();
       jest.spyOn(FollowerCache.prototype, 'getFollowersFromCache').mockResolvedValue([]);
       jest.spyOn(followerService, 'getFollowerData').mockResolvedValue([]);
@@ -110,5 +110,4 @@ describe('Get', () => {
       });
     });
   });
-
 });

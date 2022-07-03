@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { ISearchUser } from '@chat/interfaces/chat.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
@@ -197,33 +196,6 @@ export class UserCache extends BaseCache {
         reply.followingCount = Helpers.parseJson(`${reply.followingCount}`) as number;
       }
       return replies;
-    } catch (error) {
-      throw new ServerError('Server error. Try again.');
-    }
-  }
-
-  public async searchForUserInCache(query: string, excludedKey: string): Promise<ISearchUser[]> {
-    try {
-      if (!this.client.isOpen) {
-        await this.client.connect();
-      }
-
-      const results = await this.client.ft.search('idx:users', `@username:${query}*`);
-      const searchedUsers: ISearchUser[] = [] as ISearchUser[];
-      for (const result of results.documents) {
-        if (result.value._id !== excludedKey) {
-          const user = {
-            _id: result.value._id,
-            email: result.value.email,
-            username: result.value.username,
-            avatarColor: result.value.avatarColor,
-            profilePicture: result.value.profilePicture
-          };
-          searchedUsers.push(user);
-        }
-      }
-
-      return searchedUsers;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }

@@ -1,5 +1,8 @@
 import { BaseCache } from '@service/redis/base.cache';
-import { SchemaFieldTypes } from 'redis';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('redisConnection');
 
 class RedisConnection extends BaseCache {
   constructor() {
@@ -9,31 +12,8 @@ class RedisConnection extends BaseCache {
   async connect(): Promise<void> {
     try {
       await this.client.connect();
-      this.createUserHashIndex();
     } catch (error) {
-      console.log(error);
-    }
-  }
-
-  private async createUserHashIndex() {
-    try {
-      if (!this.client.isOpen) {
-        await this.client.connect();
-      }
-
-      // Documentation: https://oss.redis.com/redisearch/Commands/#ftcreate
-      await this.client.ft.create(
-        'idx:users',
-        {
-          username: SchemaFieldTypes.TEXT
-        },
-        {
-          ON: 'HASH',
-          PREFIX: 'users:'
-        }
-      );
-    } catch (e) {
-      // console.log(e);
+      log.error(error);
     }
   }
 }

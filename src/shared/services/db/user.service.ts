@@ -2,6 +2,8 @@ import { IUserDocument, INotificationSettings } from '@user/interfaces/user.inte
 import { UserModel } from '@user/models/user.schema';
 import { followerService } from '@service/db/follower.service';
 import {indexOf} from 'lodash';
+import { ISearchUser } from '@chat/interfaces/chat.interface';
+import { Helpers } from '@global/helpers/helpers';
 
 class User {
   public async addUserDataToDB(data: IUserDocument): Promise<void> {
@@ -14,6 +16,14 @@ class User {
 
   public async getUserById(userId: string): Promise<IUserDocument> {
     const user: IUserDocument = (await UserModel.findById({ _id: userId }).exec()) as IUserDocument;
+    return user;
+  }
+
+  public async getUserByUsernameOrEmail(username: string, email: string): Promise<IUserDocument> {
+    const query = {
+      $or: [{ username: Helpers.firstLetterUppercase(username) }, { email: Helpers.lowerCase(email) }]
+    };
+    const user: IUserDocument = await UserModel.findOne(query).exec()as IUserDocument;
     return user;
   }
 
@@ -55,6 +65,22 @@ class User {
       }
     }
     return randomUsers;
+  }
+
+  public async searchUsers(regex: RegExp): Promise<ISearchUser[]> {
+    const users = await UserModel.aggregate([
+      { $match: { username: regex } },
+      {
+        $project: {
+          _id: 1,
+          username: 1,
+          email: 1,
+          avatarColor: 1,
+          profilePicture: 1
+        }
+      }
+    ]);
+    return users;
   }
 }
 

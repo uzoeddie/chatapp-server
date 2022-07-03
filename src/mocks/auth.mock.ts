@@ -39,6 +39,8 @@ export interface IAuthMock {
   reactions?: boolean;
   comments?: boolean;
   follows?: boolean;
+  avatarColor?: string;
+  avatarImage?: string;
 }
 
 export interface IJwt {

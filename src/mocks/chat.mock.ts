@@ -80,6 +80,6 @@ export const messageDataMock: IMessageData = {
 };
 
 export const chatList: IChatList[] = [{
-  receiverId: existingUserTwo._id,
+  receiverId: `${existingUserTwo._id}`,
   conversationId: chatMessage.conversationId
 }];

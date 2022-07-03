@@ -64,7 +64,7 @@ export const existingUserTwo = {
   location: 'Dusseldorf, Germany',
   quote: 'Sky is my limit',
   createdAt: new Date()
-};
+} as unknown as IUserDocument;
 
 export const searchedUserMock = {
   profilePicture: 'http://place-hold.it/500x500',

@@ -1,21 +1,19 @@
 import { Request, Response } from 'express';
 import JWT from 'jsonwebtoken';
 import { IUserDocument } from '@user/interfaces/user.interface';
-import { UserModel } from '@user/models/user.schema';
 import { Helpers } from '@global/helpers/helpers';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { config } from '@root/config';
 import HTTP_STATUS from 'http-status-codes';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { loginSchema } from '@user/schemes/auth/signin';
+import { userService } from '@service/db/user.service';
 
 export class SignIn {
   @joiValidation(loginSchema)
   public async read(req: Request, res: Response): Promise<void> {
     const { username, password } = req.body;
-    const existingUser: IUserDocument = (await UserModel.findOne({
-      username: Helpers.firstLetterUppercase(username)
-    }).exec()) as IUserDocument;
+    const existingUser: IUserDocument = await userService.getUserByUsername(Helpers.firstLetterUppercase(username));
     if (!existingUser) {
       throw new BadRequestError('Invalid credentials');
     }
