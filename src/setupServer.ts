@@ -49,8 +49,7 @@ export class ChatServer {
       cookieSession({
         name: 'session',
         keys: [process.env.SECRET_KEY_ONE!, process.env.SECRET_KEY_TWO!],
-        maxAge: 24 * 7 * 3600000
-        // maxAge: 10 * 60 * 1000
+        maxAge: 24 * 7 * 3600000,
         // secure: process.env.NODE_ENV !== 'development',
         // sameSite: 'none',
       })
@@ -62,6 +61,7 @@ export class ChatServer {
         // origin: process.env.CLIENT_URL,
         credentials: true,
         optionsSuccessStatus: 200,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         origin: true
       })
     );

@@ -36,7 +36,7 @@ export class SignIn {
       config.JWT_TOKEN!
     );
     req.session = { jwt: userJwt };
-    res.status(HTTP_STATUS.CREATED).json({
+    res.status(HTTP_STATUS.OK).json({
       message: 'User login successfully',
       user: existingUser,
       token: userJwt

@@ -17,11 +17,9 @@ sudo ./install auto
 
 # Check if NodeJs is installed. if not, install it
 if [ $(program_is_installed node) == 0 ]; then
-    # sudo curl --silent --location https://rpm.nodesource.com/setup_17.x | sudo bash -
-    curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-    . ~/.nvm/nvm.sh
-    # install nodejs lts
-    nvm install --lts
+    curl -fsSL https://rpm.nodesource.com/setup_lts.x | sudo bash -
+
+    sudo yum install -y nodejs
 fi
 
 # Check if git is installed
