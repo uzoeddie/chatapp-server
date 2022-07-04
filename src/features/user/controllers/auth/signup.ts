@@ -13,7 +13,6 @@ import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { signupSchema } from '@user/schemes/auth/signup';
 import { UploadApiResponse } from 'cloudinary';
 import { userService } from '@service/db/user.service';
-// import { faker } from '@faker-js/faker';
 
 const userCache = new UserCache();
 
@@ -21,9 +20,6 @@ export class SignUp {
   @joiValidation(signupSchema)
   public async create(req: Request, res: Response): Promise<void> {
     const { username, email, password, avatarColor, avatarImage } = req.body;
-    // const username = faker.name.middleName();
-    // const email = faker.internet.email();
-    // const password = 'qwerty';
     const checkIfUserExist: IUserDocument = await userService.getUserByUsernameOrEmail(username, email) as IUserDocument;
     if (checkIfUserExist) {
       throw new BadRequestError('Invalid credentials');

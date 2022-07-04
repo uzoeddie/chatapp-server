@@ -1,5 +1,4 @@
 import { IFormattedReaction, IReactions } from '@reaction/interfaces/reaction.interface';
-// import _ from 'lodash';
 
 export class Helpers {
   static firstLetterUppercase(str: string): string {
