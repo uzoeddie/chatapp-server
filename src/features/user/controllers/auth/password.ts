@@ -31,15 +31,19 @@ export class Password {
     existingUser.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await existingUser.save();
 
-    const resetLink = `${config.CLIENT_URL}/auth/reset-password?token=${randomCharacters}`;
+    const resetLink = `${config.CLIENT_URL}/reset-password?token=${randomCharacters}`;
     const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username, resetLink);
     emailQueue.addEmailJob('forgotPasswordMail', { template, receiverEmail: email, subject: 'Reset your password' });
-    res.status(HTTP_STATUS.OK).json({ message: 'Password reset email sent.', user: {}, token: '' });
+    res.status(HTTP_STATUS.OK).json({ message: 'Password reset email sent.' });
   }
 
   @joiValidation(passwordSchema)
   public async update(req: Request, res: Response): Promise<void> {
     const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+    if (password !== confirmPassword) {
+      throw new BadRequestError('Passwords do not match.');
+    }
     const existingUser: IUserDocument = (await UserModel.findOne({
       passwordResetToken: token,
       passwordResetExpires: { $gt: Date.now() }
@@ -48,7 +52,7 @@ export class Password {
       throw new BadRequestError('Reset token has expired.');
     }
 
-    existingUser.password = req.body.password;
+    existingUser.password = password;
     existingUser.passwordResetToken = undefined;
     existingUser.passwordResetExpires = undefined;
     await existingUser.save();
@@ -66,6 +70,6 @@ export class Password {
       receiverEmail: existingUser.email,
       subject: 'Password Reset Confirmation'
     });
-    res.status(HTTP_STATUS.OK).json({ message: 'Password successfully updated.', user: {}, token: '' });
+    res.status(HTTP_STATUS.OK).json({ message: 'Password successfully updated.' });
   }
 }

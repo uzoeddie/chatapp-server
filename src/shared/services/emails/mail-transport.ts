@@ -36,7 +36,7 @@ class MailTransport {
     });
 
     const mailOptions: IMailOptions = {
-      from: 'Chatty App',
+      from: `Chatty App <${config.SENDER_EMAIL!}>`,
       to: receiverEmail,
       subject,
       html: body
@@ -53,7 +53,7 @@ class MailTransport {
 
   private async productionEmailSender(receiverEmail: string, subject: string, body: string): Promise<void> {
     const mailOptions: IMailOptions = {
-      from: config.SENDER_EMAIL!,
+      from: config.SENDGRID_SENDER!,
       to: receiverEmail,
       subject,
       html: body
