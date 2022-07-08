@@ -25,8 +25,6 @@ import { SocketIOPostHandler } from '@socket/post';
 const log: Logger = config.createLogger('server');
 const SERVER_PORT = 5000;
 
-// 36d827e7e3fe9855427070deacb00b53f0f89629
-
 export class ChatServer {
   private app: Application;
 
