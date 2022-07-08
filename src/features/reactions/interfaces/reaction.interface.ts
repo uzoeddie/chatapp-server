@@ -1,43 +1,48 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Document } from 'mongoose';
 
 export interface IReactionDocument extends Document {
-    _id?: string | ObjectID;
-    username: string;
-    avataColor: string;
-    type: string;
-    postId: string;
-    profilePicture: string;
-    createdAt?: Date;
-    userTo?: string | ObjectID;
-    comment?: string;
+  _id?: string | ObjectId;
+  username: string;
+  avataColor: string;
+  type: string;
+  postId: string;
+  profilePicture: string;
+  createdAt?: Date;
+  userTo?: string | ObjectId;
+  comment?: string;
 }
 
 export interface IFormattedReaction {
-    type: string;
-    value: number;
+  type: string;
+  value: number;
 }
 
 export interface IReactions {
-    like: number;
-    love: number;
-    haha: number;
-    wow: number;
-    sad: number;
-    angry: number;
+  like: number;
+  love: number;
+  haha: number;
+  wow: number;
+  sad: number;
+  angry: number;
 }
 
 export interface IReactionJob {
-    postId: string;
-    username: string;
-    previousReaction: string;
-    userTo?: string;
-    userFrom?: string;
-    type?: string;
-    reactionObject?: IReactionDocument;
+  postId: string;
+  username: string;
+  previousReaction: string;
+  userTo?: string;
+  userFrom?: string;
+  type?: string;
+  reactionObject?: IReactionDocument;
 }
 
 export interface IQueryReaction {
-    _id?: string | ObjectID;
-    postId?: string | ObjectID;
+  _id?: string | ObjectId;
+  postId?: string | ObjectId;
+}
+
+export interface IReaction {
+  senderName: string;
+  type: string;
 }

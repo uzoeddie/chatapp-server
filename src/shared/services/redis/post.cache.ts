@@ -1,258 +1,267 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Multi } from 'redis';
 import { BaseCache } from '@service/redis/base.cache';
 import { IPostDocument, ISavePostToCache } from '@post/interfaces/post.interface';
 import { Helpers } from '@global/helpers/helpers';
+import { ServerError } from '@global/helpers/error-handler';
 import { IReactions } from '@reaction/interfaces/reaction.interface';
 
-class PostCache extends BaseCache {
-    constructor() {
-        super('postCache');
+export class PostCache extends BaseCache {
+  constructor() {
+    super('postCache');
+  }
+
+  public async savePostToCache(data: ISavePostToCache): Promise<void> {
+    const { key, currentUserId, uId, createdPost } = data;
+    const {
+      _id,
+      userId,
+      username,
+      email,
+      avatarColor,
+      profilePicture,
+      post,
+      bgColor,
+      feelings,
+      privacy,
+      gifUrl,
+      commentsCount,
+      imgVersion,
+      imgId,
+      reactions,
+      createdAt
+    } = createdPost;
+
+    const firstList: string[] = [
+      '_id',
+      `${_id}`,
+      'userId',
+      `${userId}`,
+      'username',
+      `${username}`,
+      'email',
+      `${email}`,
+      'avatarColor',
+      `${avatarColor}`,
+      'profilePicture',
+      `${profilePicture}`,
+      'post',
+      `${post}`,
+      'bgColor',
+      `${bgColor}`,
+      'feelings',
+      `${feelings}`,
+      'privacy',
+      `${privacy}`,
+      'gifUrl',
+      `${gifUrl}`
+    ];
+
+    const secondList: string[] = [
+      'commentsCount',
+      `${commentsCount}`,
+      'reactions',
+      JSON.stringify(reactions),
+      'imgVersion',
+      `${imgVersion}`,
+      'imgId',
+      `${imgId}`,
+      'createdAt',
+      `${createdAt}`
+    ];
+    const dataToSave: string[] = [...firstList, ...secondList];
+
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const postCount: string = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
+      const multi = this.client.multi();
+      multi.HSET(`posts:${key}`, dataToSave);
+      multi.ZADD('post', { score: uId, value: `${key}` });
+      const count: number = parseInt(postCount[0], 10) + 1;
+      multi.HSET(`users:${currentUserId}`, ['postsCount', `${count}`]);
+      await multi.exec();
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public async savePostToCache(data: ISavePostToCache): Promise<void> {
-        const { key, currentUserId, uId, createdPost } = data;
-        const {
-            _id,
-            userId,
-            username,
-            email,
-            avatarColor,
-            profilePicture,
-            post,
-            bgColor,
-            feelings,
-            privacy,
-            gifUrl,
-            commentsCount,
-            imgVersion,
-            imgId,
-            reactions,
-            createdAt
-        } = createdPost;
-
-        const firstList: string[] = [
-            '_id',
-            `${_id}`,
-            'userId',
-            `${userId}`,
-            'username',
-            `${username}`,
-            'email',
-            `${email}`,
-            'avatarColor',
-            `${avatarColor}`,
-            'profilePicture',
-            `${profilePicture}`,
-            'post',
-            `${post}`,
-            'bgColor',
-            `${bgColor}`,
-            'feelings',
-            JSON.stringify(feelings),
-            'privacy',
-            JSON.stringify(privacy),
-            'gifUrl',
-            `${gifUrl}`
-        ];
-
-        const secondList: string[] = [
-            'commentsCount',
-            `${commentsCount}`,
-            'reactions',
-            JSON.stringify(reactions),
-            'imgVersion',
-            `${imgVersion}`,
-            'imgId',
-            `${imgId}`,
-            'createdAt',
-            `${createdAt}`
-        ];
-        const dataToSave: string[] = [...firstList, ...secondList];
-
-        return new Promise((resolve, reject) => {
-            this.client.hmget(`users:${currentUserId}`, 'postsCount', (error: Error | null, postCount: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                multi.hmset(`posts:${key}`, dataToSave);
-                multi.zadd('post', uId, `${key}`);
-                const count = parseInt(postCount[0], 10) + 1;
-                multi.hmset(`users:${currentUserId}`, ['postsCount', `${count}`]);
-                multi.exec((err: Error | null) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve();
-                });
-            });
-        });
+  public async getPostsFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: string[] = await this.client.ZRANGE(key, start, end, { REV: true });
+      const multi = this.client.multi();
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+      const replies: IPostDocument[] = await multi.exec();
+      for (const post of replies) {
+        post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
+        post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
+        post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`) as Date);
+      }
+      return replies;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public getPostsFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
-        return new Promise((resolve, reject) => {
-            this.client.zrevrange(key, start, end, (error: Error | null, reply: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                for (const value of reply) {
-                    multi.hgetall(`posts:${value}`);
-                }
-                multi.exec((err, replies) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    for (const post of replies) {
-                        post.feelings = Helpers.parseJson(post.feelings);
-                        post.privacy = Helpers.parseJson(post.privacy);
-                        post.reactions = Object.keys(Helpers.parseJson(post.reactions) as IReactions).length
-                            ? Helpers.formattedReactions(Helpers.parseJson(post.reactions) as IReactions)
-                            : [];
-                        post.createdAt = new Date(post.createdAt);
-                    }
-                    resolve(replies);
-                });
-            });
-        });
+  public async getTotalPostsCache(): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const count: number = await this.client.ZCARD('post');
+      return count;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public getSinglePostFromCache(key: string): Promise<IPostDocument[]> {
-        return new Promise((resolve, reject) => {
-            this.client.hgetall(`posts:${key}`, (error: Error | null, reply: any) => {
-                if (error) {
-                    reject(error);
-                }
-
-                reply.feelings = Helpers.parseJson(reply.feelings);
-                reply.privacy = Helpers.parseJson(reply.privacy);
-                reply.commentsCount = Helpers.parseJson(reply.commentsCount);
-                reply.userId = Helpers.parseJson(reply.userId);
-                reply.reactions = Object.keys(Helpers.parseJson(reply.reactions) as IReactions).length
-                    ? Helpers.formattedReactions(Helpers.parseJson(reply.reactions) as IReactions)
-                    : [];
-                reply.createdAt = new Date(reply.createdAt);
-
-                resolve([reply]);
-            });
-        });
+  public async getPostsWithImagesFromCache(key: string, start: number, end: number): Promise<IPostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: string[] = await this.client.ZRANGE(key, start, end, { REV: true });
+      const multi = this.client.multi();
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+      const replies: IPostDocument[] = await multi.exec();
+      const postWithImages: IPostDocument[] = [];
+      for (const post of replies) {
+        if ((post.imgId && post.imgVersion) || post.gifUrl) {
+          post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
+          post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
+          post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`) as Date);
+          postWithImages.push(post);
+        }
+      }
+      return postWithImages;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public getUserPostsFromCache(key: string, uId: number): Promise<IPostDocument[]> {
-        return new Promise((resolve, reject) => {
-            this.client.zrevrangebyscore(key, uId, uId, (error: Error | null, reply: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                for (const value of reply) {
-                    multi.hgetall(`posts:${value}`);
-                }
-                multi.exec((err, replies) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    for (const post of replies) {
-                        post.feelings = Helpers.parseJson(post.feelings);
-                        post.privacy = Helpers.parseJson(post.privacy);
-                        post.commentsCount = Helpers.parseJson(post.commentsCount);
-                        post.userId = Helpers.parseJson(post.userId);
-                        post.reactions = Object.keys(Helpers.parseJson(post.reactions) as IReactions).length
-                            ? Helpers.formattedReactions(Helpers.parseJson(post.reactions) as IReactions)
-                            : [];
-                        post.createdAt = new Date(post.createdAt);
-                    }
-                    resolve(replies);
-                });
-            });
-        });
+  public async getSinglePostFromCache(key: string): Promise<IPostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: IPostDocument = await this.client.HGETALL(`posts:${key}`);
+      reply.commentsCount = Helpers.parseJson(`${reply.commentsCount}`) as number;
+      reply.userId = Helpers.parseJson(`${reply.userId}`) as string;
+      reply.reactions = Helpers.parseJson(`${reply.reactions}`) as IReactions;
+      reply.createdAt = new Date(`${reply.createdAt}`) as Date;
+
+      return [reply];
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public deletePostFromCache(key: string, currentUserId: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.client.hmget(`users:${currentUserId}`, 'postsCount', (error: Error | null, postCount: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                multi.zrem('post', `${key}`);
-                multi.del(`posts:${key}`);
-                multi.del(`comments:${key}`);
-                const count = parseInt(postCount[0], 10) - 1;
-                multi.hmset(`users:${currentUserId}`, ['postsCount', `${count}`]);
-                multi.exec((errorObj: Error | null) => {
-                    if (errorObj) {
-                        reject(errorObj);
-                    }
-                    resolve();
-                });
-            });
-        });
+  public async getUserPostsFromCache(key: string, uId: number): Promise<IPostDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: string[] = await this.client.ZRANGE(key, uId, uId, { BY: 'SCORE', REV: true });
+      const multi = this.client.multi();
+      for (const value of reply) {
+        multi.HGETALL(`posts:${value}`);
+      }
+      const replies: IPostDocument[] = await multi.exec();
+      for (const post of replies) {
+        post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
+        post.userId = Helpers.parseJson(`${post.userId}`) as string;
+        post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
+        post.createdAt = new Date(`${post.createdAt}`) as Date;
+      }
+      return replies;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public async updatePostInCache(key: string, updatedPost: IPostDocument): Promise<IPostDocument> {
-        const { post, bgColor, feelings, privacy, gifUrl, createdAt, imgVersion, imgId, profilePicture } = updatedPost;
-
-        const firstList: string[] = [
-            'post',
-            `${post}`,
-            'bgColor',
-            `${bgColor}`,
-            'feelings',
-            JSON.stringify(feelings),
-            'privacy',
-            JSON.stringify(privacy),
-            'gifUrl',
-            `${gifUrl}`
-        ];
-
-        const secondList: string[] = [
-            'profilePicture',
-            `${profilePicture}`,
-            'createdAt',
-            `${createdAt}`,
-            'imgVersion',
-            `${imgVersion}`,
-            'imgId',
-            `${imgId}`
-        ];
-        const dataToSave: string[] = [...firstList, ...secondList];
-
-        return new Promise((resolve, reject) => {
-            this.client.hmset(`posts:${key}`, dataToSave, (error: Error | null) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                multi.hgetall(`posts:${key}`);
-                multi.exec((err: Error | null, reply: any[]) => {
-                    if (err) {
-                        reject(error);
-                    }
-                    reply[0].feelings = Helpers.parseJson(reply[0].feelings);
-                    reply[0].privacy = Helpers.parseJson(reply[0].privacy);
-                    reply[0].reactions = Object.keys(Helpers.parseJson(reply[0].reactions) as IReactions).length
-                        ? Helpers.formattedReactions(Helpers.parseJson(reply[0].reactions) as IReactions)
-                        : [];
-                    reply[0].createdAt = new Date(reply[0].createdAt);
-                    resolve(reply[0]);
-                });
-            });
-        });
+  public async getTotalUserPostsCache(uId: number): Promise<number> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const count: number = await this.client.ZCOUNT('post', uId, uId);
+      return count;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public updateSinglePostPropInCache(key: string, prop: string, value: string): Promise<void> {
-        const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
-        return new Promise((resolve, reject) => {
-            this.client.hmset(`posts:${key}`, dataToSave, (error: Error | null) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-        });
+  public async deletePostFromCache(key: string, currentUserId: string): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const postCount: string = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
+      const multi = this.client.multi();
+      multi.ZREM('post', `${key}`);
+      multi.DEL(`posts:${key}`);
+      multi.DEL(`comments:${key}`);
+      multi.DEL(`reactions:${key}`);
+      const count: number = parseInt(postCount[0], 10) - 1;
+      multi.HSET(`users:${currentUserId}`, ['postsCount', `${count}`]);
+      await multi.exec();
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
+
+  public async updatePostInCache(key: string, updatedPost: IPostDocument): Promise<IPostDocument> {
+    const { post, bgColor, feelings, privacy, gifUrl, imgVersion, imgId, profilePicture } = updatedPost;
+
+    const firstList: string[] = [
+      'post',
+      `${post}`,
+      'bgColor',
+      `${bgColor}`,
+      'feelings',
+      `${feelings}`,
+      'privacy',
+      `${privacy}`,
+      'gifUrl',
+      `${gifUrl}`
+    ];
+
+    const secondList: string[] = ['profilePicture', `${profilePicture}`, 'imgVersion', `${imgVersion}`, 'imgId', `${imgId}`];
+    const dataToSave: string[] = [...firstList, ...secondList];
+
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.HSET(`posts:${key}`, dataToSave);
+      const multi = this.client.multi();
+      multi.HGETALL(`posts:${key}`);
+      const reply: IPostDocument[] = await multi.exec();
+      reply[0].commentsCount = Helpers.parseJson(`${reply[0].commentsCount}`) as number;
+      reply[0].reactions = Helpers.parseJson(`${reply[0].reactions}`) as IReactions;
+      reply[0].createdAt = new Date(`${reply[0].createdAt}`) as Date;
+      return reply[0];
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
+
+  public async updateSinglePostPropInCache(key: string, prop: string, value: string): Promise<void> {
+    const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
+
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.HSET(`posts:${key}`, dataToSave);
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
 }
-
-export const postCache: PostCache = new PostCache();

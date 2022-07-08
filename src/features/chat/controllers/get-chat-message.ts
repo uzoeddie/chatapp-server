@@ -1,54 +1,35 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import { unflatten } from 'flat';
 import mongoose from 'mongoose';
-import { ObjectId } from 'mongodb';
-import { IChatMessage } from '@chat/interfaces/chat.interface';
-import { messageCache } from '@service/redis/message.cache';
+import { MessageCache } from '@service/redis/message.cache';
 import { chatService } from '@service/db/chat.service';
-import { IConversationDocument } from '@chat/interfaces/conversation.interface';
+import { IMessageData } from '@chat/interfaces/chat.interface';
+
+const messageCache: MessageCache = new MessageCache();
 
 export class Get {
-    public async list(req: Request, res: Response): Promise<void> {
-        let list: IChatMessage[];
-        const cachedList: string[] = await messageCache.getChatFromCache(`chatList:${req.currentUser?.userId}`);
-        if (cachedList.length) {
-            list = Get.prototype.unflattenList(cachedList);
-        } else {
-            const senderId: ObjectId = mongoose.Types.ObjectId(req.currentUser?.userId);
-            list = await chatService.getMessages(
-                {
-                    $or: [{ senderId }, { receiverId: senderId }]
-                },
-                { createdAt: 1 }
-            );
-        }
-
-        res.status(HTTP_STATUS.OK).json({ message: 'User chat list', list });
+  public async conversationList(req: Request, res: Response): Promise<void> {
+    let list = [];
+    const cachedList = await messageCache.getUserConversationList(`${req.currentUser?.userId}`);
+    if (cachedList.length) {
+      list = cachedList;
+    } else {
+      list = await chatService.getUserConversationList(new mongoose.Types.ObjectId(req.currentUser?.userId));
     }
+    res.status(HTTP_STATUS.OK).json({ message: 'User conversation list', list });
+  }
 
-    public async messages(req: Request, res: Response): Promise<void> {
-        const { conversationId, receiverId } = req.params;
-        let messages: IChatMessage[] = [];
-        if (conversationId !== 'undefined') {
-            const cachedMessages: string[] = await messageCache.getChatFromCache(`messages:${conversationId}`);
-            messages = cachedMessages.length
-                ? Get.prototype.unflattenList(cachedMessages)
-                : await chatService.getMessages({ conversationId: mongoose.Types.ObjectId(conversationId) }, { createdAt: 1 });
-        } else {
-            const conversation: IConversationDocument[] = await chatService.conversationAggregate(req.currentUser!.userId, receiverId);
-            if (conversation.length) {
-                messages = await chatService.getMessages({ conversationId: conversation[0]._id }, { createdAt: 1 });
-            }
-        }
-        res.status(HTTP_STATUS.OK).json({ message: 'User chat messages', chat: messages });
+  public async messages(req: Request, res: Response): Promise<void> {
+    const { receiverId } = req.params;
+    let messages: IMessageData[] = [];
+    const cachedMessages: IMessageData[] = await messageCache.getChatMessagesFromCache(`${req.currentUser?.userId}`, `${receiverId}`);
+    if (cachedMessages.length) {
+      messages = cachedMessages;
+    } else {
+      messages = await chatService.getMessages(new mongoose.Types.ObjectId(req.currentUser!.userId), new mongoose.Types.ObjectId(receiverId), {
+        createdAt: 1
+      });
     }
-
-    private unflattenList(cachedList: string[]): IChatMessage[] {
-        const flattenedList = [];
-        for (const item of cachedList) {
-            flattenedList.push(unflatten(JSON.parse(item)));
-        }
-        return flattenedList;
-    }
+    res.status(HTTP_STATUS.OK).json({ message: 'User chat messages', messages });
+  }
 }

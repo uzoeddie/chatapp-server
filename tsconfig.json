@@ -1,42 +1,42 @@
 {
-    "compilerOptions": {
-        "target": "es2015",
-        "module": "commonjs",
-        "lib": ["DOM", "ES2015"],
-        "baseUrl": ".",
-        "outDir": "./build",
-        "rootDir": "src",
-        "strict": true,
-        "noImplicitAny": true,
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "sourceMap": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "forceConsistentCasingInFileNames": true,
-        "allowSyntheticDefaultImports": true,
-        "pretty": true,
-        "resolveJsonModule": true,
-        "plugins": [{
-            "transform": "@zerollup/ts-transform-paths",
-            "exclude": ["*"]
-        }],
-        "paths": {
-            "@user/*": ["src/features/user/*"],
-            "@post/*": ["src/features/posts/*"],
-            "@comment/*": ["src/features/comments/*"],
-            "@reaction/*": ["src/features/reactions/*"],
-            "@chat/*": ["src/features/chat/*"],
-            "@image/*": ["src/features/images/*"],
-            "@notification/*": ["src/features/notifications/*"],
-            "@follower/*": ["src/features/followers/*"],
-            "@global/*": ["src/shared/globals/*"],
-            "@service/*": ["src/shared/services/*"],
-            "@socket/*": ["src/shared/sockets/*"],
-            "@worker/*": ["src/shared/workers/*"],
-            "@root/*": ["src/*"]
-        }
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
+    "lib": ["DOM", "ES2015"],
+    "baseUrl": ".",
+    "outDir": "./build",
+    "rootDir": "src",
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "plugins": [
+      { "transform": "typescript-transform-paths" },
+      { "transform": "typescript-transform-paths", "afterDeclarations": true }
+    ],
+    "paths": {
+      "@user/*": ["src/features/user/*"],
+      "@post/*": ["src/features/posts/*"],
+      "@comment/*": ["src/features/comments/*"],
+      "@reaction/*": ["src/features/reactions/*"],
+      "@chat/*": ["src/features/chat/*"],
+      "@image/*": ["src/features/images/*"],
+      "@notification/*": ["src/features/notifications/*"],
+      "@follower/*": ["src/features/followers/*"],
+      "@global/*": ["src/shared/globals/*"],
+      "@service/*": ["src/shared/services/*"],
+      "@socket/*": ["src/shared/sockets/*"],
+      "@worker/*": ["src/shared/workers/*"],
+      "@root/*": ["src/*"]
     }
+  }
 }

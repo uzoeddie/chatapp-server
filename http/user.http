@@ -49,3 +49,9 @@ Accept: 'application/json'
 withCredentials: true
 
 {}
+
+###
+GET http://localhost:5000/api/v1/user/profile/user/suggestions
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true

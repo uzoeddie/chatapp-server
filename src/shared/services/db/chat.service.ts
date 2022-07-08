@@ -1,130 +1,104 @@
-import { ObjectID, ObjectId } from 'mongodb';
-import mongoose, { Aggregate } from 'mongoose';
-import { IMessageDocument, IChatMessage, IQueryMessage } from '@chat/interfaces/chat.interface';
+import { ObjectId } from 'mongodb';
+import { IMessageData } from '@chat/interfaces/chat.interface';
 import { IConversationDocument } from '@chat/interfaces/conversation.interface';
 import { MessageModel } from '@chat/models/chat.schema';
 import { ConversationModel } from '@chat/models/conversation.schema';
-import { IQuerySort } from '@comment/interfaces/comment.interface';
 
 class Chat {
-    public async addMessageToDB(data: IMessageDocument): Promise<void> {
-        const conversation: IConversationDocument[] = await ConversationModel.aggregate([
-            {
-                $match: {
-                    $or: [
-                        {
-                            participants: {
-                                $elemMatch: {
-                                    sender: new ObjectId(data.senderId),
-                                    receiver: new ObjectId(data.receiverId)
-                                }
-                            }
-                        },
-                        {
-                            participants: {
-                                $elemMatch: {
-                                    sender: new ObjectId(data.receiverId),
-                                    receiver: new ObjectId(data.senderId)
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        ]).exec();
+  public async addMessageToDB(data: IMessageData): Promise<void> {
+    const conversation: IConversationDocument[] = await ConversationModel.find({ _id: data?.conversationId }).exec();
 
-        if (conversation.length === 0) {
-            await ConversationModel.create({
-                _id: data.conversationId,
-                participants: [{ sender: data.senderId, receiver: data.receiverId }]
-            });
+    if (conversation.length === 0) {
+      await ConversationModel.create({
+        _id: data?.conversationId,
+        senderId: data.senderId,
+        receiverId: data.receiverId
+      });
+    }
+
+    await MessageModel.create({
+      _id: data._id,
+      conversationId: data.conversationId,
+      receiverId: data.receiverId,
+      receiverUsername: data.receiverUsername,
+      receiverAvatarColor: data.receiverAvatarColor,
+      receiverProfilePicture: data.receiverProfilePicture,
+      senderUsername: data.senderUsername,
+      senderId: data.senderId,
+      senderAvatarColor: data.senderAvatarColor,
+      senderProfilePicture: data.senderProfilePicture,
+      body: data.body,
+      isRead: data.isRead,
+      gifUrl: data.gifUrl,
+      selectedImage: data.selectedImage,
+      reaction: data.reaction,
+      createdAt: data.createdAt
+    });
+  }
+
+  public async getMessages(senderId: ObjectId, receiverId: ObjectId, sort: Record<string, 1 | -1>): Promise<IMessageData[]> {
+    const query = {
+      $or: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId }
+      ]
+    };
+    const messages: IMessageData[] = await MessageModel.aggregate([{ $match: query }, { $sort: sort }]);
+    return messages;
+  }
+
+  public async getUserConversationList(senderId: ObjectId): Promise<IMessageData[]> {
+    const messages = await MessageModel.aggregate([
+      { $match: { $or: [{ senderId }, { receiverId: senderId }] } },
+      {
+        $group: {
+          _id: '$conversationId',
+          result: { $last: '$$ROOT' }
         }
+      },
+      {
+        $project: {
+          _id: '$result._id',
+          conversationId: '$result.conversationId',
+          receiverId: '$result.receiverId',
+          receiverUsername: '$result.receiverUsername',
+          receiverAvatarColor: '$result.receiverAvatarColor',
+          receiverProfilePicture: '$result.receiverProfilePicture',
+          senderUsername: '$result.senderUsername',
+          senderId: '$result.senderId',
+          senderAvatarColor: '$result.senderAvatarColor',
+          senderProfilePicture: '$result.senderProfilePicture',
+          body: '$result.body',
+          isRead: '$result.isRead',
+          gifUrl: '$result.gifUrl',
+          selectedImage: '$result.selectedImage',
+          reaction: '$result.reaction',
+          createdAt: '$result.createdAt'
+        }
+      },
+      { $sort: { createdAt: 1 } }
+    ]);
 
-        const message: IMessageDocument = new MessageModel({
-            _id: data._id,
-            conversationId: data.conversationId,
-            senderId: data.senderId,
-            senderName: data.senderName,
-            receiverId: data.receiverId,
-            receiverName: data.receiverName,
-            body: data.body,
-            gifUrl: data.gifUrl,
-            isRead: data.isRead,
-            images: data.images,
-            createdAt: data.createdAt
-        });
-        await message.save();
-    }
+    return messages;
+  }
 
-    public async getMessages(query: IQueryMessage, sort?: IQuerySort): Promise<IChatMessage[]> {
-        return new Promise((resolve) => {
-            const messages: Aggregate<IChatMessage[]> = MessageModel.aggregate([
-                { $match: query },
-                { $lookup: { from: 'User', localField: 'receiverId', foreignField: '_id', as: 'receiverId' } },
-                { $unwind: '$receiverId' },
-                { $lookup: { from: 'User', localField: 'senderId', foreignField: '_id', as: 'senderId' } },
-                { $unwind: '$senderId' },
-                {
-                    $project: {
-                        _id: 1,
-                        'senderId._id': 1,
-                        'senderId.username': 1,
-                        'senderId.avatarColor': 1,
-                        'senderId.email': 1,
-                        'senderId.profilePicture': 1,
-                        'receiverId._id': 1,
-                        'receiverId.username': 1,
-                        'receiverId.avatarColor': 1,
-                        'receiverId.email': 1,
-                        'receiverId.profilePicture': 1,
-                        createdAt: 1,
-                        body: 1,
-                        conversationId: 1,
-                        images: 1,
-                        isRead: 1,
-                        senderName: 1,
-                        gifUrl: 1
-                    }
-                },
-                { $sort: sort }
-            ]);
-            resolve(messages);
-        });
-    }
+  public async markMessagesAsRead(senderId: ObjectId, receiverId: ObjectId): Promise<void> {
+    const query = {
+      $or: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId }
+      ]
+    };
+    await MessageModel.updateMany(query, { $set: { isRead: true } }).exec();
+  }
 
-    public async markMessagesAsRead(conversationId: ObjectID): Promise<void> {
-        await MessageModel.updateMany({ conversationId }, { $set: { isRead: true } }).exec();
+  public async addMessageReaction(messageId: ObjectId, senderName: string, reaction: string, type: string): Promise<void> {
+    if (type === 'add') {
+      await MessageModel.updateOne({ _id: messageId }, { $push: { reaction: { senderName, type: reaction } } }).exec();
+    } else {
+      await MessageModel.updateOne({ _id: messageId }, { $pull: { reaction: { senderName } } }).exec();
     }
-
-    public conversationAggregate(userId: string, receiverId: string): Promise<IConversationDocument[]> {
-        return new Promise((resolve) => {
-            const conversation: Aggregate<IConversationDocument[]> = ConversationModel.aggregate([
-                {
-                    $match: {
-                        $or: [
-                            {
-                                participants: {
-                                    $elemMatch: {
-                                        sender: mongoose.Types.ObjectId(userId),
-                                        receiver: mongoose.Types.ObjectId(receiverId)
-                                    }
-                                }
-                            },
-                            {
-                                participants: {
-                                    $elemMatch: {
-                                        sender: mongoose.Types.ObjectId(receiverId),
-                                        receiver: mongoose.Types.ObjectId(userId)
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
-            ]);
-            resolve(conversation);
-        });
-    }
+  }
 }
 
 export const chatService: Chat = new Chat();

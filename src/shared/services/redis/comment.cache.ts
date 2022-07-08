@@ -1,84 +1,84 @@
-import { Multi } from 'redis';
 import _ from 'lodash';
 import { ICommentDocument, ICommentNameList } from '@comment/interfaces/comment.interface';
 import { BaseCache } from '@service/redis/base.cache';
 import { Helpers } from '@global/helpers/helpers';
+import { ServerError } from '@global/helpers/error-handler';
 
-class CommentCache extends BaseCache {
-    constructor() {
-        super('commentsCache');
-    }
+export class CommentCache extends BaseCache {
+  constructor() {
+    super('commentsCache');
+  }
 
-    public savePostCommentToCache(key: string, value: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.client.lpush(`comments:${key}`, value, (error: Error | null) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-        });
+  public async savePostCommentToCache(key: string, value: string): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.LPUSH(`comments:${key}`, value);
+      const commentsCount: string = await this.client.HMGET(`posts:${key}`, 'commentsCount');
+      let count = Helpers.parseJson(commentsCount) as number;
+      count += 1;
+      const dataToSave: string[] = ['commentsCount', `${count}`];
+      await this.client.HSET(`posts:${key}`, dataToSave);
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public getCommentsFromCache(key: string, start: number, end: number): Promise<ICommentDocument[]> {
-        return new Promise((resolve, reject) => {
-            this.client.lrange(`comments:${key}`, start, end, (error: Error | null, reply: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const list: ICommentDocument[] = [];
-                for (const item of reply) {
-                    list.push(Helpers.parseJson(item) as ICommentDocument);
-                }
-                resolve(list);
-            });
-        });
+  public async getCommentsFromCache(key: string): Promise<ICommentDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: string[] = await this.client.LRANGE(`comments:${key}`, 0, -1);
+      const list: ICommentDocument[] = [];
+      for (const item of reply) {
+        list.push(Helpers.parseJson(item) as ICommentDocument);
+      }
+      return list;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public getCommentNamesFromCache(key: string): Promise<ICommentNameList[]> {
-        return new Promise((resolve, reject) => {
-            this.client.llen(`comments:${key}`, (error: Error | null, reply: number) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                multi.lrange(`comments:${key}`, 0, -1);
-                multi.exec((err: Error | null, comments: string[]) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    const list: string[] = [];
-                    for (const item of comments[0]) {
-                        const commentDocument: ICommentDocument = Helpers.parseJson(item) as ICommentDocument;
-                        list.push(commentDocument.username);
-                    }
-                    const response: ICommentNameList = {
-                        count: reply,
-                        names: list
-                    };
-                    resolve([response]);
-                });
-            });
-        });
+  public async getCommentNamesFromCache(key: string): Promise<ICommentNameList[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: number = await this.client.LLEN(`comments:${key}`);
+      const comments: string[] = await this.client.LRANGE(`comments:${key}`, 0, -1);
+      const list: string[] = [];
+      for (const item of comments) {
+        const commentDocument: ICommentDocument = Helpers.parseJson(item) as ICommentDocument;
+        list.push(commentDocument.username);
+      }
+      const response: ICommentNameList = {
+        count: reply,
+        names: list
+      };
+      return [response];
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public getSingleCommentFromCache(key: string, commentId: string): Promise<ICommentDocument[]> {
-        return new Promise((resolve, reject) => {
-            this.client.lrange(`comments:${key}`, 0, -1, (error: Error | null, reply: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const list: ICommentDocument[] = [];
-                for (const item of reply) {
-                    list.push(Helpers.parseJson(item) as ICommentDocument);
-                }
-                const result: ICommentDocument = _.find(list, (listItem: ICommentDocument) => {
-                    return listItem._id === commentId;
-                }) as ICommentDocument;
-                resolve([result]);
-            });
-        });
+  public async getSingleCommentFromCache(key: string, commentId: string): Promise<ICommentDocument[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const reply: string[] = await this.client.LRANGE(`comments:${key}`, 0, -1);
+      const list: ICommentDocument[] = [];
+      for (const item of reply) {
+        list.push(Helpers.parseJson(item) as ICommentDocument);
+      }
+      const result: ICommentDocument = _.find(list, (listItem: ICommentDocument) => {
+        return listItem._id === commentId;
+      }) as ICommentDocument;
+      return [result];
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 }
-
-export const commentCache: CommentCache = new CommentCache();

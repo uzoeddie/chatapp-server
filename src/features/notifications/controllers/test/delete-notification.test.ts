@@ -10,35 +10,34 @@ jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 
 Object.defineProperties(notificationServer, {
-    socketIONotificationObject: {
-        value: new Server(),
-        writable: true
-    }
+  socketIONotificationObject: {
+    value: new Server(),
+    writable: true
+  }
 });
 
 describe('Delete', () => {
-    beforeEach(() => {
-        jest.restoreAllMocks();
-    });
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-        jest.clearAllTimers();
-    });
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
+  });
 
-    it('should send correct json response', async () => {
-        const req: Request = notificationMockRequest({}, authUserPayload, { notificationId: '12345' }) as Request;
-        const res: Response = notificationMockResponse();
-        jest.spyOn(notificationServer.socketIONotificationObject, 'emit');
-        jest.spyOn(notificationQueue, 'addNotificationJob');
+  it('should send correct json response', async () => {
+    const req: Request = notificationMockRequest({}, authUserPayload, { notificationId: '12345' }) as Request;
+    const res: Response = notificationMockResponse();
+    jest.spyOn(notificationServer.socketIONotificationObject, 'emit');
+    jest.spyOn(notificationQueue, 'addNotificationJob');
 
-        await Delete.prototype.notification(req, res);
-        expect(notificationServer.socketIONotificationObject.emit).toHaveBeenCalled();
-        expect(notificationQueue.addNotificationJob).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Notification deleted successfully',
-            notification: false
-        });
+    await Delete.prototype.notification(req, res);
+    expect(notificationServer.socketIONotificationObject.emit).toHaveBeenCalledWith('delete notification', req.params.notificationId);
+    expect(notificationQueue.addNotificationJob).toHaveBeenCalledWith('deleteNotification', { key: req.params.notificationId });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Notification deleted successfully'
     });
+  });
 });

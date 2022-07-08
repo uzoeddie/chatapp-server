@@ -1,97 +1,99 @@
-import { Multi } from 'redis';
 import _ from 'lodash';
+import mongoose from 'mongoose';
 import { BaseCache } from '@service/redis/base.cache';
 import { Helpers } from '@global/helpers/helpers';
-import { IFollower } from '@follower/interface/follower.interface';
+import { IFollowerData } from '@follower/interface/follower.interface';
+import { ServerError } from '@global/helpers/error-handler';
+import { UserCache } from '@service/redis/user.cache';
+import { IUserDocument } from '@user/interfaces/user.interface';
 
-class FollowerCache extends BaseCache {
-    constructor() {
-        super('followersCache');
-    }
+const userCache: UserCache = new UserCache();
 
-    public saveFollowerToCache(key: string, value: IFollower): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.client.lpush(key, JSON.stringify(value), (error: Error | null) => {
-                if (error) {
-                    reject(error);
-                }
-                resolve();
-            });
-        });
-    }
+export class FollowerCache extends BaseCache {
+  constructor() {
+    super('followersCache');
+  }
 
-    public getFollowersFromCache(key: string): Promise<IFollower[]> {
-        return new Promise((resolve, reject) => {
-            this.client.lrange(key, 0, -1, (error: Error | null, response: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const list: IFollower[] = [];
-                for (const item of response) {
-                    list.push(Helpers.parseJson(item) as IFollower);
-                }
-                resolve(list);
-            });
-        });
+  public async saveFollowerToCache(key: string, value: string): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.LPUSH(key, value);
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public removeFollowerFromCache(key: string, value: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const multi: Multi = this.client.multi();
-            this.client.lrange(key, 0, -1, (error: Error | null, response: string[]) => {
-                if (error) {
-                    reject(error);
-                }
-                const follower: string = _.find(response, (listItem: string) => listItem.includes(value)) as string;
-                multi.lrem(key, 1, follower);
-                multi.exec((errObj: Error | null) => {
-                    if (errObj) {
-                        reject(errObj);
-                    }
-                    resolve();
-                });
-            });
-        });
+  public async getFollowersFromCache(key: string): Promise<IFollowerData[]> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const response = await this.client.LRANGE(key, 0, -1);
+      const list: IFollowerData[] = [];
+      for (const item of response) {
+        const user: IUserDocument = await userCache.getUserFromCache(item) as IUserDocument;
+        const data: IFollowerData = {
+          _id: new mongoose.Types.ObjectId(user._id),
+          username: user.username,
+          avatarColor: user.avatarColor,
+          postCount: user.postsCount,
+          followersCount: user.followersCount,
+          followingCount: user.followingCount,
+          profilePicture: user.profilePicture,
+          uId: user.uId,
+          userProfile: user
+        };
+        list.push(data);
+      }
+      return list;
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public updateFollowersCountInCache(key: string, prop: string, value: number): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const multi: Multi = this.client.multi();
-            multi.hincrby(`users:${key}`, prop, value);
-            multi.exec((err: Error | null) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve();
-            });
-        });
+  public async removeFollowerFromCache(key: string, value: string): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.LREM(key, 0, value);
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
 
-    public updateBlockedUserPropInCache(key: string, prop: string, value: string, type: 'block' | 'unblock'): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.client.hget(`users:${key}`, prop, (error: Error | null, response: string) => {
-                if (error) {
-                    reject(error);
-                }
-                const multi: Multi = this.client.multi();
-                let blocked: string[] = Helpers.parseJson(response) as string[];
-                if (type === 'block') {
-                    blocked = [...blocked, value];
-                } else {
-                    _.remove(blocked, (id: string) => id === value);
-                    blocked = [...blocked];
-                }
-                const dataToSave: string[] = [`${prop}`, JSON.stringify(blocked)];
-                multi.hmset(`users:${key}`, dataToSave);
-                multi.exec((errorObj: Error | null) => {
-                    if (errorObj) {
-                        reject(errorObj);
-                    }
-                    resolve();
-                });
-            });
-        });
+  public async updateFollowersCountInCache(key: string, prop: string, value: number): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      await this.client.HINCRBY(`users:${key}`, prop, value);
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
     }
+  }
+
+  public async updateBlockedUserPropInCache(key: string, prop: string, value: string, type: 'block' | 'unblock'): Promise<void> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const response = await this.client.HGET(`users:${key}`, prop);
+      const multi = this.client.multi();
+      let blocked: string[] = Helpers.parseJson(response) as string[];
+      if (type === 'block') {
+        blocked = [...blocked, value];
+      } else {
+        _.remove(blocked, (id: string) => id === value);
+        blocked = [...blocked];
+      }
+      const dataToSave: string[] = [`${prop}`, JSON.stringify(blocked)];
+      multi.HSET(`users:${key}`, dataToSave);
+      await multi.exec();
+    } catch (error) {
+      throw new ServerError('Server error. Try again.');
+    }
+  }
 }
-
-export const followerCache: FollowerCache = new FollowerCache();
