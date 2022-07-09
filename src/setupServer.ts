@@ -88,6 +88,7 @@ export class ChatServer {
     });
 
     app.use((error: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
+      log.error(error);
       if (error instanceof CustomError) {
         return res.status(error.statusCode).json(error.serializeErrors());
       }
