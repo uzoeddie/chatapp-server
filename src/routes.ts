@@ -21,6 +21,7 @@ export default (app: Application) => {
     app.use('', healthRoute.routes());
     app.use('', healthRoute.fiboRoutes());
     app.use('', healthRoute.instance());
+    app.use('', healthRoute.env());
     app.use(BASE_PATH, authRoutes.routes());
     app.use(BASE_PATH, authRoutes.signoutRoute());
 
