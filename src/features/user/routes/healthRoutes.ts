@@ -20,6 +20,14 @@ class HealthRoute {
     return this.router;
   }
 
+  public env(): Router {
+    this.router.get('/env', (_req: Request, res: Response) => {
+      res.status(HTTP_STATUS.OK).send(`This is the ${config.NODE_ENV} environment.`);
+    });
+
+    return this.router;
+  }
+
   public instance(): Router {
     this.router.get('/instance', async (_req: Request, res: Response) => {
       const response = await axios({
