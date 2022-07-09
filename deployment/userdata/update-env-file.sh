@@ -23,14 +23,14 @@
 
 # Only use a profile if you are not using a default profile
 
-aws s3 sync s3://chatapp-env-files-1/staging . --profile tutorial
+aws s3 sync s3://chatapp-env-files-1/production . --profile tutorial
 unzip env-file.zip
-cp .env.staging .env
-rm .env.staging
+cp .env.production .env
+rm .env.production
 sed -i -e "s|\(^REDIS_HOST=\).*|REDIS_HOST=redis://$ELASTICACHE_ENDPOINT:6379|g" .env
 rm -rf env-file.zip
-cp .env .env.staging
-zip env-file.zip .env.staging
-aws s3 cp env-file.zip s3://chatapp-env-files/staging/ --profile tutorial
+cp .env .env.production
+zip env-file.zip .env.production
+aws s3 cp env-file.zip s3://chatapp-env-files-1/production/ --profile tutorial
 rm -rf .env*
 rm -rf env-file.zip

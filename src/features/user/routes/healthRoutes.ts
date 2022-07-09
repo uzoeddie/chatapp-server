@@ -12,6 +12,14 @@ class HealthRoute {
     this.router = express.Router();
   }
 
+  public env(): Router {
+    this.router.get('/env', (_req: Request, res: Response) => {
+      res.status(HTTP_STATUS.OK).send(`This is the ${config.NODE_ENV} environment.`);
+    });
+
+    return this.router;
+  }
+
   public routes(): Router {
     this.router.get('/health', (_req: Request, res: Response) => {
       res.status(HTTP_STATUS.OK).send(`Health: Server instance is healthy with process id ${process.pid} on ${moment().format('LL')}`);

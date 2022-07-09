@@ -1,6 +1,6 @@
 resource "aws_route53_record" "alb_dns_record" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = var.stg_api_server_domain
+  name    = var.prod_api_server_domain
   type    = "A"
 
   alias {

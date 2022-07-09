@@ -4,18 +4,6 @@ variable "aws_region" {
   default     = "eu-central-1"
 }
 
-variable "tf_backend_bucket" {
-  description = "TF backend bucket"
-  type        = string
-  default     = "chatapp-tf-stg-state"
-}
-
-variable "tf_backend_bucket_key" {
-  description = "TF backend bucket key"
-  type        = string
-  default     = "chatapp.tfstate"
-}
-
 variable "vpc_cidr_block" {
   description = "VPC CIDR Block"
   type        = string
@@ -64,28 +52,28 @@ variable "main_api_server_domain" {
   default     = "chatappserver.xyz"
 }
 
-variable "stg_api_server_domain" {
-  description = "STG API Server Domain"
+variable "prod_api_server_domain" {
+  description = "PROD API Server Domain"
   type        = string
-  default     = "api.stg.chatappserver.xyz"
+  default     = "api.chatappserver.xyz"
 }
 
 variable "ec2_iam_role_name" {
   description = "EC2 IAM Role Name"
   type        = string
-  default     = "chatapp-server-ec2-role-stg"
+  default     = "chatapp-server-ec2-role-prod"
 }
 
 variable "ec2_iam_role_policy_name" {
   description = "EC2 IAM Role Policy Name"
   type        = string
-  default     = "chatapp-server-ec2-role-policy-stg"
+  default     = "chatapp-server-ec2-role-policy-prod"
 }
 
 variable "ec2_instance_profile_name" {
   description = "EC2 Instance Profile Name"
   type        = string
-  default     = "chatapp-server-ec2-instance-profile-stg"
+  default     = "chatapp-server-ec2-instance-profile-prod"
 }
 
 variable "elasticache_node_type" {

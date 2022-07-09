@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket  = var.tf_backend_bucket
-    key     = var.tf_backend_bucket_key
-    region  = var.aws_region
+    bucket  = "chatapp-tf-prod-state"
+    key     = "chatapp.tfstate"
+    region  = "eu-central-1"
     encrypt = true
   }
 }
