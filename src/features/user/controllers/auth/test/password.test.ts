@@ -56,9 +56,7 @@ describe('Password', () => {
       expect(emailQueue.addEmailJob).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Password reset email sent.',
-        user: {},
-        token: ''
+        message: 'Password reset email sent.'
       });
     });
   });
@@ -73,8 +71,8 @@ describe('Password', () => {
       });
     });
 
-    it('should throw an error if password and cpassword are different', () => {
-      const req: Request = authMockRequest({}, { password: CORRECT_PASSWORD, cpassword: `${CORRECT_PASSWORD}2` }) as Request;
+    it('should throw an error if password and confirmPassword are different', () => {
+      const req: Request = authMockRequest({}, { password: CORRECT_PASSWORD, confirmPassword: `${CORRECT_PASSWORD}2` }) as Request;
       const res: Response = authMockResponse();
       Password.prototype.update(req, res).catch((error: CustomError) => {
         expect(error.statusCode).toEqual(400);
@@ -83,7 +81,7 @@ describe('Password', () => {
     });
 
     it('should throw error if reset token has expired', () => {
-      const req: Request = authMockRequest({}, { password: CORRECT_PASSWORD, cpassword: CORRECT_PASSWORD }, null, {
+      const req: Request = authMockRequest({}, { password: CORRECT_PASSWORD, confirmPassword: CORRECT_PASSWORD }, null, {
         token: ''
       }) as Request;
       const res: Response = authMockResponse();
@@ -95,7 +93,7 @@ describe('Password', () => {
     });
 
     it('should call sendMail method and send correct json response', async () => {
-      const req: Request = authMockRequest({}, { password: CORRECT_PASSWORD, cpassword: CORRECT_PASSWORD }, null, {
+      const req: Request = authMockRequest({}, { password: CORRECT_PASSWORD, confirmPassword: CORRECT_PASSWORD }, null, {
         token: '12sde3'
       }) as Request;
       const res: Response = authMockResponse();
@@ -109,9 +107,7 @@ describe('Password', () => {
       expect(emailQueue.addEmailJob).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Password successfully updated.',
-        user: {},
-        token: ''
+        message: 'Password successfully updated.'
       });
     });
   });
