@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "preinstall": "npm install -g coveralls",
     "start": "NODE_ENV=production pm2 start ./build/app.js -i 5 --watch | ./node_modules/.bin/bunyan",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
     "lint:check": "eslint 'src/**/*.ts'",
