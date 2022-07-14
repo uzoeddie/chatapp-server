@@ -100,6 +100,12 @@ variable "bastion_host_type" {
   default     = "t2.micro"
 }
 
+variable "code_deploy_role_name" {
+  description = "CodeDeploy IAM Role"
+  type        = string
+  default     = "chatapp-server-codedeploy-role"
+}
+
 variable "prefix" {
   description = "Prefix to be added to AWS resources tags"
   type        = string

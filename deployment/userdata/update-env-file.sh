@@ -29,8 +29,14 @@ cp .env.production .env
 rm .env.production
 sed -i -e "s|\(^REDIS_HOST=\).*|REDIS_HOST=redis://$ELASTICACHE_ENDPOINT:6379|g" .env
 rm -rf env-file.zip
+<<<<<<< HEAD
 cp .env .env.production
 zip env-file.zip .env.production
 aws s3 cp env-file.zip s3://chatapp-env-files-1/production/ --profile tutorial
+=======
+cp .env .env.staging
+zip env-file.zip .env.staging
+aws s3 cp env-file.zip s3://chatapp-env-files-1/staging/ --profile tutorial
+>>>>>>> staging
 rm -rf .env*
 rm -rf env-file.zip
