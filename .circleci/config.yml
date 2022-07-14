@@ -1,6 +1,5 @@
 orbs:
   aws-cli: circleci/aws-cli@3.1.1
-  coveralls: coveralls/coveralls@1.0.6
 version: 2.1
 executors:
   app-executor:
@@ -71,7 +70,6 @@ jobs:
           command: |
             sleep 3
             npm run test
-      - coveralls/upload
 
   upload-project-to-s3:
     executor: aws-cli/default
