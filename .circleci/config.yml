@@ -111,7 +111,7 @@ jobs:
       - run:
           name: Terraform Apply
           command: |
-            cd infrastructure/
+            cd deployment/
             terraform workspace select ${CIRCLE_BRANCH}
             terraform apply --auto-approve
 
@@ -144,7 +144,7 @@ jobs:
       - run:
           name: Terraform Destroy
           command: |
-            cd infrastructure/
+            cd deployment/
             terraform init
             terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
             terraform destroy --auto-approve
