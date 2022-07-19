@@ -44,7 +44,7 @@ resource "aws_codedeploy_deployment_group" "code_deploy_app_group" {
   provisioner "local-exec" {
     command    = file("./userdata/delete-asg.sh")
     when       = destroy
-    on_failure = fail
+    on_failure = continue
 
     environment = {
       ENV_TYPE = "Backend-${terraform.workspace}"
