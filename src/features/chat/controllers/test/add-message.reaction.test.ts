@@ -37,7 +37,7 @@ describe('Message', () => {
           conversationId: '602854c81c9ca7939aaeba43',
           messageId: `${mockMessageId}`,
           reaction: 'love',
-          type: 'add',
+          type: 'add'
         },
         authUserPayload
       ) as Request;
@@ -51,7 +51,7 @@ describe('Message', () => {
         `${mockMessageId}`,
         'love',
         `${authUserPayload.username}`,
-        'add',
+        'add'
       );
       expect(chatServer.socketIOChatObject.emit).toHaveBeenCalledTimes(1);
       expect(chatServer.socketIOChatObject.emit).toHaveBeenCalledWith('message reaction', messageDataMock);
@@ -68,7 +68,7 @@ describe('Message', () => {
           conversationId: '602854c81c9ca7939aaeba43',
           messageId: `${mockMessageId}`,
           reaction: 'love',
-          type: 'add',
+          type: 'add'
         },
         authUserPayload
       ) as Request;

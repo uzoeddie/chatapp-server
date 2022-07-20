@@ -20,7 +20,7 @@ export class SignUp {
   @joiValidation(signupSchema)
   public async create(req: Request, res: Response): Promise<void> {
     const { username, email, password, avatarColor, avatarImage } = req.body;
-    const checkIfUserExist: IUserDocument = await userService.getUserByUsernameOrEmail(username, email) as IUserDocument;
+    const checkIfUserExist: IUserDocument = (await userService.getUserByUsernameOrEmail(username, email)) as IUserDocument;
     if (checkIfUserExist) {
       throw new BadRequestError('Invalid credentials');
     }
@@ -62,7 +62,7 @@ export class SignUp {
 
   private signupData(data: ISignUpData): IUserDocument {
     const { createdObjectId, username, email, uId, password, avatarColor } = data;
-    return ({
+    return {
       _id: createdObjectId,
       uId,
       username: Helpers.firstLetterUppercase(username),
@@ -93,6 +93,6 @@ export class SignUp {
         twitter: '',
         youtube: ''
       }
-    } as unknown) as IUserDocument;
+    } as unknown as IUserDocument;
   }
 }

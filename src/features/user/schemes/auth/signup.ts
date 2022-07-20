@@ -23,7 +23,7 @@ const signupSchema: ObjectSchema = Joi.object().keys({
   }),
   avatarImage: Joi.string().required().messages({
     'any.required': 'Avatar image is required'
-  }),
+  })
 });
 
 export { signupSchema };

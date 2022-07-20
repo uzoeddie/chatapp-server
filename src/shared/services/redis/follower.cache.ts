@@ -33,7 +33,7 @@ export class FollowerCache extends BaseCache {
       const response = await this.client.LRANGE(key, 0, -1);
       const list: IFollowerData[] = [];
       for (const item of response) {
-        const user: IUserDocument = await userCache.getUserFromCache(item) as IUserDocument;
+        const user: IUserDocument = (await userCache.getUserFromCache(item)) as IUserDocument;
         const data: IFollowerData = {
           _id: new mongoose.Types.ObjectId(user._id),
           username: user.username,
@@ -80,7 +80,7 @@ export class FollowerCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const response = await this.client.HGET(`users:${key}`, prop);
+      const response: string = (await this.client.HGET(`users:${key}`, prop)) as string;
       const multi = this.client.multi();
       let blocked: string[] = Helpers.parseJson(response) as string[];
       if (type === 'block') {

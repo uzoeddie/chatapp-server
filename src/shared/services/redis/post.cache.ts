@@ -3,6 +3,9 @@ import { IPostDocument, ISavePostToCache } from '@post/interfaces/post.interface
 import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
 import { IReactions } from '@reaction/interfaces/reaction.interface';
+import { RedisCommandRawReply } from '@redis/client/dist/lib/commands';
+
+export type PostCacheMultiType = string | number | Buffer | RedisCommandRawReply[] | IPostDocument | IPostDocument[];
 
 export class PostCache extends BaseCache {
   constructor() {
@@ -73,10 +76,10 @@ export class PostCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const postCount: string = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
-      const multi = this.client.multi();
+      const postCount: string[] = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       multi.HSET(`posts:${key}`, dataToSave);
-      multi.ZADD('post', { score: uId, value: `${key}` });
+      multi.ZADD('post', { score: parseInt(uId, 10), value: `${key}` });
       const count: number = parseInt(postCount[0], 10) + 1;
       multi.HSET(`users:${currentUserId}`, ['postsCount', `${count}`]);
       await multi.exec();
@@ -91,17 +94,19 @@ export class PostCache extends BaseCache {
         await this.client.connect();
       }
       const reply: string[] = await this.client.ZRANGE(key, start, end, { REV: true });
-      const multi = this.client.multi();
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       for (const value of reply) {
         multi.HGETALL(`posts:${value}`);
       }
-      const replies: IPostDocument[] = await multi.exec();
-      for (const post of replies) {
+      const replies: PostCacheMultiType = (await multi.exec()) as PostCacheMultiType;
+      const postReplies: IPostDocument[] = [];
+      for (const post of replies as IPostDocument[]) {
         post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
         post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
         post.createdAt = new Date(Helpers.parseJson(`${post.createdAt}`) as Date);
+        postReplies.push(post);
       }
-      return replies;
+      return postReplies;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
@@ -129,9 +134,9 @@ export class PostCache extends BaseCache {
       for (const value of reply) {
         multi.HGETALL(`posts:${value}`);
       }
-      const replies: IPostDocument[] = await multi.exec();
+      const replies: PostCacheMultiType = (await multi.exec()) as PostCacheMultiType;
       const postWithImages: IPostDocument[] = [];
-      for (const post of replies) {
+      for (const post of replies as IPostDocument[]) {
         if ((post.imgId && post.imgVersion) || post.gifUrl) {
           post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
           post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
@@ -145,22 +150,24 @@ export class PostCache extends BaseCache {
     }
   }
 
-  public async getSinglePostFromCache(key: string): Promise<IPostDocument[]> {
-    try {
-      if (!this.client.isOpen) {
-        await this.client.connect();
-      }
-      const reply: IPostDocument = await this.client.HGETALL(`posts:${key}`);
-      reply.commentsCount = Helpers.parseJson(`${reply.commentsCount}`) as number;
-      reply.userId = Helpers.parseJson(`${reply.userId}`) as string;
-      reply.reactions = Helpers.parseJson(`${reply.reactions}`) as IReactions;
-      reply.createdAt = new Date(`${reply.createdAt}`) as Date;
+  // public async getSinglePostFromCache(key: string): Promise<IPostDocument[]> {
+  //   try {
+  //     if (!this.client.isOpen) {
+  //       await this.client.connect();
+  //     }
+  //     const reply = await this.client.HGETALL(`posts:${key}`);
+  //     console.log(reply);
+  //     // reply.commentsCount = Helpers.parseJson(`${reply.commentsCount}`) as number;
+  //     // reply.userId = Helpers.parseJson(`${reply.userId}`) as string;
+  //     // reply.reactions = Helpers.parseJson(`${reply.reactions}`) as IReactions;
+  //     // reply.createdAt = new Date(`${reply.createdAt}`) as Date;
 
-      return [reply];
-    } catch (error) {
-      throw new ServerError('Server error. Try again.');
-    }
-  }
+  //     // return [reply];
+  //     return [];
+  //   } catch (error) {
+  //     throw new ServerError('Server error. Try again.');
+  //   }
+  // }
 
   public async getUserPostsFromCache(key: string, uId: number): Promise<IPostDocument[]> {
     try {
@@ -168,18 +175,20 @@ export class PostCache extends BaseCache {
         await this.client.connect();
       }
       const reply: string[] = await this.client.ZRANGE(key, uId, uId, { BY: 'SCORE', REV: true });
-      const multi = this.client.multi();
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       for (const value of reply) {
         multi.HGETALL(`posts:${value}`);
       }
-      const replies: IPostDocument[] = await multi.exec();
-      for (const post of replies) {
+      const replies: PostCacheMultiType = (await multi.exec()) as PostCacheMultiType;
+      const postReplies: IPostDocument[] = [];
+      for (const post of replies as IPostDocument[]) {
         post.commentsCount = Helpers.parseJson(`${post.commentsCount}`) as number;
         post.userId = Helpers.parseJson(`${post.userId}`) as string;
         post.reactions = Helpers.parseJson(`${post.reactions}`) as IReactions;
         post.createdAt = new Date(`${post.createdAt}`) as Date;
+        postReplies.push(post as unknown as IPostDocument);
       }
-      return replies;
+      return postReplies;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
@@ -202,8 +211,8 @@ export class PostCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const postCount: string = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
-      const multi = this.client.multi();
+      const postCount: string[] = await this.client.HMGET(`users:${currentUserId}`, 'postsCount');
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       multi.ZREM('post', `${key}`);
       multi.DEL(`posts:${key}`);
       multi.DEL(`comments:${key}`);
@@ -240,13 +249,14 @@ export class PostCache extends BaseCache {
         await this.client.connect();
       }
       await this.client.HSET(`posts:${key}`, dataToSave);
-      const multi = this.client.multi();
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       multi.HGETALL(`posts:${key}`);
-      const reply: IPostDocument[] = await multi.exec();
-      reply[0].commentsCount = Helpers.parseJson(`${reply[0].commentsCount}`) as number;
-      reply[0].reactions = Helpers.parseJson(`${reply[0].reactions}`) as IReactions;
-      reply[0].createdAt = new Date(`${reply[0].createdAt}`) as Date;
-      return reply[0];
+      const reply: PostCacheMultiType = (await multi.exec()) as PostCacheMultiType;
+      const postReply = reply as IPostDocument[];
+      postReply[0].commentsCount = Helpers.parseJson(`${postReply[0].commentsCount}`) as number;
+      postReply[0].reactions = Helpers.parseJson(`${postReply[0].reactions}`) as IReactions;
+      postReply[0].createdAt = new Date(`${postReply[0].createdAt}`) as Date;
+      return postReply[0];
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }

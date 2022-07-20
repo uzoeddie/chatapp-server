@@ -38,7 +38,7 @@ export interface IParams {
   postReactions?: string;
 }
 
-export const commentsData: ICommentDocument = ({
+export const commentsData: ICommentDocument = {
   _id: '6064861bc25eaa5a5d2f9bf4',
   username: 'Danny',
   avatarColor: '#9c27b0',
@@ -47,7 +47,7 @@ export const commentsData: ICommentDocument = ({
   comment: 'This is a comment',
   createdAt: new Date(),
   userTo: '60263f14648fed5246e322d9'
-} as unknown) as ICommentDocument;
+} as unknown as ICommentDocument;
 
 export const redisCommentList: ICommentNameList = {
   count: 1,

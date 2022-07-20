@@ -98,7 +98,7 @@ jobs:
       - run:
           name: Upload Project to S3
           command: |
-            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-default-app
+            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
 
   push-to-aws-code-deploy:
     executor: aws-cli/default
@@ -112,10 +112,10 @@ jobs:
           command: |
             aws deploy create-deployment \
               --region eu-central-1 \
-              --application-name chatapp-server-default-app \
+              --application-name chatapp-server-${CIRCLE_BRANCH}-app \
               --deployment-config-name CodeDeployDefault.AllAtOnce \
-              --deployment-group-name chatapp-server-default-group \
-              --s3-location bucket=chatapp-server-default-app,bundleType=zip,key=chatapp.zip
+              --deployment-group-name chatapp-server-${CIRCLE_BRANCH}-group \
+              --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
 
 workflows:
   build_and_deploy:

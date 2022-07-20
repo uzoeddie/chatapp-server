@@ -34,17 +34,13 @@ export class ReactionCache extends BaseCache {
     }
   }
 
-  public async removePostReactionFromCache(
-    key: string,
-    username: string,
-    postReactions: IReactions
-  ): Promise<void> {
+  public async removePostReactionFromCache(key: string, username: string, postReactions: IReactions): Promise<void> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
       const response: string[] = await this.client.LRANGE(`reactions:${key}`, 0, -1);
-      const multi = this.client.multi();
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       const userPreviousReaction: IReactionDocument = this.getPreviousReaction(response, username) as IReactionDocument;
       multi.LREM(`reactions:${key}`, 1, JSON.stringify(userPreviousReaction));
       await multi.exec();

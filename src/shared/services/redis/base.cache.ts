@@ -5,8 +5,10 @@ import { createClient } from 'redis';
 // to run redis, use the docker image that has redis search
 // docker run -d -p 6379:6379 redislabs/redisearch:latest
 
+export type RedisClient = ReturnType<typeof createClient>;
+
 export abstract class BaseCache {
-  client: any;
+  client: RedisClient;
   log: Logger;
 
   constructor(cacheName: string) {

@@ -32,7 +32,7 @@ export const mockFollowerData: IFollowerData = {
   postCount: existingUserTwo.postsCount,
   username: `${existingUserTwo.username}`,
   uId: `${existingUserTwo.uId}`,
-  _id: new mongoose.Types.ObjectId(existingUserTwo._id),
+  _id: new mongoose.Types.ObjectId(existingUserTwo._id)
 };
 
 export const followerData = {

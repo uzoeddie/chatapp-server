@@ -14,7 +14,7 @@ export class Add {
   public async comment(req: Request, res: Response): Promise<void> {
     const { postId, comment, profilePicture, userTo } = req.body;
     const commentObjectId: ObjectId = new ObjectId();
-    const commentData: ICommentDocument = ({
+    const commentData: ICommentDocument = {
       _id: commentObjectId,
       postId,
       username: `${req.currentUser?.username}`,
@@ -22,7 +22,7 @@ export class Add {
       comment,
       profilePicture,
       createdAt: new Date()
-    } as unknown) as ICommentDocument;
+    } as unknown as ICommentDocument;
     await commentCache.savePostCommentToCache(postId, JSON.stringify(commentData));
 
     const dbCommentData: ICommentJob = {

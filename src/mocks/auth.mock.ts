@@ -24,10 +24,10 @@ export interface IAuthMock {
   password?: string;
   cpassword?: string;
   email?: string;
-  quote?: string,
-  work?: string,
-  school?: string,
-  location?: string,
+  quote?: string;
+  work?: string;
+  school?: string;
+  location?: string;
   currentPassword?: string;
   newPassword?: string;
   confirmPassword?: string;

@@ -28,7 +28,7 @@ describe('Get', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       message: 'User images',
-      images: [fileDocumentMock],
+      images: [fileDocumentMock]
     });
   });
 });

@@ -42,9 +42,7 @@ export class Get {
 
   public async profile(req: Request, res: Response): Promise<void> {
     const cachedUser: IUserDocument | null = await userCache.getUserFromCache(`${req.currentUser?.userId}`);
-    const existingUser: IUserDocument | null = cachedUser
-      ? cachedUser
-      : await userService.getUserById(`${req.currentUser?.userId}`);
+    const existingUser: IUserDocument | null = cachedUser ? cachedUser : await userService.getUserById(`${req.currentUser?.userId}`);
     res.status(HTTP_STATUS.OK).json({ message: 'Get user profile', user: existingUser });
   }
 
@@ -55,9 +53,7 @@ export class Get {
     const cachedUserPosts: Promise<IPostDocument[]> = postCache.getUserPostsFromCache('post', parseInt(uId, 10));
     const cachedResponse: [IUserDocument, IPostDocument[]] = await Promise.all([cachedUser, cachedUserPosts]);
 
-    const existingUser: IUserDocument = (cachedResponse[0]
-      ? cachedResponse[0]
-      : await userService.getUserByUsername(userName));
+    const existingUser: IUserDocument = cachedResponse[0] ? cachedResponse[0] : await userService.getUserByUsername(userName);
     const userPosts: IPostDocument[] = cachedResponse[1].length
       ? cachedResponse[1]
       : await postService.getPosts({ username: userName }, 0, 100, { createdAt: -1 });
@@ -113,7 +109,8 @@ export class Get {
   private async followers(userId: string): Promise<IFollowerData[]> {
     const cachedFollowers: IFollowerData[] = await followerCache.getFollowersFromCache(`followers:${userId}`);
     // const result = cachedFollowers.length > 0 ? cachedFollowers : await followerService.getFollowers(userId);
-    const result = cachedFollowers.length > 0 ? cachedFollowers : await followerService.getFolloweeData(new mongoose.Types.ObjectId(userId));
+    const result =
+      cachedFollowers.length > 0 ? cachedFollowers : await followerService.getFolloweeData(new mongoose.Types.ObjectId(userId));
     return result;
   }
 }

@@ -4,6 +4,9 @@ import { Helpers } from '@global/helpers/helpers';
 import { BaseCache } from '@service/redis/base.cache';
 import { INotificationSettings, ISocialLinks, IUserDocument } from '@user/interfaces/user.interface';
 import _ from 'lodash';
+import { RedisCommandRawReply } from '@redis/client/dist/lib/commands';
+
+export type UserCacheMultiType = string | number | Buffer | RedisCommandRawReply[] | IUserDocument[];
 
 export class UserCache extends BaseCache {
   constructor() {
@@ -85,7 +88,7 @@ export class UserCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      await this.client.ZADD('user', { score: userId, value: `${key}` });
+      await this.client.ZADD('user', { score: parseInt(userId, 10), value: `${key}` });
       await this.client.HSET(`users:${key}`, dataToSave);
     } catch (error) {
       throw new ServerError('Server error. Try again.');
@@ -98,7 +101,7 @@ export class UserCache extends BaseCache {
         await this.client.connect();
       }
 
-      const response: IUserDocument = await this.client.HGETALL(`users:${key}`);
+      const response: IUserDocument = (await this.client.HGETALL(`users:${key}`)) as unknown as IUserDocument;
       response.createdAt = new Date(Helpers.parseJson(`${response.createdAt}`) as Date);
       response.postsCount = Helpers.parseJson(`${response.postsCount}`) as number;
       response.blocked = Helpers.parseJson(`${response.blocked}`) as mongoose.Types.ObjectId[];
@@ -123,16 +126,17 @@ export class UserCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const response: string[]  = await this.client.ZRANGE('user', start, end, { BY: 'SCORE', REV: true });
-      const multi = this.client.multi();
+      const response: string[] = await this.client.ZRANGE('user', start, end, { REV: true });
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       for (const key of response) {
         if (key !== excludedKey) {
           multi.HGETALL(`users:${key}`);
         }
       }
-      const replies: IUserDocument[] = await multi.exec();
-      for (const reply of replies) {
-        reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`) as Date);
+      const replies: UserCacheMultiType = (await multi.exec()) as UserCacheMultiType;
+      const userReplies: IUserDocument[] = [];
+      for (const reply of replies as IUserDocument[]) {
+        (reply!.createdAt as Date) = new Date(Helpers.parseJson(`${reply.createdAt}`) as Date);
         reply.postsCount = Helpers.parseJson(`${reply.postsCount}`) as number;
         reply.blocked = Helpers.parseJson(`${reply.blocked}`) as mongoose.Types.ObjectId[];
         reply.blockedBy = Helpers.parseJson(`${reply.blockedBy}`) as mongoose.Types.ObjectId[];
@@ -144,8 +148,9 @@ export class UserCache extends BaseCache {
         reply.social = Helpers.parseJson(`${reply.social}`) as ISocialLinks;
         reply.followersCount = Helpers.parseJson(`${reply.followersCount}`) as number;
         reply.followingCount = Helpers.parseJson(`${reply.followingCount}`) as number;
+        userReplies.push(reply);
       }
-      return replies;
+      return userReplies;
     } catch (error) {
       throw new ServerError('Server error. Try again.');
     }
@@ -168,16 +173,16 @@ export class UserCache extends BaseCache {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
-      const replies = [];
+      const replies: IUserDocument[] = [];
       const followers: string[] = await this.client.LRANGE(`followers:${excludedKey}`, 0, -1);
       const users: string[] = await this.client.ZRANGE('user', 0, -1);
-      const excludedKeyIndex = _.indexOf(users, excludedKey);
+      const excludedKeyIndex: number = _.indexOf(users, excludedKey);
       users.splice(excludedKeyIndex, 1);
       const randomUsers: string[] = Helpers.shuffle(users).slice(0, 10);
       for (const key of randomUsers) {
         const followerIndex = _.indexOf(followers, key);
         if (followerIndex < 0) {
-          const userHash: IUserDocument = await this.client.HGETALL(`users:${key}`);
+          const userHash: IUserDocument = (await this.client.HGETALL(`users:${key}`)) as unknown as IUserDocument;
           replies.push(userHash);
         }
       }

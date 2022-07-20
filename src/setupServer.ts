@@ -48,7 +48,7 @@ export class ChatServer {
         name: 'session',
         keys: [process.env.SECRET_KEY_ONE!, process.env.SECRET_KEY_TWO!],
         maxAge: 24 * 7 * 3600000,
-        secure: process.env.NODE_ENV !== 'development',
+        secure: process.env.NODE_ENV !== 'development'
         // sameSite: 'none',
       })
     );

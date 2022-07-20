@@ -37,7 +37,11 @@ describe('Remove', () => {
     const spy = jest.spyOn(reactionQueue, 'addReactionJob');
 
     await Remove.prototype.reaction(req, res);
-    expect(ReactionCache.prototype.removePostReactionFromCache).toHaveBeenCalledWith('6027f77087c9d9ccb1555268', `${req.currentUser?.username}`, JSON.parse(req.params.postReactions));
+    expect(ReactionCache.prototype.removePostReactionFromCache).toHaveBeenCalledWith(
+      '6027f77087c9d9ccb1555268',
+      `${req.currentUser?.username}`,
+      JSON.parse(req.params.postReactions)
+    );
     expect(reactionQueue.addReactionJob).toHaveBeenCalledWith(spy.mock.calls[0][0], spy.mock.calls[0][1]);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({

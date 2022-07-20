@@ -79,7 +79,9 @@ export const messageDataMock: IMessageData = {
   createdAt: '2022-06-29T12:51:39.483Z'
 };
 
-export const chatList: IChatList[] = [{
-  receiverId: `${existingUserTwo._id}`,
-  conversationId: chatMessage.conversationId
-}];
+export const chatList: IChatList[] = [
+  {
+    receiverId: `${existingUserTwo._id}`,
+    conversationId: chatMessage.conversationId
+  }
+];

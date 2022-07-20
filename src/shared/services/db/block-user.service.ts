@@ -10,7 +10,7 @@ class Block {
           filter: { _id: userId, blocked: { $ne: new mongoose.Types.ObjectId(followerId) } },
           update: {
             $push: {
-              blocked:  new mongoose.Types.ObjectId(followerId)
+              blocked: new mongoose.Types.ObjectId(followerId)
             } as PushOperator<Document>
           }
         }

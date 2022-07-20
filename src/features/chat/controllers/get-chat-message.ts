@@ -26,9 +26,13 @@ export class Get {
     if (cachedMessages.length) {
       messages = cachedMessages;
     } else {
-      messages = await chatService.getMessages(new mongoose.Types.ObjectId(req.currentUser!.userId), new mongoose.Types.ObjectId(receiverId), {
-        createdAt: 1
-      });
+      messages = await chatService.getMessages(
+        new mongoose.Types.ObjectId(req.currentUser!.userId),
+        new mongoose.Types.ObjectId(receiverId),
+        {
+          createdAt: 1
+        }
+      );
     }
     res.status(HTTP_STATUS.OK).json({ message: 'User chat messages', messages });
   }

@@ -14,7 +14,7 @@ class PostRoutes {
 
   public routes(): Router {
     this.router.get('/post/all/:page', authMiddleware.checkAuthentication, Get.prototype.posts);
-    this.router.get('/post/:postId', authMiddleware.checkAuthentication, Get.prototype.postById);
+    // this.router.get('/post/:postId', authMiddleware.checkAuthentication, Get.prototype.postById);
     this.router.get('/post/images/:page', authMiddleware.checkAuthentication, Get.prototype.postWithImages);
     this.router.post('/post', authMiddleware.checkAuthentication, Create.prototype.post);
     this.router.post('/post/image/post', authMiddleware.checkAuthentication, Create.prototype.postWithImage);

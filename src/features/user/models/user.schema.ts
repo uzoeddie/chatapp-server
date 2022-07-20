@@ -56,7 +56,7 @@ userSchema.pre('save', async function (this: IUserDocument, next: () => void) {
 });
 
 userSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
-  const hashedPassword: string = ((this as unknown) as IUserDocument).password!;
+  const hashedPassword: string = (this as unknown as IUserDocument).password!;
   return compare(password, hashedPassword);
 };
 

@@ -18,7 +18,8 @@ type IBaseJobData =
   | IEmailJob
   | ICommentJob
   | IReactionJob
-  | IChatJobData | IMessageData
+  | IChatJobData
+  | IMessageData
   | IFileImageJobData
   | IBlockedUserJobData
   | IUserJobInfo;

@@ -1,7 +1,7 @@
 import { IUserDocument, INotificationSettings } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
 import { followerService } from '@service/db/follower.service';
-import {indexOf} from 'lodash';
+import { indexOf } from 'lodash';
 import { ISearchUser } from '@chat/interfaces/chat.interface';
 import { Helpers } from '@global/helpers/helpers';
 
@@ -23,12 +23,12 @@ class User {
     const query = {
       $or: [{ username: Helpers.firstLetterUppercase(username) }, { email: Helpers.lowerCase(email) }]
     };
-    const user: IUserDocument = await UserModel.findOne(query).exec()as IUserDocument;
+    const user: IUserDocument = (await UserModel.findOne(query).exec()) as IUserDocument;
     return user;
   }
 
   public async getUserByUsername(username: string): Promise<IUserDocument> {
-    const user: IUserDocument = await UserModel.findOne({ username }).exec() as IUserDocument;
+    const user: IUserDocument = (await UserModel.findOne({ username }).exec()) as IUserDocument;
     return user;
   }
 
@@ -53,10 +53,7 @@ class User {
 
   public async getRandomUsers(userId: string, username: string): Promise<IUserDocument[]> {
     const randomUsers: IUserDocument[] = [];
-    const users = await UserModel.aggregate([
-      { $match: { username: { $not: { $eq: username } } } },
-      { $sample: { size: 10 } }
-    ]);
+    const users = await UserModel.aggregate([{ $match: { username: { $not: { $eq: username } } } }, { $sample: { size: 10 } }]);
     const followers: string[] = await followerService.getFolloweeIds(`${userId}`);
     for (const user of users) {
       const followerIndex = indexOf(followers, user._id.toString());

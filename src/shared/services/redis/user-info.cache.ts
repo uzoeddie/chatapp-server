@@ -23,7 +23,7 @@ export class UserInfoCache extends BaseCache {
       } else {
         dataToSave = [`${prop}`, `${value}`];
       }
-      const multi = this.client.multi();
+      const multi: ReturnType<typeof this.client.multi> = this.client.multi();
       multi.HSET(`users:${key}`, dataToSave);
       await multi.exec();
       const response = await userCache.getUserFromCache(key);

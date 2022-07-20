@@ -22,7 +22,11 @@ export class Add {
       throw new BadRequestError(result.message);
     }
     const url = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${result.public_id}`;
-    const cachedUser: IUserDocument | null = await userInfoCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, 'profilePicture', url);
+    const cachedUser: IUserDocument | null = await userInfoCache.updateSingleUserItemInCache(
+      `${req.currentUser?.userId}`,
+      'profilePicture',
+      url
+    );
     socketIOImageObject.emit('update user', cachedUser);
     imageQueue.addImageJob('addUserProfileImageToDB', {
       key: `${req.currentUser?.userId}`,

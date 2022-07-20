@@ -102,7 +102,11 @@ describe('Add', () => {
     });
 
     it('should not upload existing image', async () => {
-      const req: Request = imagesMockRequest({}, { image: 'https://res.cloudinary.com/dyamr9ym3/image/upload/v1234/123456' }, authUserPayload) as Request;
+      const req: Request = imagesMockRequest(
+        {},
+        { image: 'https://res.cloudinary.com/dyamr9ym3/image/upload/v1234/123456' },
+        authUserPayload
+      ) as Request;
       const res: Response = imagesMockResponse();
       jest.spyOn(cloudinaryUploads, 'uploads');
 
@@ -117,7 +121,9 @@ describe('Add', () => {
     it('should return bad request error', async () => {
       const req: Request = imagesMockRequest({}, { image: 'data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==' }, authUserPayload) as Request;
       const res: Response = imagesMockResponse();
-      jest.spyOn(cloudinaryUploads, 'uploads').mockImplementation((): any => Promise.resolve({ version: '', public_id: '', message: 'Upload error' }));
+      jest
+        .spyOn(cloudinaryUploads, 'uploads')
+        .mockImplementation((): any => Promise.resolve({ version: '', public_id: '', message: 'Upload error' }));
 
       Add.prototype.backgroundImage(req, res).catch((error: CustomError) => {
         expect(error.statusCode).toEqual(400);
@@ -134,8 +140,12 @@ describe('Add', () => {
 
       await Add.prototype.backgroundImage(req, res);
       expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser!.userId}`, 'bgImageId', '123456');
-      expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser!.userId}`, 'bgImageVersion', '1234');
-      expect(imageServer.socketIOImageObject.emit).toHaveBeenCalledWith('update user' , {
+      expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(
+        `${req.currentUser!.userId}`,
+        'bgImageVersion',
+        '1234'
+      );
+      expect(imageServer.socketIOImageObject.emit).toHaveBeenCalledWith('update user', {
         bgImageId: '123456',
         bgImageVersion: '1234',
         userId: existingUser
@@ -164,6 +174,4 @@ describe('Add', () => {
       });
     });
   });
-
-
 });

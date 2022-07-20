@@ -28,7 +28,8 @@ describe('Search', () => {
       await Search.prototype.user(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Search results', search: [searchedUserMock]
+        message: 'Search results',
+        search: [searchedUserMock]
       });
     });
 

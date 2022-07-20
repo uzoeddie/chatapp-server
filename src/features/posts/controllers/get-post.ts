@@ -33,15 +33,15 @@ export class Get {
     const newSkip: number = skip === 0 ? skip : skip + 1;
     let posts: IPostDocument[] = [];
     const cachedData: IPostDocument[] = await postCache.getPostsWithImagesFromCache('post', newSkip, limit);
-    posts = cachedData.length ? cachedData : await postService.getPosts({imgId: '$ne', gifUrl: '$ne'}, skip, limit, { createdAt: -1 });
+    posts = cachedData.length ? cachedData : await postService.getPosts({ imgId: '$ne', gifUrl: '$ne' }, skip, limit, { createdAt: -1 });
     res.status(HTTP_STATUS.OK).json({ message: 'All posts with images', posts });
   }
 
-  public async postById(req: Request, res: Response): Promise<void> {
-    const cachedData: IPostDocument[] = await postCache.getSinglePostFromCache(req.params.postId);
-    const post: IPostDocument[] = cachedData.length
-      ? cachedData
-      : await postService.getPosts({ _id: req.params.postId }, 0, 1, { createdAt: -1 });
-    res.status(HTTP_STATUS.OK).json({ message: 'Single post', post: post[0] });
-  }
+  // public async postById(req: Request, res: Response): Promise<void> {
+  //   const cachedData: IPostDocument[] = await postCache.getSinglePostFromCache(req.params.postId);
+  //   const post: IPostDocument[] = cachedData.length
+  //     ? cachedData
+  //     : await postService.getPosts({ _id: req.params.postId }, 0, 1, { createdAt: -1 });
+  //   res.status(HTTP_STATUS.OK).json({ message: 'Single post', post: post[0] });
+  // }
 }

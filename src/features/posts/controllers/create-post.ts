@@ -24,7 +24,7 @@ export class Create {
     }
 
     const postObjectId: ObjectId = new ObjectId();
-    const createdPost: IPostDocument = ({
+    const createdPost: IPostDocument = {
       _id: postObjectId,
       userId: req.currentUser?.userId,
       username: req.currentUser?.username,
@@ -41,7 +41,7 @@ export class Create {
       imgId: '',
       reactions: { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 },
       createdAt: new Date()
-    }) as IPostDocument;
+    } as IPostDocument;
 
     await postCache.savePostToCache({
       key: postObjectId,
@@ -66,7 +66,7 @@ export class Create {
       throw new BadRequestError(result.message);
     }
     const postObjectId: ObjectId = new ObjectId();
-    const createdPost: IPostDocument = ({
+    const createdPost: IPostDocument = {
       _id: postObjectId,
       userId: req.currentUser?.userId,
       username: req.currentUser?.username,
@@ -83,7 +83,7 @@ export class Create {
       imgId: result.public_id,
       reactions: { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 },
       createdAt: new Date()
-    }) as IPostDocument;
+    } as IPostDocument;
 
     await postCache.savePostToCache({
       key: postObjectId,

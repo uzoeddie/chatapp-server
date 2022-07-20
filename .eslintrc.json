@@ -6,7 +6,8 @@
   ],
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
   ],
   "parserOptions":  {
     "ecmaVersion":  2020,  // Allows for the parsing of modern ECMAScript features
