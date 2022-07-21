@@ -13,8 +13,7 @@
     "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false",
     "build": "ttsc -p .",
     "seeds:dev": "npx ts-node src/seeds.ts",
-    "seeds:prod": "node ./build/seeds.js",
-    "prepare": "husky install"
+    "seeds:prod": "node ./build/seeds.js"
   },
   "keywords": [],
   "author": "",
@@ -76,7 +75,6 @@
     "@typescript-eslint/parser": "^5.30.0",
     "eslint": "^8.18.0",
     "eslint-config-prettier": "^8.5.0",
-    "husky": "^8.0.0",
     "jest": "^28.1.1",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.5",

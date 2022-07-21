@@ -7,6 +7,9 @@ executors:
       - image: cimg/node:16.16.0
       - image: cimg/redis:7.0.2
     working_directory: ~/repo
+  terraform-executor:
+    docker:
+      - image: hashicorp/terraform:latest
 
 aliases:
   - &show-current-branch-name
@@ -98,7 +101,39 @@ jobs:
       - run:
           name: Upload Project to S3
           command: |
-            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-default-app
+            aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+
+  terraform-validate:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+          name: Terraform Validate & Format
+          command: |
+            cd deployment/
+            terraform init -backend=false
+            terraform validate
+            terraform fmt
+
+  terraform-plan-and-apply:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+          name: Terraform Plan
+          command: |
+            cd deployment/
+            terraform init
+            terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+            terraform plan
+      - run:
+          name: Terraform Apply
+          command: |
+            cd deployment/
+            terraform workspace select ${CIRCLE_BRANCH}
+            terraform apply --auto-approve
 
   push-to-aws-code-deploy:
     executor: aws-cli/default
@@ -110,12 +145,29 @@ jobs:
       - run:
           name: Deploy Changes With AWS CodeDeploy
           command: |
-            aws deploy create-deployment \
-              --region eu-central-1 \
-              --application-name chatapp-server-default-app \
-              --deployment-config-name CodeDeployDefault.AllAtOnce \
-              --deployment-group-name chatapp-server-default-group \
-              --s3-location bucket=chatapp-server-default-app,bundleType=zip,key=chatapp.zip
+            if [ "${CODE_DEPLOY_UPDATE}" == "true" ]
+            then
+                aws deploy create-deployment \
+                    --region eu-central-1 \
+                    --application-name chatapp-server-${CIRCLE_BRANCH}-app \
+                    --deployment-config-name CodeDeployDefault.AllAtOnce \
+                    --deployment-group-name chatapp-server-${CIRCLE_BRANCH}-group \
+                    --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
+            fi
+
+  # This job will be manually executed
+  terraform-destroy:
+    executor: terraform-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - run:
+          name: Terraform Destroy
+          command: |
+            cd deployment/
+            terraform init
+            terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
+            terraform destroy --auto-approve
 
 workflows:
   build_and_deploy:
@@ -139,30 +191,61 @@ workflows:
                 - develop
                 - staging
                 - master
-      - unit-test:
-          requires:
-            - prettier
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master # Be sure to check if the branch is master or main
-      - upload-project-to-s3:
-          requires:
-            - unit-test
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
-      - push-to-aws-code-deploy:
-          requires:
-            - upload-project-to-s3
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
+      # - unit-test:
+      #       requires:
+      #         - prettier
+      #       filters:
+      #         branches:
+      #           only:
+      #             - develop
+      #             - staging
+      #             - master # Be sure to check if the branch is master or main
+      # - upload-project-to-s3:
+      #       requires:
+      #         - unit-test
+      #       filters:
+      #         branches:
+      #           only:
+      #             - develop
+      #             - staging
+      #             - master
+      # - terraform-validate:
+      #       requires:
+      #         - upload-project-to-s3
+      #       filters:
+      #         branches:
+      #           only:
+      #             - develop
+      #             - staging
+      #             - master
+      # - terraform-plan-and-apply:
+      #       requires:
+      #         - terraform-validate
+      #       filters:
+      #         branches:
+      #           only:
+      #             - develop
+      #             - staging
+      #             - master
+      # - push-to-aws-code-deploy:
+      #       requires:
+      #         - terraform-plan-and-apply
+      #       filters:
+      #         branches:
+      #           only:
+      #             - develop
+      #             - staging
+      #             - master
+      # - hold:
+      #     type: approval
+      #     requires:
+      #       - push-to-aws-code-deploy
+      # - terraform-destroy:
+      #       requires:
+      #         - hold
+      #       filters:
+      #         branches:
+      #           only:
+      #             - develop
+      #             - staging
+      #             - master
