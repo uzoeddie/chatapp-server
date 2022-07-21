@@ -191,61 +191,61 @@ workflows:
                 - develop
                 - staging
                 - master
-      # - unit-test:
-      #       requires:
-      #         - prettier
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master # Be sure to check if the branch is master or main
-      # - upload-project-to-s3:
-      #       requires:
-      #         - unit-test
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - terraform-validate:
-      #       requires:
-      #         - upload-project-to-s3
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - terraform-plan-and-apply:
-      #       requires:
-      #         - terraform-validate
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - push-to-aws-code-deploy:
-      #       requires:
-      #         - terraform-plan-and-apply
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - hold:
-      #     type: approval
-      #     requires:
-      #       - push-to-aws-code-deploy
-      # - terraform-destroy:
-      #       requires:
-      #         - hold
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
+      - unit-test:
+            requires:
+              - prettier
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master # Be sure to check if the branch is master or main
+      - upload-project-to-s3:
+            requires:
+              - unit-test
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - terraform-validate:
+            requires:
+              - upload-project-to-s3
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - terraform-plan-and-apply:
+            requires:
+              - terraform-validate
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - push-to-aws-code-deploy:
+            requires:
+              - terraform-plan-and-apply
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - hold:
+          type: approval
+          requires:
+            - push-to-aws-code-deploy
+      - terraform-destroy:
+            requires:
+              - hold
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
