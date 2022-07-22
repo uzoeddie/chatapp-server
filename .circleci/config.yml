@@ -148,12 +148,6 @@ jobs:
           name: Start Redis Server
           command: docker run --name chatapp-redis -p 6379:6379 -d redis
           background: true
-      # - run:
-      #     name: Start Server
-      #     command: |
-      #       sleep 3
-      #       npm run dev
-      #     background: true
       - run:
           name: Run Unit Test
           command: |
@@ -246,7 +240,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "${CIRCLE_BRANCH} branch backend deployment is complete. 👍",
+                    "text": "✅ 👍 ✅ ${CIRCLE_BRANCH} branch backend deployment is complete. ✅ 👍 ✅",
                     "emoji": true
                   }
                 },
@@ -313,25 +307,7 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      # - linting:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         only:
-      #           - develop
-      #           - staging
-      #           - master
-      # - code-formatter-check:
-      #     requires:
-      #       - linting
-      #     filters:
-      #       branches:
-      #         only:
-      #           - develop
-      #           - staging
-      #           - master
-      - unit-test:
+      - linting:
           requires:
             - build
           filters:
@@ -340,61 +316,79 @@ workflows:
                 - develop
                 - staging
                 - master
-      - notify-via-slack:
+      - code-formatter-check:
           requires:
-            - unit-test
+            - linting
           filters:
             branches:
               only:
                 - develop
                 - staging
                 - master
-      # - upload-project-to-s3:
-      #       requires:
-      #         - unit-test
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - terraform-validate:
-      #       requires:
-      #         - upload-project-to-s3
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - terraform-plan-and-apply:
-      #       requires:
-      #         - terraform-validate
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - push-to-aws-code-deploy:
-      #       requires:
-      #         - terraform-plan-and-apply
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
-      # - hold:
-      #     type: approval
-      #     requires:
-      #       - push-to-aws-code-deploy
-      # - terraform-destroy:
-      #       requires:
-      #         - hold
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
+      - unit-test:
+          requires:
+            - code-formatter-check
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - master
+      - upload-project-to-s3:
+            requires:
+              - unit-test
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - terraform-validate:
+            requires:
+              - upload-project-to-s3
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - terraform-plan-and-apply:
+            requires:
+              - terraform-validate
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - push-to-aws-code-deploy:
+            requires:
+              - terraform-plan-and-apply
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - notify-via-slack:
+          requires:
+            - push-to-aws-code-deploy
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - master
+      - hold:
+          type: approval
+          requires:
+            - notify-via-slack
+      - terraform-destroy:
+            requires:
+              - hold
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
