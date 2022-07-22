@@ -1,6 +1,7 @@
 orbs:
   aws-cli: circleci/aws-cli@3.1.1
   slack: circleci/slack@4.10.1
+  codecov: codecov/codecov@3.2.3
 version: 2.1
 executors:
   app-executor:
@@ -158,6 +159,7 @@ jobs:
           command: |
             sleep 3
             npm run test
+      - codecov/upload
       - *notify-on-fail
 
   upload-project-to-s3:
@@ -311,7 +313,25 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      - linting:
+      # - linting:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only:
+      #           - develop
+      #           - staging
+      #           - master
+      # - code-formatter-check:
+      #     requires:
+      #       - linting
+      #     filters:
+      #       branches:
+      #         only:
+      #           - develop
+      #           - staging
+      #           - master
+      - unit-test:
           requires:
             - build
           filters:
@@ -320,27 +340,9 @@ workflows:
                 - develop
                 - staging
                 - master
-      - code-formatter-check:
-          requires:
-            - linting
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
-      # - unit-test:
-      #       requires:
-      #         - code-formatter-check
-      #       filters:
-      #         branches:
-      #           only:
-      #             - develop
-      #             - staging
-      #             - master
       - notify-via-slack:
           requires:
-            - code-formatter-check
+            - unit-test
           filters:
             branches:
               only:
