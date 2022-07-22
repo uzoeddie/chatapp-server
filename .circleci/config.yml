@@ -160,6 +160,7 @@ jobs:
                     --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
             fi
 
+  # https://circleci.com/docs/slack-orb-tutorial
   notify-via-slack:
     executor: slack-executor
     steps:
@@ -221,7 +222,7 @@ jobs:
             }
       - slack/notify:
           channel: 'chat-app'
-          event: always
+          event: fail
           template: basic_fail_1
 
   # This job will be manually executed
