@@ -44,7 +44,7 @@ aliases:
           zip chatapp.zip -r .
           echo "Zip successful"
   - &notify-on-fail
-    - slack/notify:
+    slack/notify:
         event: fail
         channel: 'chat-app'
         template: ''
