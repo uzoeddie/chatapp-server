@@ -43,6 +43,66 @@ aliases:
           rm -rf node_modules
           zip chatapp.zip -r .
           echo "Zip successful"
+  - &notify-on-fail
+    - slack/notify:
+        event: fail
+        channel: 'chat-app'
+        template: ''
+        custom: |
+          {
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Job Failed. 🔴",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Project*:\n$CIRCLE_PROJECT_REPONAME"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Job*: ${CIRCLE_JOB}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Branch*:\n$CIRCLE_BRANCH"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*When*:\n$(date +'%m/%d/%Y %T')"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Build*:\n$CIRCLE_BUILD_NUM"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author*:\n$CIRCLE_PROJECT_USERNAME"
+                  }
+                ]
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View Job"
+                    },
+                    "url": "${CIRCLE_BUILD_URL}"
+                  }
+                ]
+              }
+            ]
+          }
 
 jobs:
   build:
@@ -63,10 +123,7 @@ jobs:
       - run:
           name: Run linting
           command: npm run lint:check
-      - slack/notify:
-          channel: 'chat-app'
-          event: fail
-          template: basic_fail_1
+      - *notify-on-fail
 
   code-formatter-check:
     executor: app-executor
@@ -77,10 +134,7 @@ jobs:
       - run:
           name: Run prettier check
           command: npm run prettier:check
-      - slack/notify:
-          channel: 'chat-app'
-          event: fail
-          template: basic_fail_1
+      - *notify-on-fail
 
   unit-test:
     executor: app-executor
@@ -104,6 +158,7 @@ jobs:
           command: |
             sleep 3
             npm run test
+      - *notify-on-fail
 
   upload-project-to-s3:
     executor: aws-cli/default
@@ -116,6 +171,7 @@ jobs:
           name: Upload Project to S3
           command: |
             aws --region eu-central-1 s3 cp chatapp.zip s3://chatapp-server-${CIRCLE_BRANCH}-app
+      - *notify-on-fail
 
   terraform-validate:
     executor: terraform-executor
@@ -129,6 +185,7 @@ jobs:
             terraform init -backend=false
             terraform validate
             terraform fmt
+      - *notify-on-fail
 
   terraform-plan-and-apply:
     executor: terraform-executor
@@ -148,6 +205,7 @@ jobs:
             cd deployment/
             terraform workspace select ${CIRCLE_BRANCH}
             terraform apply --auto-approve
+      - *notify-on-fail
 
   push-to-aws-code-deploy:
     executor: aws-cli/default
@@ -168,6 +226,7 @@ jobs:
                     --deployment-group-name chatapp-server-${CIRCLE_BRANCH}-group \
                     --s3-location bucket=chatapp-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
             fi
+      - *notify-on-fail
 
   # https://circleci.com/docs/slack-orb-tutorial
   notify-via-slack:
@@ -243,6 +302,10 @@ jobs:
             terraform init
             terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
             terraform destroy --auto-approve
+      - slack/notify:
+          channel: 'chat-app'
+          event: always
+          template: basic_on_hold_1
 
 workflows:
   build_and_deploy:
