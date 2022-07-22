@@ -7,6 +7,7 @@ executors:
     docker:
       - image: cimg/node:16.16.0
       - image: cimg/redis:7.0.2
+      - image: 'cibuilds/base:latest'
     working_directory: ~/repo
   terraform-executor:
     docker:
@@ -62,6 +63,10 @@ jobs:
       - run:
           name: Run linting
           command: npm run lint:check
+      - slack/notify:
+          channel: 'chat-app'
+          event: fail
+          template: basic_fail_1
 
   code-formatter-check:
     executor: app-executor
@@ -72,6 +77,10 @@ jobs:
       - run:
           name: Run prettier check
           command: npm run prettier:check
+      - slack/notify:
+          channel: 'chat-app'
+          event: fail
+          template: basic_fail_1
 
   unit-test:
     executor: app-executor
@@ -220,10 +229,6 @@ jobs:
                 }
               ]
             }
-      - slack/notify:
-          channel: 'chat-app'
-          event: fail
-          template: basic_fail_1
 
   # This job will be manually executed
   terraform-destroy:
