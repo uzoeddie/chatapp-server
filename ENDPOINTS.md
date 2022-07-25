@@ -6,13 +6,11 @@
 * change @baseUrl inside each file in the endpoints directory with your backend api url
 * make sure to use the correct url params and body in making the requests
 
+## Auth
 ```js
 @baseUrl = http://localhost:5000
 @urlPath = api/v1
-```
 
-## Auth
-```js
 - GET {{baseUrl}}/{{urlPath}}/currentuser
 - GET {{baseUrl}}/{{urlPath}}/signout
 
@@ -24,11 +22,17 @@
 
 ## Current user
 ```js
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
 - GET {{baseUrl}}/{{urlPath}}/currentuser
 ```
 
 ## Health
 ```js
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
 - GET {{baseUrl}}/health
 - GET {{baseUrl}}/env
 - GET {{baseUrl}}/instance
@@ -37,46 +41,55 @@
 
 ## User
 ```js
-@userBase = user
-- GET {{baseUrl}}/{{urlPath}}/{{userBase}}/all/:page
-- GET {{baseUrl}}/{{urlPath}}/{{userBase}}/profile
-- GET {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/posts/:username/:userId/:uId
-- GET {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/:userId
-- GET {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/user/suggestions
-- GET {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/search/:query
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- PUT {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/basic-info
-- PUT {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/social-links
-- PUT {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/change-password
-- PUT {{baseUrl}}/{{urlPath}}/{{userBase}}/profile/settings
+- GET {{baseUrl}}/{{urlPath}}/user/all/:page
+- GET {{baseUrl}}/{{urlPath}}/user/profile
+- GET {{baseUrl}}/{{urlPath}}/user/profile/posts/:username/:userId/:uId
+- GET {{baseUrl}}/{{urlPath}}/user/profile/:userId
+- GET {{baseUrl}}/{{urlPath}}/user/profile/user/suggestions
+- GET {{baseUrl}}/{{urlPath}}/user/profile/search/:query
+
+- PUT {{baseUrl}}/{{urlPath}}/user/profile/basic-info
+- PUT {{baseUrl}}/{{urlPath}}/user/profile/social-links
+- PUT {{baseUrl}}/{{urlPath}}/user/profile/change-password
+- PUT {{baseUrl}}/{{urlPath}}/user/profile/settings
 ```
 
 ## Chat
 ```js
-@chatBase = chat/message
-- GET {{baseUrl}}/{{urlPath}}/{{chatBase}}/user/:receiverId
-- GET {{baseUrl}}/{{urlPath}}/{{chatBase}}/conversation-list
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- POST {{baseUrl}}/{{urlPath}}/{{chatBase}}
-- POST {{baseUrl}}/{{urlPath}}/{{chatBase}}/add-chat-users
-- POST {{baseUrl}}/{{urlPath}}/{{chatBase}}/remove-chat-users
+- GET {{baseUrl}}/{{urlPath}}/chat/message/user/:receiverId
+- GET {{baseUrl}}/{{urlPath}}/chat/message/conversation-list
 
-- PUT {{baseUrl}}/{{urlPath}}/{{chatBase}}/mark-as-read
-- PUT {{baseUrl}}/{{urlPath}}/{{chatBase}}/reaction
+- POST {{baseUrl}}/{{urlPath}}/chat/message
+- POST {{baseUrl}}/{{urlPath}}/chat/message/add-chat-users
+- POST {{baseUrl}}/{{urlPath}}/chat/message/remove-chat-users
+
+- PUT {{baseUrl}}/{{urlPath}}/chat/message/mark-as-read
+- PUT {{baseUrl}}/{{urlPath}}/chat/message/reaction
 ```
 
 ## Comment
 ```js
-@commentBase = post
-- GET {{baseUrl}}/{{urlPath}}/{{commentBase}}/comments/:postId
-- GET {{baseUrl}}/{{urlPath}}/{{commentBase}}/commentsnames/:postId
-- GET {{baseUrl}}/{{urlPath}}/{{commentBase}}/single/comment/:postId/:commentId
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- POST {{baseUrl}}/{{urlPath}}/{{commentBase}}/comment
+- GET {{baseUrl}}/{{urlPath}}/post/comments/:postId
+- GET {{baseUrl}}/{{urlPath}}/post/commentsnames/:postId
+- GET {{baseUrl}}/{{urlPath}}/post/single/comment/:postId/:commentId
+
+- POST {{baseUrl}}/{{urlPath}}/post/comment
 ```
 
 ## Follower
 ```js
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
 - GET {{baseUrl}}/{{urlPath}}/user/following
 - GET {{baseUrl}}/{{urlPath}}/user/followers/:userId
 
@@ -88,50 +101,58 @@
 
 ## Images
 ```js
-@imagesBase = images
-- GET {{baseUrl}}/{{urlPath}}/{{imagesBase}}/:userId
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- POST {{baseUrl}}/{{urlPath}}/{{imagesBase}}/profile
-- POST {{baseUrl}}/{{urlPath}}/{{imagesBase}}/background
+- GET {{baseUrl}}/{{urlPath}}/images/:userId
 
-- DELETE {{baseUrl}}/{{urlPath}}/{{imagesBase}}/:imageId
-- DELETE {{baseUrl}}/{{urlPath}}/{{imagesBase}}/background/:bgImageId
+- POST {{baseUrl}}/{{urlPath}}/images/profile
+- POST {{baseUrl}}/{{urlPath}}/images/background
+
+- DELETE {{baseUrl}}/{{urlPath}}/images/:imageId
+- DELETE {{baseUrl}}/{{urlPath}}/images/background/:bgImageId
 ```
 
 ## Notifications
 ```js
-@notificationsBase = notification
-- GET {{baseUrl}}/{{urlPath}}/{{notificationsBase}}
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- PUT {{baseUrl}}/{{urlPath}}/{{notificationsBase}}/:notificationId
+- GET {{baseUrl}}/{{urlPath}}/notification
 
-- DELETE {{baseUrl}}/{{urlPath}}/{{notificationsBase}}/:notificationId
+- PUT {{baseUrl}}/{{urlPath}}/notification/:notificationId
+
+- DELETE {{baseUrl}}/{{urlPath}}/notification/:notificationId
 ```
 
 ## Post
 ```js
-@postBase = post
-- GET {{baseUrl}}/{{urlPath}}/{{postBase}}/all/:page
-- GET {{baseUrl}}/{{urlPath}}/{{postBase}}/images/:page
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- POST {{baseUrl}}/{{urlPath}}/{{postBase}}
-- POST {{baseUrl}}/{{urlPath}}/{{postBase}}/image/post
+- GET {{baseUrl}}/{{urlPath}}/post/all/:page
+- GET {{baseUrl}}/{{urlPath}}/post/images/:page
 
-- PUT {{baseUrl}}/{{urlPath}}/{{postBase}}/:postId
-- PUT {{baseUrl}}/{{urlPath}}/{{postBase}}/image/:postId
+- POST {{baseUrl}}/{{urlPath}}/post
+- POST {{baseUrl}}/{{urlPath}}/post/image/post
 
-- DELETE {{baseUrl}}/{{urlPath}}/{{postBase}}/:postId
+- PUT {{baseUrl}}/{{urlPath}}/post/:postId
+- PUT {{baseUrl}}/{{urlPath}}/post/image/:postId
+
+- DELETE {{baseUrl}}/{{urlPath}}/post/:postId
 ```
 
 ## Reactions
 ```js
-@postBase = post
-- GET {{baseUrl}}/{{urlPath}}/{{postBase}}/reactions/:postId
-- GET {{baseUrl}}/{{urlPath}}/{{postBase}}/single/reaction/:postId/:reactionId
-- GET {{baseUrl}}/{{urlPath}}/{{postBase}}/single/reaction/username/:username/:postId
-- GET {{baseUrl}}/{{urlPath}}/{{postBase}}/reactions/username/:username
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
 
-- POST {{baseUrl}}/{{urlPath}}/{{postBase}}/reaction
+- GET {{baseUrl}}/{{urlPath}}/post/reactions/:postId
+- GET {{baseUrl}}/{{urlPath}}/post/single/reaction/:postId/:reactionId
+- GET {{baseUrl}}/{{urlPath}}/post/single/reaction/username/:username/:postId
+- GET {{baseUrl}}/{{urlPath}}/post/reactions/username/:username
 
-- DELETE {{baseUrl}}/{{urlPath}}/{{postBase}}/reaction/:postId/:previousReaction/:postReactions
+- POST {{baseUrl}}/{{urlPath}}/post/reaction
+
+- DELETE {{baseUrl}}/{{urlPath}}/post/reaction/:postId/:previousReaction/:postReactions
 ```
