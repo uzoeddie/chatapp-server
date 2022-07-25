@@ -1,11 +1,14 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
 ###
-GET http://localhost:5000/api/v1/notifications
+GET {{baseUrl}}/{{urlPath}}/notifications
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 ###
-PUT http://localhost:5000/api/v1/notification/609ea91116974af44f99c4ec
+PUT {{baseUrl}}/{{urlPath}}/notification/:notificationId
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
@@ -13,7 +16,7 @@ withCredentials: true
 {}
 
 ###
-DELETE http://localhost:5000/api/v1/notification/609ea91116974af44f99c4ec
+DELETE {{baseUrl}}/{{urlPath}}/notification/:notificationId
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true

@@ -1,0 +1,78 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
+###
+GET {{baseUrl}}/{{urlPath}}/chat/message/user/:receiverId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/chat/message/conversation-list
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+POST {{baseUrl}}/{{urlPath}}/chat/message
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "conversationId": "",
+  "receiverId": "",
+  "receiverUsername": "",
+  "receiverAvatarColor": "",
+  "receiverProfilePicture": "",
+  "body": "",
+  "gifUrl": "",
+  "isRead": false,
+  "selectedImage": ""
+}
+
+###
+POST {{baseUrl}}/{{urlPath}}/chat/message/add-chat-users
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "userOne": "",
+  "userTwo": ""
+}
+
+###
+POST {{baseUrl}}/{{urlPath}}/chat/message/remove-chat-users
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "userOne": "",
+  "userTwo": ""
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/chat/message/mark-as-read
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "senderId": "",
+  "receiverId": ""
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/chat/message/reaction
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "conversationId": "",
+  "messageId": "",
+  "reaction": "",
+  "type": ""
+}

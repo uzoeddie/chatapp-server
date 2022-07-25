@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/comments/:postId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/commentsnames/:postId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/single/comment/:postId/:commentId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+POST {{baseUrl}}/{{urlPath}}/post/comment
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "postId": "",
+  "comment": "",
+  "profilePicture": "",
+  "userTo": ""
+}

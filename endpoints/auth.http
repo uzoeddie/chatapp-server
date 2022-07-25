@@ -1,54 +1,58 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
 ###
-POST http://localhost:5000/api/v1/signup
+POST {{baseUrl}}/{{urlPath}}/signup
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 {
-    "username": "Manny",
-    "email": "manny@test.com",
-    "password": "test1234"
+  "username": "",
+  "email": "",
+  "password": ""
 }
 
 ###
-POST http://localhost:5000/api/v1/signin
+POST {{baseUrl}}/{{urlPath}}/signin
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 {
-    "username": "manny",
-    "password": "qwerty"
+  "username": "",
+  "password": ""
 }
 
 ###
-GET http://localhost:5000/api/v1/currentuser
+GET {{baseUrl}}/{{urlPath}}/currentuser
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 ###
-GET http://localhost:5000/api/v1/signout
+GET {{baseUrl}}/{{urlPath}}/signout
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 ###
-POST http://localhost:5000/api/v1/forgot-password
+POST {{baseUrl}}/{{urlPath}}/forgot-password
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 {
-    "email": "manny@test.com"
+  "email": ""
 }
 
 ###
-POST http://localhost:5000/api/v1/reset-password/f7545cec8c837e9450e2b052a6275696f0074921
+POST {{baseUrl}}/{{urlPath}}/reset-password/:token
 content-type: application/json
 Accept: 'application/json'
 withCredentials: true
 
 {
-    "password": "newpass1"
+  "password": "",
+  "confirmPassword": ""
 }

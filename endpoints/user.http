@@ -1,0 +1,89 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
+###
+GET {{baseUrl}}/{{urlPath}}/user/all/:page
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/user/profile
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/user/profile/posts/:username/:userId/:uId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/user/profile/:userId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/user/profile/user/suggestions
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/user/profile/search/:query
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+PUT {{baseUrl}}/{{urlPath}}/user/profile/basic-info
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "quote": "",
+  "work": "",
+  "school": "",
+  "location": ""
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/user/profile/social-links
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "instagram": "",
+  "twitter": "",
+  "facebook": "",
+  "youtube": ""
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/user/profile/change-password
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "currentPassword": "",
+  "newPassword": "",
+  "confirmPassword": ""
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/user/profile/settings
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "messages": true,
+  "reactions": true,
+  "comments": true,
+  "follows": true
+}

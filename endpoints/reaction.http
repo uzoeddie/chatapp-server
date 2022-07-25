@@ -1,0 +1,49 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/reactions/:postId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/single/reaction/:postId/:reactionId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/single/reaction/username/:username/:postId
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/post/reactions/username/:username
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+###
+POST {{baseUrl}}/{{urlPath}}/post/reaction
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{
+  "postId": "",
+  "type": "",
+  "profilePicture": "",
+  "userTo": "",
+  "previousReaction": "",
+  "postReactions": "",
+}
+
+###
+DELETE {{baseUrl}}/{{urlPath}}/post/reaction/:postId/:previousReaction/:postReactions
+content-type: application/json
+Accept: 'application/json'
+withCredentials: true
+
+{}
