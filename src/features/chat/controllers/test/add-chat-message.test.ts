@@ -52,7 +52,7 @@ describe('Add', () => {
     jest.spyOn(emailQueue, 'addEmailJob');
 
     const templateParams = {
-      username: existingUserTwo.username,
+      username: existingUserTwo.username!,
       message: chatMessage.body,
       header: `Message Notification from ${req.currentUser!.username}`
     };
@@ -62,7 +62,7 @@ describe('Add', () => {
     expect(emailQueue.addEmailJob).toHaveBeenCalledWith('directMessageMail', {
       receiverEmail: req.currentUser!.email,
       template,
-      subject: `You've received messages from ${existingUserTwo.username}`
+      subject: `You've received messages from ${existingUserTwo.username!}`
     });
   });
 
@@ -73,7 +73,7 @@ describe('Add', () => {
     jest.spyOn(emailQueue, 'addEmailJob');
 
     const templateParams = {
-      username: existingUserTwo.username,
+      username: existingUserTwo.username!,
       message: chatMessage.body,
       header: `Message Notification from ${req.currentUser!.username}`
     };
@@ -83,7 +83,7 @@ describe('Add', () => {
     expect(emailQueue.addEmailJob).not.toHaveBeenCalledWith('directMessageMail', {
       receiverEmail: req.currentUser!.email,
       template,
-      subject: `You've received messages from ${existingUserTwo.username}`
+      subject: `You've received messages from ${existingUserTwo.username!}`
     });
   });
 

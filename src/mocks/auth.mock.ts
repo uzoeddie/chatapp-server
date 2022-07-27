@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AuthPayload } from '@auth/interfaces/auth.interface';
+import { AuthPayload, IAuthDocument } from '@auth/interfaces/auth.interface';
 import { Response } from 'express';
 
 const PASSWORD = 'manny1';
@@ -55,6 +55,15 @@ export const authUserPayload: AuthPayload = {
   avatarColor: '#9c27b0',
   iat: 12345
 };
+
+export const authMock = {
+  _id: '60263f14648fed5246e322d3',
+  uId: '1621613119252066',
+  username: 'Manny',
+  email: 'manny@me.com',
+  avatarColor: '#9c27b0',
+  createdAt: new Date(),
+} as IAuthDocument;
 
 export const signUpMockData = {
   _id: '605727cd646eb50e668a4e13',

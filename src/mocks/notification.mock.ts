@@ -1,4 +1,5 @@
 import { AuthPayload } from '@auth/interfaces/auth.interface';
+import { INotificationDocument } from '@notification/interfaces/notification.interface';
 import { Response } from 'express';
 import { IJwt } from './auth.mock';
 
@@ -27,6 +28,12 @@ export const notificationData = {
   notificationType: 'comments',
   entityId: '60263f14638fed5246e322d9',
   createdItemId: '60263f14748fed5246e322d9',
+  comment: '',
+  reaction: '',
+  post: '',
+  imgId: '',
+  imgVersion: '',
+  gifUrl: '',
   read: false,
-  date: new Date()
-};
+  createdAt: new Date()
+} as unknown as INotificationDocument;

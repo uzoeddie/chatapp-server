@@ -5,7 +5,7 @@ import { existingUser } from '@root/mocks/user.mock';
 import { SignIn } from '@auth/controllers/signin';
 import mongoose from 'mongoose';
 import { Helpers } from '@global/helpers/helpers';
-import { userService } from '@service/db/user.service';
+import { authService } from '@service/db/auth.service';
 
 const USERNAME = 'Manny';
 const PASSWORD = 'manny1';
@@ -84,11 +84,11 @@ describe('SignIn', () => {
   it('should throw "Invalid credentials" if username does not exist', () => {
     const req: Request = authMockRequest({}, { username: USERNAME, password: PASSWORD }) as Request;
     const res: Response = authMockResponse();
-    jest.spyOn(userService, 'getUserByUsername');
+    jest.spyOn(authService, 'getAuthUserByUsername');
     jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(null);
 
     SignIn.prototype.read(req, res).catch((error: CustomError) => {
-      expect(userService.getUserByUsername).toHaveBeenCalledWith(Helpers.firstLetterUppercase(req.body.username));
+      expect(authService.getAuthUserByUsername).toHaveBeenCalledWith(Helpers.firstLetterUppercase(req.body.username));
       expect(error.statusCode).toEqual(400);
       expect(error.serializeErrors().message).toEqual('Invalid credentials');
     });
@@ -101,11 +101,11 @@ describe('SignIn', () => {
       ...existingUser,
       comparePassword: () => false
     };
-    jest.spyOn(userService, 'getUserByUsername');
+    jest.spyOn(authService, 'getAuthUserByUsername');
     jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(mockUser);
 
     SignIn.prototype.read(req, res).catch((error: CustomError) => {
-      expect(userService.getUserByUsername).toHaveBeenCalledWith(Helpers.firstLetterUppercase(req.body.username));
+      expect(authService.getAuthUserByUsername).toHaveBeenCalledWith(Helpers.firstLetterUppercase(req.body.username));
       expect(error.statusCode).toEqual(400);
       expect(error.serializeErrors().message).toEqual('Invalid credentials');
     });

@@ -78,7 +78,8 @@ describe('ChangePassword', () => {
           currentPassword: 'manny1',
           newPassword: 'manny2',
           confirmPassword: 'manny2'
-        }
+        },
+        authUserPayload
       ) as Request;
       const res: Response = authMockResponse();
       const mockUser = {

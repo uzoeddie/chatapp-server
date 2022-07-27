@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
+import { authMock, authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { SignUp } from '@auth/controllers/signup';
 import { Request, Response } from 'express';
 import { CustomError } from '@global/helpers/error-handler';
-import { existingUser } from '@root/mocks/user.mock';
-import { userService } from '@service/db/user.service';
 import * as cloudinaryUploads from '@global/helpers/cloudinary-upload';
 import { UserCache } from '@service/redis/user.cache';
+import { authService } from '@service/db/auth.service';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
@@ -176,7 +175,7 @@ describe('SignUp', () => {
       }
     ) as Request;
     const res: Response = authMockResponse();
-    jest.spyOn(userService, 'getUserByUsernameOrEmail').mockResolvedValue(existingUser);
+    jest.spyOn(authService, 'getUserByUsernameOrEmail').mockResolvedValue(authMock);
 
     SignUp.prototype.create(req, res).catch((error: CustomError) => {
       expect(error.statusCode).toEqual(400);
