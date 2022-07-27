@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
-import { SignUp } from '@user/controllers/auth/signup';
+import { SignUp } from '@auth/controllers/signup';
 import { Request, Response } from 'express';
 import { CustomError } from '@global/helpers/error-handler';
 import { existingUser } from '@root/mocks/user.mock';

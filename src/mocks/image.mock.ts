@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { IFileImageDocument } from '@image/interface/image.interface';
 import { IMessage } from '@root/mocks/chat.mock';
-import { AuthPayload } from '@user/interfaces/user.interface';
+import { AuthPayload } from '@auth/interfaces/auth.interface';
 import { IJwt } from './auth.mock';
 import mongoose from 'mongoose';
 

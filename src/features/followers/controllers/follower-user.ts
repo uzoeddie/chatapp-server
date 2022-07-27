@@ -43,13 +43,13 @@ export class Add {
   private userData(user: IUserDocument): IFollowerData {
     return {
       _id: new mongoose.Types.ObjectId(user._id),
-      username: user.username,
-      avatarColor: user.avatarColor,
+      username: user.username!,
+      avatarColor: user.avatarColor!,
       postCount: user.postsCount,
       followersCount: user.followersCount,
       followingCount: user.followingCount,
       profilePicture: user.profilePicture,
-      uId: user.uId,
+      uId: user.uId!,
       userProfile: user
     };
   }

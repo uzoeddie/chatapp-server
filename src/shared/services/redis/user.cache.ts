@@ -14,13 +14,13 @@ export class UserCache extends BaseCache {
   }
 
   public async saveUserToCache(key: string, userId: string, createdUser: IUserDocument): Promise<void> {
+    const createdAt = new Date();
     const {
       _id,
       uId,
       username,
       email,
       avatarColor,
-      createdAt,
       blocked,
       blockedBy,
       postsCount,

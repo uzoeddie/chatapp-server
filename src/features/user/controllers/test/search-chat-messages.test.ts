@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { chatMockRequest, chatMockResponse } from '@root/mocks/chat.mock';
 import { authUserPayload } from '@root/mocks/auth.mock';
 import { searchedUserMock } from '@root/mocks/user.mock';
-import { Search } from '@user/controllers/user/search-user';
+import { Search } from '@user/controllers/search-user';
 import { userService } from '@service/db/user.service';
 
 jest.useFakeTimers();

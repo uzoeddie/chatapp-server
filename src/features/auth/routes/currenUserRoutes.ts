@@ -1,5 +1,5 @@
 import { authMiddleware } from '@global/helpers/auth-middleware';
-import { CurrentUser } from '@user/controllers/auth/current-user';
+import { CurrentUser } from '@auth/controllers/current-user';
 import express, { Router } from 'express';
 
 class CurrentUserRoute {

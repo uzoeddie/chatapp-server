@@ -1,19 +1,11 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import { LeanDocument } from 'mongoose';
-import { NotificationModel } from '@notification/models/notification.schema';
 import { INotificationDocument } from '@notification/interfaces/notification.interface';
+import { notificationService } from '@service/db/notification.service';
 
 export class Get {
   public async notification(req: Request, res: Response): Promise<void> {
-    const notifications: LeanDocument<INotificationDocument>[] = await NotificationModel.find({ userTo: req.currentUser?.userId })
-      .lean()
-      .populate({
-        path: 'userFrom',
-        select: 'username avatarColor uId profilePicture'
-      })
-      .sort({ createdAt: -1 })
-      .exec();
+    const notifications: INotificationDocument[] = await notificationService.getNotifications(req.currentUser!.userId);
     res.status(HTTP_STATUS.OK).json({ message: 'User notifications', notifications });
   }
 }

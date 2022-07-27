@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AuthPayload } from '@user/interfaces/user.interface';
+import { AuthPayload } from '@auth/interfaces/auth.interface';
 import { Response } from 'express';
 
 const PASSWORD = 'manny1';

@@ -45,12 +45,12 @@ class Comment {
       });
       socketIONotificationObject.emit('insert notification', notifications, { userTo });
       const templateParams: INotificationTemplate = {
-        username: response[2].username,
+        username: response[2].username!,
         message: `${username} commented on your post.`,
         header: 'Comment Notification'
       };
       const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
-      emailQueue.addEmailJob('commentsMail', { receiverEmail: response[2].email, template, subject: 'Post Notification' });
+      emailQueue.addEmailJob('commentsMail', { receiverEmail: response[2].email!, template, subject: 'Post Notification' });
     }
   }
 

@@ -118,6 +118,9 @@
       "./jest.setup.redis-mock.js"
     ],
     "moduleNameMapper": {
+      "@auth/(.*)": [
+        "<rootDir>/src/features/auth/$1"
+      ],
       "@user/(.*)": [
         "<rootDir>/src/features/user/$1"
       ],

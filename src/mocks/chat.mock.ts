@@ -2,7 +2,7 @@
 import { Response } from 'express';
 import { IJwt } from './auth.mock';
 import mongoose from 'mongoose';
-import { AuthPayload } from '@user/interfaces/user.interface';
+import { AuthPayload } from '@auth/interfaces/auth.interface';
 import { IMessageData } from '@chat/interfaces/chat.interface';
 import { existingUser, existingUserTwo } from '@root/mocks/user.mock';
 import { ObjectId } from 'mongodb';

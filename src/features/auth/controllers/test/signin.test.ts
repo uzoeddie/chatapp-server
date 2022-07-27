@@ -2,7 +2,7 @@ import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { Request, Response } from 'express';
 import { CustomError } from '@global/helpers/error-handler';
 import { existingUser } from '@root/mocks/user.mock';
-import { SignIn } from '@user/controllers/auth/signin';
+import { SignIn } from '@auth/controllers/signin';
 import mongoose from 'mongoose';
 import { Helpers } from '@global/helpers/helpers';
 import { userService } from '@service/db/user.service';

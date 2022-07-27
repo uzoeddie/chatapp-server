@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { Password } from '@user/controllers/auth/password';
+import { Password } from '@auth/controllers/password';
 import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { CustomError } from '@global/helpers/error-handler';
 import { existingUser } from '@root/mocks/user.mock';

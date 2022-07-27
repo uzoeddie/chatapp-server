@@ -1,9 +1,9 @@
 import { authMiddleware } from '@global/helpers/auth-middleware';
-import { ChangePassword } from '@user/controllers/user/edit/change-password';
-import { EditBasicInfo } from '@user/controllers/user/edit/edit-basic-info';
-import { Settings } from '@user/controllers/user/edit/update-settings';
-import { Get } from '@user/controllers/user/get-profile';
-import { Search } from '@user/controllers/user/search-user';
+import { ChangePassword } from '@user/controllers/edit/change-password';
+import { EditBasicInfo } from '@user/controllers/edit/edit-basic-info';
+import { Settings } from '@user/controllers/edit/update-settings';
+import { Get } from '@user/controllers/get-profile';
+import { Search } from '@user/controllers/search-user';
 import express, { Router } from 'express';
 
 class UserRoutes {

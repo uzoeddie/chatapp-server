@@ -11,8 +11,8 @@ import { config } from '@root/config';
 import { forgotPasswordTemplate } from '@service/emails/templates/forgot/forgot-template';
 import { resetPasswordTemplate } from '@service/emails/templates/reset/reset-template';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
-import { emailSchema, passwordSchema } from '@user/schemes/auth/password';
 import { emailQueue } from '@service/queues/email.queue';
+import { emailSchema, passwordSchema } from '@auth/schemes/password';
 
 export class Password {
   @joiValidation(emailSchema)
@@ -32,7 +32,7 @@ export class Password {
     await existingUser.save();
 
     const resetLink = `${config.CLIENT_URL}/reset-password?token=${randomCharacters}`;
-    const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username, resetLink);
+    const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username!, resetLink);
     emailQueue.addEmailJob('forgotPasswordMail', { template, receiverEmail: email, subject: 'Reset your password' });
     res.status(HTTP_STATUS.OK).json({ message: 'Password reset email sent.' });
   }
@@ -58,8 +58,8 @@ export class Password {
     await existingUser.save();
 
     const templateParams: IResetPasswordParams = {
-      username: existingUser.username,
-      email: existingUser.email,
+      username: existingUser.username!,
+      email: existingUser.email!,
       ipaddress: publicIP.address(),
       date: moment().format('DD/MM/YYYY HH:mm')
     };
@@ -67,7 +67,7 @@ export class Password {
     const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
     emailQueue.addEmailJob('forgotPasswordMail', {
       template,
-      receiverEmail: existingUser.email,
+      receiverEmail: existingUser.email!,
       subject: 'Password Reset Confirmation'
     });
     res.status(HTTP_STATUS.OK).json({ message: 'Password successfully updated.' });

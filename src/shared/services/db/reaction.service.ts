@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { omit } from 'lodash';
 import { IQueryReaction, IReactionDocument, IReactionJob } from '@reaction/interfaces/reaction.interface';
 import { ReactionModel } from '@reaction/models/reaction.schema';
 import { UserCache } from '@service/redis/user.cache';
@@ -19,7 +20,9 @@ class Reaction {
   public async addReactionDataToDB(reactionData: IReactionJob): Promise<void> {
     const { postId, userTo, username, userFrom, type, previousReaction, reactionObject } = reactionData;
     if (previousReaction) {
-      delete reactionObject!._id;
+      // use delete with care. It is usually not recommended
+      // delete reactionObject!._id;
+      omit(reactionObject!, ['_id']);
     }
     const updatedReaction: [IUserDocument, IReactionDocument, IPostDocument] = (await Promise.all([
       userCache.getUserFromCache(`${userTo}`),
@@ -58,13 +61,13 @@ class Reaction {
       socketIONotificationObject.emit('insert notification', notifications, { userTo });
 
       const templateParams: INotificationTemplate = {
-        username: updatedReaction[0].username,
+        username: updatedReaction[0].username!,
         message: `${username} reacted on your post.`,
         header: 'Post Reaction Notification'
       };
       const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
       emailQueue.addEmailJob('commentsMail', {
-        receiverEmail: updatedReaction[0].email,
+        receiverEmail: updatedReaction[0].email!,
         template,
         subject: 'Post Reaction Notification'
       });

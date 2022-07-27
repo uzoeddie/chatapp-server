@@ -40,6 +40,11 @@ class Image {
     const image: IFileImageDocument = (await ImageModel.findOne({ bgImageId }).exec()) as IFileImageDocument;
     return image;
   }
+
+  public async getImages(userId: string): Promise<IFileImageDocument[]> {
+    const images: IFileImageDocument[] = (await ImageModel.find({ userId }).exec()) as IFileImageDocument[];
+    return images;
+  }
 }
 
 export const imageService: Image = new Image();

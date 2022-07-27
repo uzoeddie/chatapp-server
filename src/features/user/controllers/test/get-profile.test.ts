@@ -4,7 +4,7 @@ import { authMockRequest, authMockResponse, authUserPayload } from '@root/mocks/
 import { UserCache } from '@service/redis/user.cache';
 import { FollowerCache } from '@service/redis/follower.cache';
 import { existingUser } from '@root/mocks/user.mock';
-import { Get } from '@user/controllers/user/get-profile';
+import { Get } from '@user/controllers/get-profile';
 import { PostCache } from '@service/redis/post.cache';
 import { postMockData } from '@root/mocks/post.mock';
 import { mockFollowerData } from '@root/mocks/followers.mock';

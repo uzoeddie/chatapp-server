@@ -1,5 +1,4 @@
 import { Application } from 'express';
-import { currentUserRoute } from '@user/routes/currenUserRoutes';
 import { authMiddleware } from '@global/helpers/auth-middleware';
 import { postRoutes } from '@post/routes/postRoutes';
 import { commentRoutes } from '@comment/routes/commentRoutes';
@@ -10,8 +9,9 @@ import { notificationRoutes } from '@notification/routes/notificationRoutes';
 import { followerRoutes } from '@follower/routes/followerRoutes';
 import { userRoutes } from '@user/routes/userRoutes';
 import { healthRoute } from '@user/routes/healthRoutes';
-import { authRoutes } from '@user/routes/authRoutes';
 import { serverAdapter } from '@service/queues/base.queue';
+import { authRoutes } from '@auth/routes/authRoutes';
+import { currentUserRoute } from '@auth/routes/currenUserRoutes';
 
 const BASE_PATH = '/api/v1';
 

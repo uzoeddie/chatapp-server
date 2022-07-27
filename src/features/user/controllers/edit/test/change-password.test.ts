@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { authMockRequest, authMockResponse, authUserPayload } from '@root/mocks/auth.mock';
 import mongoose from 'mongoose';
-import { ChangePassword } from '@user/controllers/user/edit/change-password';
+import { ChangePassword } from '@user/controllers/edit/change-password';
 import { CustomError } from '@global/helpers/error-handler';
 import { existingUser } from '@root/mocks/user.mock';
 import { emailQueue } from '@service/queues/email.queue';

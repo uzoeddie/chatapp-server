@@ -1,5 +1,6 @@
 import mongoose, { model, Model, Schema } from 'mongoose';
 import { INotificationDocument, INotification } from '@notification/interfaces/notification.interface';
+import { notificationService } from '@service/db/notification.service';
 
 const notificationSchema: Schema = new Schema({
   userTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
@@ -50,14 +51,8 @@ notificationSchema.methods.insertNotification = async function (body: INotificat
     gifUrl
   });
   try {
-    return await NotificationModel.find({ userTo })
-      .lean()
-      .populate({
-        path: 'userFrom',
-        select: 'username avatarColor uId profilePicture'
-      })
-      .sort({ createdAt: -1 })
-      .exec();
+    const notifications: INotificationDocument[] = await notificationService.getNotifications(userTo);
+    return notifications;
   } catch (error) {
     return error;
   }

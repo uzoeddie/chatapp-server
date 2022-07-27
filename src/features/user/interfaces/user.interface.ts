@@ -1,30 +1,14 @@
 import mongoose, { Document } from 'mongoose';
 import { ObjectId } from 'mongodb';
 
-declare global {
-  namespace Express {
-    interface Request {
-      currentUser?: AuthPayload;
-    }
-  }
-}
-
-export interface AuthPayload {
-  userId: string;
-  uId: string;
-  email: string;
-  username: string;
-  avatarColor: string;
-  iat?: number;
-}
-
 export interface IUserDocument extends Document {
   _id: string | ObjectId;
-  uId: string;
-  username: string;
-  email: string;
+  authId: string | ObjectId;
+  username?: string;
+  email?: string;
   password?: string;
-  avatarColor: string;
+  avatarColor?: string;
+  uId?: string;
   postsCount: number;
   work: string;
   school: string;
@@ -36,24 +20,41 @@ export interface IUserDocument extends Document {
   followingCount: number;
   notifications: INotificationSettings;
   social: ISocialLinks;
-  createdAt: Date;
   bgImageVersion: string;
   bgImageId: string;
   profilePicture: string;
   passwordResetToken?: string;
   passwordResetExpires?: number | string;
-
-  comparePassword(password: string): Promise<boolean>;
-  hashPassword(password: string): Promise<string>;
+  createdAt?: Date;
+  // comparePassword(password: string): Promise<boolean>;
+  // hashPassword(password: string): Promise<string>;
 }
 
-export interface ISignUpData {
-  createdObjectId: ObjectId;
+export interface IUser {
+  _id: string | ObjectId;
+  authId: string | ObjectId;
   uId: string;
-  email: string;
   username: string;
-  password: string;
+  email: string;
+  password?: string;
   avatarColor: string;
+  createdAt: Date;
+  postsCount: number;
+  work: string;
+  school: string;
+  quote: string;
+  location: string;
+  blocked: mongoose.Types.ObjectId[];
+  blockedBy: mongoose.Types.ObjectId[];
+  followersCount: number;
+  followingCount: number;
+  notifications: INotificationSettings;
+  social: ISocialLinks;
+  bgImageVersion: string;
+  bgImageId: string;
+  profilePicture: string;
+  passwordResetToken?: string;
+  passwordResetExpires?: number | string;
 }
 
 export interface IResetPasswordParams {

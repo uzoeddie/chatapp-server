@@ -57,13 +57,13 @@ class Follower {
       });
       socketIONotificationObject.emit('insert notification', notifications, { userTo: followerId });
       const templateParams: INotificationTemplate = {
-        username: response[1].username,
+        username: response[1].username!,
         message: `${username} is now following you.`,
         header: 'Follower Notification'
       };
       const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
       emailQueue.addEmailJob('commentsMail', {
-        receiverEmail: response[1].email,
+        receiverEmail: response[1].email!,
         template,
         subject: `${username} is now following you.`
       });

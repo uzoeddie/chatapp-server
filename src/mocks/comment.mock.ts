@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { ICommentDocument, ICommentNameList } from '@comment/interfaces/comment.interface';
-import { AuthPayload } from '@user/interfaces/user.interface';
+import { AuthPayload } from '@auth/interfaces/auth.interface';
 import { IJwt } from './auth.mock';
 import { IReactionDocument, IReactions } from '@reaction/interfaces/reaction.interface';
 

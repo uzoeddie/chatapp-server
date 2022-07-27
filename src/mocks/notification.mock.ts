@@ -1,4 +1,4 @@
-import { AuthPayload } from '@user/interfaces/user.interface';
+import { AuthPayload } from '@auth/interfaces/auth.interface';
 import { Response } from 'express';
 import { IJwt } from './auth.mock';
 

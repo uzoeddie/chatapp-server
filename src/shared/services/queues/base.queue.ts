@@ -11,8 +11,10 @@ import { IReactionJob } from '@reaction/interfaces/reaction.interface';
 import { IChatJobData, IMessageData } from '@chat/interfaces/chat.interface';
 import { IFileImageJobData } from '@image/interface/image.interface';
 import { IBlockedUserJobData } from '@follower/interface/follower.interface';
+import { IAuthJob } from '@auth/interfaces/auth.interface';
 
 type IBaseJobData =
+  | IAuthJob
   | IUserJob
   | IPostJobData
   | IEmailJob

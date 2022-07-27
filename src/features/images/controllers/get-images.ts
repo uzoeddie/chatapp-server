@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import { ImageModel } from '@image/models/image.schema';
 import { IFileImageDocument } from '@image/interface/image.interface';
+import { imageService } from '@service/db/image.service';
 
 export class Get {
   public async images(req: Request, res: Response): Promise<void> {
-    const images: IFileImageDocument[] = (await ImageModel.find({ userId: req.params.userId }).exec()) as IFileImageDocument[];
+    const images: IFileImageDocument[] = await imageService.getImages(req.params.userId);
     res.status(HTTP_STATUS.OK).json({ message: 'User images', images });
   }
 }

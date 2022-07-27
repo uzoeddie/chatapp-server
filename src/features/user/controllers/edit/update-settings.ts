@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
-import { notificationSettingsSchema } from '@user/schemes/user/info';
+import { notificationSettingsSchema } from '@user/schemes/info';
 import { UserCache } from '@service/redis/user.cache';
 import { userQueue } from '@service/queues/user.queue';
 
