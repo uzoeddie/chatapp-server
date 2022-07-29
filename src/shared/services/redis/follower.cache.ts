@@ -6,7 +6,10 @@ import { IFollowerData } from '@follower/interface/follower.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { UserCache } from '@service/redis/user.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
+import Logger from 'bunyan';
+import { config } from '@root/config';
 
+const log: Logger = config.createLogger('followersCache');
 const userCache: UserCache = new UserCache();
 
 export class FollowerCache extends BaseCache {
@@ -21,6 +24,7 @@ export class FollowerCache extends BaseCache {
       }
       await this.client.LPUSH(key, value);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -49,6 +53,7 @@ export class FollowerCache extends BaseCache {
       }
       return list;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -60,6 +65,7 @@ export class FollowerCache extends BaseCache {
       }
       await this.client.LREM(key, 0, value);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -71,6 +77,7 @@ export class FollowerCache extends BaseCache {
       }
       await this.client.HINCRBY(`users:${key}`, prop, value);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -93,6 +100,7 @@ export class FollowerCache extends BaseCache {
       multi.HSET(`users:${key}`, dataToSave);
       await multi.exec();
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

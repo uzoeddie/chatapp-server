@@ -3,6 +3,10 @@ import { ICommentDocument, ICommentNameList } from '@comment/interfaces/comment.
 import { BaseCache } from '@service/redis/base.cache';
 import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('commentsCache');
 
 export class CommentCache extends BaseCache {
   constructor() {
@@ -21,6 +25,7 @@ export class CommentCache extends BaseCache {
       const dataToSave: string[] = ['commentsCount', `${count}`];
       await this.client.HSET(`posts:${key}`, dataToSave);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -37,6 +42,7 @@ export class CommentCache extends BaseCache {
       }
       return list;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -59,6 +65,7 @@ export class CommentCache extends BaseCache {
       };
       return [response];
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -78,6 +85,7 @@ export class CommentCache extends BaseCache {
       }) as ICommentDocument;
       return [result];
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

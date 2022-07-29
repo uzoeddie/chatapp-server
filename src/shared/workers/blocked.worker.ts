@@ -1,5 +1,9 @@
+import { config } from '@root/config';
 import { blockUserService } from '@service/db/block-user.service';
 import { DoneCallback, Job } from 'bull';
+import Logger from 'bunyan';
+
+const log: Logger = config.createLogger('blockedUserWorker');
 
 class BlockedUserWorker {
   async addBlockedUserToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
@@ -13,6 +17,7 @@ class BlockedUserWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }

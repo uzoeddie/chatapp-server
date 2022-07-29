@@ -1,5 +1,9 @@
 import { postService } from '@service/db/post.service';
 import { Job, DoneCallback } from 'bull';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('postWorker');
 
 class PostWorker {
   async savePostWorker(job: Job, done: DoneCallback): Promise<void> {
@@ -9,6 +13,7 @@ class PostWorker {
       job.progress(100);
       done(null, job.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -20,6 +25,7 @@ class PostWorker {
       job.progress(100);
       done(null, job.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -31,6 +37,7 @@ class PostWorker {
       job.progress(100);
       done(null, job.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }

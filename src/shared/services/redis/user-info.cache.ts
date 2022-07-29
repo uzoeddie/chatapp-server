@@ -2,9 +2,12 @@ import { BaseCache } from '@service/redis/base.cache';
 import { ISocialLinks, IUserDocument } from '@user/interfaces/user.interface';
 import { ServerError } from '@global/helpers/error-handler';
 import { UserCache } from '@service/redis/user.cache';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('userInfoCache');
 
 type UserItem = string | number | null;
-
 const userCache: UserCache = new UserCache();
 
 export class UserInfoCache extends BaseCache {
@@ -29,6 +32,7 @@ export class UserInfoCache extends BaseCache {
       const response = await userCache.getUserFromCache(key);
       return response;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -43,6 +47,7 @@ export class UserInfoCache extends BaseCache {
       const response = await userCache.getUserFromCache(key);
       return response;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

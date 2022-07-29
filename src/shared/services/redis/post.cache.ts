@@ -4,6 +4,10 @@ import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
 import { IReactions } from '@reaction/interfaces/reaction.interface';
 import { RedisCommandRawReply } from '@redis/client/dist/lib/commands';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('postCache');
 
 export type PostCacheMultiType = string | number | Buffer | RedisCommandRawReply[] | IPostDocument | IPostDocument[];
 
@@ -84,6 +88,7 @@ export class PostCache extends BaseCache {
       multi.HSET(`users:${currentUserId}`, ['postsCount', `${count}`]);
       await multi.exec();
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -108,6 +113,7 @@ export class PostCache extends BaseCache {
       }
       return postReplies;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -120,6 +126,7 @@ export class PostCache extends BaseCache {
       const count: number = await this.client.ZCARD('post');
       return count;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -146,6 +153,7 @@ export class PostCache extends BaseCache {
       }
       return postWithImages;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -190,6 +198,7 @@ export class PostCache extends BaseCache {
       }
       return postReplies;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -202,6 +211,7 @@ export class PostCache extends BaseCache {
       const count: number = await this.client.ZCOUNT('post', uId, uId);
       return count;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -221,6 +231,7 @@ export class PostCache extends BaseCache {
       multi.HSET(`users:${currentUserId}`, ['postsCount', `${count}`]);
       await multi.exec();
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -258,6 +269,7 @@ export class PostCache extends BaseCache {
       postReply[0].createdAt = new Date(`${postReply[0].createdAt}`) as Date;
       return postReply[0];
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -271,6 +283,7 @@ export class PostCache extends BaseCache {
       }
       await this.client.HSET(`posts:${key}`, dataToSave);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

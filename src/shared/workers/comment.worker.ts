@@ -1,5 +1,9 @@
 import { commentService } from '@service/db/comment.service';
 import { DoneCallback, Job } from 'bull';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('commentWorker');
 
 class CommentWorker {
   async addCommentToDB(job: Job, done: DoneCallback): Promise<void> {
@@ -9,6 +13,7 @@ class CommentWorker {
       job.progress(100);
       done(null, data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }

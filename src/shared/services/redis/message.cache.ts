@@ -4,6 +4,10 @@ import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
 import { IChatList, IChatUsers, IGetMessageFromCache, IMessageData } from '@chat/interfaces/chat.interface';
 import { IReaction } from '@reaction/interfaces/reaction.interface';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('messageCache');
 
 export class MessageCache extends BaseCache {
   constructor() {
@@ -25,7 +29,8 @@ export class MessageCache extends BaseCache {
         }
       }
     } catch (error) {
-      throw new ServerError('addChatListToCache: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -36,7 +41,8 @@ export class MessageCache extends BaseCache {
       }
       await this.client.RPUSH(`messages:${key}`, JSON.stringify(value));
     } catch (error) {
-      throw new ServerError('addChatMessageToCache: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -56,7 +62,8 @@ export class MessageCache extends BaseCache {
       }
       return chatUsers;
     } catch (error) {
-      throw new ServerError('addChatUsersToCache: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -89,7 +96,8 @@ export class MessageCache extends BaseCache {
       const updatedMessage: string = (await this.client.LINDEX(`messages:${key}`, messageIndex)) as string;
       return Helpers.parseJson(updatedMessage) as IMessageData;
     } catch (error) {
-      throw new ServerError('updateMessageReaction: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -109,7 +117,8 @@ export class MessageCache extends BaseCache {
       }
       return chatUsers;
     } catch (error) {
-      throw new ServerError('removeChatUsersFromCache: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -127,7 +136,8 @@ export class MessageCache extends BaseCache {
       }
       return conversationChatList;
     } catch (error) {
-      throw new ServerError('getUserConversationList: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -151,7 +161,8 @@ export class MessageCache extends BaseCache {
         return [];
       }
     } catch (error) {
-      throw new ServerError('getChatMessagesFromCache: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -174,7 +185,8 @@ export class MessageCache extends BaseCache {
       const lastMessage: string = (await this.client.LINDEX(`messages:${parsedReceiver.conversationId}`, -1)) as string;
       return Helpers.parseJson(lastMessage) as IMessageData;
     } catch (error) {
-      throw new ServerError('updateChatMessages: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 
@@ -196,7 +208,8 @@ export class MessageCache extends BaseCache {
       const lastMessage: string = (await this.client.LINDEX(`messages:${receiver.conversationId}`, index)) as string;
       return Helpers.parseJson(lastMessage) as IMessageData;
     } catch (error) {
-      throw new ServerError('markMessageAsDeleted: Server error. Try again.');
+      log.error(error);
+      throw new ServerError('Server error. Try again.');
     }
   }
 

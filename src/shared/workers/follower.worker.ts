@@ -1,5 +1,9 @@
 import { DoneCallback, Job } from 'bull';
 import { followerService } from '@service/db/follower.service';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('followerWorker');
 
 class FollowerWorker {
   async addFollowerToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
@@ -9,6 +13,7 @@ class FollowerWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -20,6 +25,7 @@ class FollowerWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }

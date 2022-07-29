@@ -1,5 +1,9 @@
 import { DoneCallback, Job } from 'bull';
 import { imageService } from '@service/db/image.service';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('imageWorker');
 
 class ImageWorker {
   async addUserProfileImageToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
@@ -9,6 +13,7 @@ class ImageWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -20,6 +25,7 @@ class ImageWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -31,6 +37,7 @@ class ImageWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -42,6 +49,7 @@ class ImageWorker {
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }

@@ -5,7 +5,10 @@ import { BaseCache } from '@service/redis/base.cache';
 import { INotificationSettings, ISocialLinks, IUserDocument } from '@user/interfaces/user.interface';
 import _ from 'lodash';
 import { RedisCommandRawReply } from '@redis/client/dist/lib/commands';
+import Logger from 'bunyan';
+import { config } from '@root/config';
 
+const log: Logger = config.createLogger('userCache');
 export type UserCacheMultiType = string | number | Buffer | RedisCommandRawReply[] | IUserDocument[];
 
 export class UserCache extends BaseCache {
@@ -91,6 +94,7 @@ export class UserCache extends BaseCache {
       await this.client.ZADD('user', { score: parseInt(userId, 10), value: `${key}` });
       await this.client.HSET(`users:${key}`, dataToSave);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -117,6 +121,7 @@ export class UserCache extends BaseCache {
 
       return response;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -152,6 +157,7 @@ export class UserCache extends BaseCache {
       }
       return userReplies;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -164,6 +170,7 @@ export class UserCache extends BaseCache {
       const count: number = await this.client.ZCARD('user');
       return count;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -202,6 +209,7 @@ export class UserCache extends BaseCache {
       }
       return replies;
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -214,6 +222,7 @@ export class UserCache extends BaseCache {
       }
       await this.client.HSET(`users:${key}`, dataToSave);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

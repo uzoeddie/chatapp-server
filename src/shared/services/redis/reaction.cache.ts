@@ -3,6 +3,10 @@ import { Helpers } from '@global/helpers/helpers';
 import { IReactionDocument, IReactions } from '@reaction/interfaces/reaction.interface';
 import { BaseCache } from '@service/redis/base.cache';
 import { ServerError } from '@global/helpers/error-handler';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('reactionsCache');
 
 export class ReactionCache extends BaseCache {
   constructor() {
@@ -30,6 +34,7 @@ export class ReactionCache extends BaseCache {
         await this.client.HSET(`posts:${key}`, dataToSave);
       }
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -48,6 +53,7 @@ export class ReactionCache extends BaseCache {
       const dataToSave: string[] = ['reactions', JSON.stringify(postReactions)];
       await this.client.HSET(`posts:${key}`, dataToSave);
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -65,6 +71,7 @@ export class ReactionCache extends BaseCache {
       }
       return response.length ? [list, response.length] : [[], 0];
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -84,6 +91,7 @@ export class ReactionCache extends BaseCache {
       }) as IReactionDocument;
       return [[result], 1];
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }
@@ -103,6 +111,7 @@ export class ReactionCache extends BaseCache {
       }) as IReactionDocument;
       return result ? [result, 1] : [];
     } catch (error) {
+      log.error(error);
       throw new ServerError('Server error. Try again.');
     }
   }

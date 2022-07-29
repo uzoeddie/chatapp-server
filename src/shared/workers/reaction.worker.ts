@@ -1,5 +1,9 @@
 import { reactionService } from '@service/db/reaction.service';
 import { DoneCallback, Job } from 'bull';
+import Logger from 'bunyan';
+import { config } from '@root/config';
+
+const log: Logger = config.createLogger('reactionWorker');
 
 class ReactionWorker {
   async addReactionToDB(job: Job, done: DoneCallback): Promise<void> {
@@ -9,6 +13,7 @@ class ReactionWorker {
       job.progress(100);
       done(null, data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
@@ -20,6 +25,7 @@ class ReactionWorker {
       job.progress(100);
       done(null, data);
     } catch (error) {
+      log.error(error);
       done(error as Error);
     }
   }
