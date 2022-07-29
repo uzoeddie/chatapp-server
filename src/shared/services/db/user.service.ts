@@ -4,6 +4,7 @@ import { followerService } from '@service/db/follower.service';
 import { indexOf } from 'lodash';
 import { ISearchUser } from '@chat/interfaces/chat.interface';
 import mongoose from 'mongoose';
+import { AuthModel } from '@auth/models/auth.schema';
 
 class User {
   public async addUserDataToDB(data: IUserDocument): Promise<void> {
@@ -80,12 +81,13 @@ class User {
   }
 
   public async searchUsers(regex: RegExp): Promise<ISearchUser[]> {
-    const users = await UserModel.aggregate([
+    const users = await AuthModel.aggregate([
       { $match: { username: regex } },
-      { $lookup: { from: 'Auth', localField: 'authId', foreignField: '_id', as: 'authId' } },
+      { $lookup: { from: 'User', localField: '_id', foreignField: 'authId', as: '_id' } },
+      { $unwind: '$_id' },
       {
         $project: {
-          _id: 1,
+          _id: '$_id._id',
           username: 1,
           email: 1,
           avatarColor: 1,

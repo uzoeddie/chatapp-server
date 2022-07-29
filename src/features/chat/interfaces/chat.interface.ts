@@ -19,6 +19,8 @@ export interface IMessageDocument extends Document {
   selectedImage: string;
   reaction: IReaction[];
   createdAt: Date;
+  deleteForMe: boolean;
+  deleteForEveryone: boolean;
 }
 
 export interface IMessageData {
@@ -38,6 +40,8 @@ export interface IMessageData {
   selectedImage: string;
   reaction: IReaction[];
   createdAt: Date | string;
+  deleteForMe: boolean;
+  deleteForEveryone: boolean;
 }
 
 export interface IMessageNotification {
@@ -85,4 +89,10 @@ export interface ISenderReceiver {
   receiverId: string;
   senderName: string;
   receiverName: string;
+}
+
+export interface IGetMessageFromCache {
+  index: number;
+  message: string;
+  receiver: IChatList;
 }

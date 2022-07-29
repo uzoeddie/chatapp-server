@@ -64,7 +64,9 @@ export class Add {
       gifUrl,
       selectedImage: fileUrl,
       reaction: [],
-      createdAt: new Date()
+      createdAt: new Date(),
+      deleteForMe: false,
+      deleteForEveryone: false
     };
     Add.prototype.emitSocketIOEvent(messageData);
 

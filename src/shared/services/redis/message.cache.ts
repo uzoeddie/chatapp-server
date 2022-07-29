@@ -1,8 +1,8 @@
-import _ from 'lodash';
+import { find, findIndex, remove } from 'lodash';
 import { BaseCache } from '@service/redis/base.cache';
 import { Helpers } from '@global/helpers/helpers';
 import { ServerError } from '@global/helpers/error-handler';
-import { IChatList, IChatUsers, IMessageData } from '@chat/interfaces/chat.interface';
+import { IChatList, IChatUsers, IGetMessageFromCache, IMessageData } from '@chat/interfaces/chat.interface';
 import { IReaction } from '@reaction/interfaces/reaction.interface';
 
 export class MessageCache extends BaseCache {
@@ -19,13 +19,13 @@ export class MessageCache extends BaseCache {
       if (userChatList.length === 0) {
         await this.client.RPUSH(`chatList:${senderId}`, JSON.stringify({ receiverId, conversationId }));
       } else {
-        const receiverIdIndex: number = _.findIndex(userChatList, (listItem: string) => listItem.includes(receiverId));
+        const receiverIdIndex: number = findIndex(userChatList, (listItem: string) => listItem.includes(receiverId));
         if (receiverIdIndex < 0) {
           await this.client.RPUSH(`chatList:${senderId}`, JSON.stringify({ receiverId, conversationId }));
         }
       }
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('addChatListToCache: Server error. Try again.');
     }
   }
 
@@ -36,7 +36,7 @@ export class MessageCache extends BaseCache {
       }
       await this.client.RPUSH(`messages:${key}`, JSON.stringify(value));
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('addChatMessageToCache: Server error. Try again.');
     }
   }
 
@@ -46,7 +46,7 @@ export class MessageCache extends BaseCache {
         await this.client.connect();
       }
       const users: IChatUsers[] = await this.getChatUsersList();
-      const usersIndex: number = _.findIndex(users, (listItem: IChatUsers) => JSON.stringify(listItem) === JSON.stringify(value));
+      const usersIndex: number = findIndex(users, (listItem: IChatUsers) => JSON.stringify(listItem) === JSON.stringify(value));
       let chatUsers: IChatUsers[] = [];
       if (usersIndex === -1) {
         await this.client.RPUSH('chatUsers', JSON.stringify(value));
@@ -56,7 +56,7 @@ export class MessageCache extends BaseCache {
       }
       return chatUsers;
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('addChatUsersToCache: Server error. Try again.');
     }
   }
 
@@ -72,12 +72,12 @@ export class MessageCache extends BaseCache {
         await this.client.connect();
       }
       const messages: string[] = await this.client.LRANGE(`messages:${key}`, 0, -1);
-      const messageIndex: number = _.findIndex(messages, (listItem: string) => listItem.includes(messageId));
+      const messageIndex: number = findIndex(messages, (listItem: string) => listItem.includes(messageId));
       const message: string = (await this.client.LINDEX(`messages:${key}`, messageIndex)) as string;
       const parsedMessage: IMessageData = Helpers.parseJson(message) as IMessageData;
       const reactions: IReaction[] = [];
       if (parsedMessage) {
-        _.remove(parsedMessage.reaction, (reaction: IReaction) => reaction.senderName === senderName);
+        remove(parsedMessage.reaction, (reaction: IReaction) => reaction.senderName === senderName);
         if (type === 'add') {
           reactions.push({ senderName, type: reaction });
           parsedMessage.reaction = [...parsedMessage.reaction, ...reactions];
@@ -89,7 +89,7 @@ export class MessageCache extends BaseCache {
       const updatedMessage: string = (await this.client.LINDEX(`messages:${key}`, messageIndex)) as string;
       return Helpers.parseJson(updatedMessage) as IMessageData;
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('updateMessageReaction: Server error. Try again.');
     }
   }
 
@@ -99,7 +99,7 @@ export class MessageCache extends BaseCache {
         await this.client.connect();
       }
       const users: IChatUsers[] = await this.getChatUsersList();
-      const usersIndex: number = _.findIndex(users, (listItem: IChatUsers) => JSON.stringify(listItem) === JSON.stringify(value));
+      const usersIndex: number = findIndex(users, (listItem: IChatUsers) => JSON.stringify(listItem) === JSON.stringify(value));
       let chatUsers: IChatUsers[] = [];
       if (usersIndex > -1) {
         await this.client.LREM('chatUsers', usersIndex, JSON.stringify(value));
@@ -109,7 +109,7 @@ export class MessageCache extends BaseCache {
       }
       return chatUsers;
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('removeChatUsersFromCache: Server error. Try again.');
     }
   }
 
@@ -127,7 +127,7 @@ export class MessageCache extends BaseCache {
       }
       return conversationChatList;
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('getUserConversationList: Server error. Try again.');
     }
   }
 
@@ -137,7 +137,7 @@ export class MessageCache extends BaseCache {
         await this.client.connect();
       }
       const userChatList: string[] = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
-      const receiver: string = _.find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
+      const receiver: string = find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
       const parsedReceiver: IChatList = Helpers.parseJson(receiver) as IChatList;
       if (parsedReceiver) {
         const userMessages: string[] = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
@@ -151,7 +151,7 @@ export class MessageCache extends BaseCache {
         return [];
       }
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('getChatMessagesFromCache: Server error. Try again.');
     }
   }
 
@@ -161,7 +161,7 @@ export class MessageCache extends BaseCache {
         await this.client.connect();
       }
       const userChatList: string[] = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
-      const receiver: string = _.find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
+      const receiver: string = find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
       const parsedReceiver: IChatList = Helpers.parseJson(receiver) as IChatList;
       const messages = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
       for (const [index, item] of messages.entries()) {
@@ -174,7 +174,29 @@ export class MessageCache extends BaseCache {
       const lastMessage: string = (await this.client.LINDEX(`messages:${parsedReceiver.conversationId}`, -1)) as string;
       return Helpers.parseJson(lastMessage) as IMessageData;
     } catch (error) {
-      throw new ServerError('Server error. Try again.');
+      throw new ServerError('updateChatMessages: Server error. Try again.');
+    }
+  }
+
+  public async markMessageAsDeleted(senderId: string, receiverId: string, messageId: string, type: string): Promise<IMessageData> {
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+      const { index, message, receiver } = await this.getMessage(senderId, receiverId, messageId);
+      const chatItem = Helpers.parseJson(message) as IMessageData;
+      if (type === 'deleteForMe') {
+        chatItem.deleteForMe = true;
+      } else {
+        chatItem.deleteForEveryone = true;
+        chatItem.deleteForMe = true;
+      }
+      await this.client.LSET(`messages:${receiver.conversationId}`, index, JSON.stringify(chatItem));
+
+      const lastMessage: string = (await this.client.LINDEX(`messages:${receiver.conversationId}`, index)) as string;
+      return Helpers.parseJson(lastMessage) as IMessageData;
+    } catch (error) {
+      throw new ServerError('markMessageAsDeleted: Server error. Try again.');
     }
   }
 
@@ -186,5 +208,16 @@ export class MessageCache extends BaseCache {
       chatUsersList.push(ChatUser);
     }
     return chatUsersList;
+  }
+
+  private async getMessage(senderId: string, receiverId: string, messageId: string): Promise<IGetMessageFromCache> {
+    const userChatList: string[] = await this.client.LRANGE(`chatList:${senderId}`, 0, -1);
+    const receiver: string = find(userChatList, (listItem: string) => listItem.includes(receiverId)) as string;
+    const parsedReceiver: IChatList = Helpers.parseJson(receiver) as IChatList;
+    const messages = await this.client.LRANGE(`messages:${parsedReceiver.conversationId}`, 0, -1);
+    const message: string = find(messages, (listItem: string) => listItem.includes(messageId)) as string;
+    const index: number = findIndex(messages, (listItem: string) => listItem.includes(messageId));
+
+    return { index, message, receiver: parsedReceiver };
   }
 }

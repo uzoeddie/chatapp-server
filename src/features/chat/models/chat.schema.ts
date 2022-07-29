@@ -14,6 +14,8 @@ const messageSchema: Schema = new Schema({
   body: { type: String, default: '' },
   gifUrl: { type: String, default: '' },
   isRead: { type: Boolean, default: false },
+  deleteForMe: { type: Boolean, default: false },
+  deleteForEveryone: { type: Boolean, default: false },
   selectedImage: { type: String, default: '' },
   reaction: Array,
   createdAt: { type: Date, default: Date.now }
