@@ -78,65 +78,65 @@ describe('Get', () => {
     });
   });
 
-  describe('singleReaction', () => {
-    it('should send correct json response if reactions exist in cache', async () => {
-      const req: Request = commentMockRequest({}, {}, authUserPayload, {
-        postId: `${postMockData._id}`,
-        reactionId: `${postMockData._id}`
-      }) as Request;
-      const res: Response = commentMockResponse();
-      jest.spyOn(ReactionCache.prototype, 'getSingleReactionFromCache').mockResolvedValue([[reactionData], 1]);
+  // describe('singleReaction', () => {
+  //   it('should send correct json response if reactions exist in cache', async () => {
+  //     const req: Request = commentMockRequest({}, {}, authUserPayload, {
+  //       postId: `${postMockData._id}`,
+  //       reactionId: `${postMockData._id}`
+  //     }) as Request;
+  //     const res: Response = commentMockResponse();
+  //     jest.spyOn(ReactionCache.prototype, 'getSingleReactionFromCache').mockResolvedValue([[reactionData], 1]);
 
-      await Get.prototype.singleReaction(req, res);
-      expect(ReactionCache.prototype.getSingleReactionFromCache).toHaveBeenCalledWith(`${postMockData._id}`, `${postMockData._id}`);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: 'Single post reaction',
-        reactions: [reactionData],
-        count: 1
-      });
-    });
+  //     await Get.prototype.singleReaction(req, res);
+  //     expect(ReactionCache.prototype.getSingleReactionFromCache).toHaveBeenCalledWith(`${postMockData._id}`, `${postMockData._id}`);
+  //     expect(res.status).toHaveBeenCalledWith(200);
+  //     expect(res.json).toHaveBeenCalledWith({
+  //       message: 'Single post reaction',
+  //       reactions: [reactionData],
+  //       count: 1
+  //     });
+  //   });
 
-    it('should send correct json response if reactions exist in database', async () => {
-      const req: Request = commentMockRequest({}, {}, authUserPayload, {
-        postId: `${postMockData._id}`,
-        reactionId: `${postMockData._id}`
-      }) as Request;
-      const res: Response = commentMockResponse();
-      jest.spyOn(ReactionCache.prototype, 'getSingleReactionFromCache').mockResolvedValue([[], 0]);
-      jest.spyOn(reactionService, 'getPostReactions').mockResolvedValue([[reactionData], 1]);
+  //   it('should send correct json response if reactions exist in database', async () => {
+  //     const req: Request = commentMockRequest({}, {}, authUserPayload, {
+  //       postId: `${postMockData._id}`,
+  //       reactionId: `${postMockData._id}`
+  //     }) as Request;
+  //     const res: Response = commentMockResponse();
+  //     jest.spyOn(ReactionCache.prototype, 'getSingleReactionFromCache').mockResolvedValue([[], 0]);
+  //     jest.spyOn(reactionService, 'getPostReactions').mockResolvedValue([[reactionData], 1]);
 
-      await Get.prototype.singleReaction(req, res);
-      expect(reactionService.getPostReactions).toHaveBeenCalledWith(
-        { _id: new mongoose.Types.ObjectId(`${postMockData._id}`) },
-        { createdAt: 1 }
-      );
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: 'Single post reaction',
-        reactions: [reactionData],
-        count: 1
-      });
-    });
+  //     await Get.prototype.singleReaction(req, res);
+  //     expect(reactionService.getPostReactions).toHaveBeenCalledWith(
+  //       { _id: new mongoose.Types.ObjectId(`${postMockData._id}`) },
+  //       { createdAt: 1 }
+  //     );
+  //     expect(res.status).toHaveBeenCalledWith(200);
+  //     expect(res.json).toHaveBeenCalledWith({
+  //       message: 'Single post reaction',
+  //       reactions: [reactionData],
+  //       count: 1
+  //     });
+  //   });
 
-    it('should send correct json response if reactions list is empty', async () => {
-      const req: Request = commentMockRequest({}, {}, authUserPayload, {
-        postId: `${postMockData._id}`,
-        reactionId: `${postMockData._id}`
-      }) as Request;
-      const res: Response = commentMockResponse();
-      jest.spyOn(ReactionCache.prototype, 'getSingleReactionFromCache').mockResolvedValue([[], 0]);
-      jest.spyOn(reactionService, 'getPostReactions').mockResolvedValue([[], 0]);
+  //   it('should send correct json response if reactions list is empty', async () => {
+  //     const req: Request = commentMockRequest({}, {}, authUserPayload, {
+  //       postId: `${postMockData._id}`,
+  //       reactionId: `${postMockData._id}`
+  //     }) as Request;
+  //     const res: Response = commentMockResponse();
+  //     jest.spyOn(ReactionCache.prototype, 'getSingleReactionFromCache').mockResolvedValue([[], 0]);
+  //     jest.spyOn(reactionService, 'getPostReactions').mockResolvedValue([[], 0]);
 
-      await Get.prototype.singleReaction(req, res);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: 'Single post reaction',
-        reactions: [],
-        count: 0
-      });
-    });
-  });
+  //     await Get.prototype.singleReaction(req, res);
+  //     expect(res.status).toHaveBeenCalledWith(200);
+  //     expect(res.json).toHaveBeenCalledWith({
+  //       message: 'Single post reaction',
+  //       reactions: [],
+  //       count: 0
+  //     });
+  //   });
+  // });
 
   describe('singleReactionByUsername', () => {
     it('should send correct json response if reactions exist in cache', async () => {

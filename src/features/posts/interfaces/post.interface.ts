@@ -21,37 +21,6 @@ export interface IPostDocument extends Document {
   createdAt?: Date;
 }
 
-// add every interface below to the downloadable file for the lecture
-export type PostPrivacyType = 'Public' | 'Followers' | 'Private';
-
-// export interface IFeeling {
-//     name: string;
-//     file: string;
-// }
-
-// export interface IPostPrivacy {
-//     type: PostPrivacyType;
-//     iconName: string;
-// }
-
-export interface ICreatePost {
-  id: ObjectId | string;
-  userId?: string;
-  email?: string;
-  username?: string;
-  avatarColor?: string;
-  profilePicture: string;
-  post?: string;
-  image?: string;
-  bgColor?: string;
-  feelings?: string;
-  privacy?: string;
-  gifUrl?: string;
-  imgId?: string;
-  imgVersion?: string;
-  createdAt?: Date;
-}
-
 export interface IGetPostsQuery {
   _id?: ObjectId | string;
   username?: string;

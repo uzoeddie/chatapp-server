@@ -63,12 +63,28 @@ class User {
     return users;
   }
 
-  public async getRandomUsers(userId: string, username: string): Promise<IUserDocument[]> {
+  public async getRandomUsers(userId: string): Promise<IUserDocument[]> {
     const randomUsers: IUserDocument[] = [];
     const users = await UserModel.aggregate([
-      { $match: { username: { $not: { $eq: username } } } },
+      { $match: { _id: { $ne: new mongoose.Types.ObjectId(userId) } } },
       { $lookup: { from: 'Auth', localField: 'authId', foreignField: '_id', as: 'authId' } },
-      { $sample: { size: 10 } }
+      { $unwind: '$authId' },
+      { $sample: { size: 10 } },
+      {
+        $addFields: {
+          username: '$authId.username',
+          email: '$authId.email',
+          avatarColor: '$authId.avatarColor',
+          uId: '$authId.uId',
+          createdAt: '$authId.createdAt',
+        }
+      },
+      {
+        $project: {
+          authId: 0,
+          __v: 0
+        }
+      }
     ]);
     const followers: string[] = await followerService.getFolloweeIds(`${userId}`);
     for (const user of users) {
@@ -83,11 +99,11 @@ class User {
   public async searchUsers(regex: RegExp): Promise<ISearchUser[]> {
     const users = await AuthModel.aggregate([
       { $match: { username: regex } },
-      { $lookup: { from: 'User', localField: '_id', foreignField: 'authId', as: '_id' } },
-      { $unwind: '$_id' },
+      { $lookup: { from: 'User', localField: '_id', foreignField: 'authId', as: 'id' } },
+      { $unwind: '$id' },
       {
         $project: {
-          _id: '$_id._id',
+          _id: '$id._id',
           username: 1,
           email: 1,
           avatarColor: 1,

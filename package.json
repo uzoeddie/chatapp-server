@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=production pm2 start ./build/app.js -i 5 --watch | ./node_modules/.bin/bunyan",
+    "start": "NODE_ENV=production pm2 start ./build/src/app.js -i 5 --watch | ./node_modules/.bin/bunyan",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
     "lint:check": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@bull-board/express": "^4.0.0",
     "@bull-board/ui": "^4.0.0",
+    "@jest/types": "^28.1.3",
     "@sendgrid/mail": "^7.7.0",
     "@socket.io/redis-adapter": "^7.2.0",
     "@types/bull": "^3.15.8",
@@ -81,85 +82,5 @@
     "ts-node": "^10.8.1",
     "tsconfig-paths": "^4.0.0",
     "typescript": "^4.7.4"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "verbose": false,
-    "coverageDirectory": "coverage",
-    "collectCoverage": true,
-    "testPathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "transform": {
-      "^.+\\.ts?$": "ts-jest"
-    },
-    "testMatch": [
-      "<rootDir>/src/**/test/*.ts"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/test/*.ts?(x)",
-      "!**/node_modules/**"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 1,
-        "functions": 1,
-        "lines": 1,
-        "statements": 1
-      }
-    },
-    "coverageReporters": [
-      "text-summary",
-      "lcov"
-    ],
-    "setupFilesAfterEnv": [
-      "./jest.setup.redis-mock.js"
-    ],
-    "moduleNameMapper": {
-      "@auth/(.*)": [
-        "<rootDir>/src/features/auth/$1"
-      ],
-      "@user/(.*)": [
-        "<rootDir>/src/features/user/$1"
-      ],
-      "@post/(.*)": [
-        "<rootDir>/src/features/posts/$1"
-      ],
-      "@comment/(.*)": [
-        "<rootDir>/src/features/comments/$1"
-      ],
-      "@reaction/(.*)": [
-        "<rootDir>/src/features/reactions/$1"
-      ],
-      "@chat/(.*)": [
-        "<rootDir>/src/features/chat/$1"
-      ],
-      "@image/(.*)": [
-        "<rootDir>/src/features/images/$1"
-      ],
-      "@notification/(.*)": [
-        "<rootDir>/src/features/notifications/$1"
-      ],
-      "@follower/(.*)": [
-        "<rootDir>/src/features/followers/$1"
-      ],
-      "@global/(.*)": [
-        "<rootDir>/src/shared/globals/$1"
-      ],
-      "@service/(.*)": [
-        "<rootDir>/src/shared/services/$1"
-      ],
-      "@socket/(.*)": [
-        "<rootDir>/src/shared/sockets/$1"
-      ],
-      "@worker/(.*)": [
-        "<rootDir>/src/shared/workers/$1"
-      ],
-      "@root/(.*)": [
-        "<rootDir>/src/$1"
-      ]
-    }
   }
 }

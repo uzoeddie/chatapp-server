@@ -17,18 +17,18 @@ export class Get {
     res.status(HTTP_STATUS.OK).json({ message: 'Post reactions', reactions: reactions[0], count: reactions[1] });
   }
 
-  public async singleReaction(req: Request, res: Response): Promise<void> {
-    const { postId, reactionId } = req.params;
-    const cachedReaction: [IReactionDocument[], number] = await reactionCache.getSingleReactionFromCache(postId, reactionId);
-    const reactions: [IReactionDocument[], number] = cachedReaction[0].length
-      ? cachedReaction
-      : await reactionService.getPostReactions({ _id: new mongoose.Types.ObjectId(reactionId) }, { createdAt: 1 });
-    res.status(HTTP_STATUS.OK).json({
-      message: 'Single post reaction',
-      reactions: reactions[0],
-      count: reactions[1]
-    });
-  }
+  // public async singleReaction(req: Request, res: Response): Promise<void> {
+  //   const { postId, reactionId } = req.params;
+  //   const cachedReaction: [IReactionDocument[], number] = await reactionCache.getSingleReactionFromCache(postId, reactionId);
+  //   const reactions: [IReactionDocument[], number] = cachedReaction[0].length
+  //     ? cachedReaction
+  //     : await reactionService.getPostReactions({ _id: new mongoose.Types.ObjectId(reactionId) }, { createdAt: 1 });
+  //   res.status(HTTP_STATUS.OK).json({
+  //     message: 'Single post reaction',
+  //     reactions: reactions[0],
+  //     count: reactions[1]
+  //   });
+  // }
 
   public async singleReactionByUsername(req: Request, res: Response): Promise<void> {
     const { postId, username } = req.params;

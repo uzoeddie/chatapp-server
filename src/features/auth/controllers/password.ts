@@ -3,9 +3,7 @@ import crypto from 'crypto';
 import HTTP_STATUS from 'http-status-codes';
 import moment from 'moment';
 import publicIP from 'ip';
-import { IResetPasswordParams, IUserDocument } from '@user/interfaces/user.interface';
-import { UserModel } from '@user/models/user.schema';
-import { Helpers } from '@global/helpers/helpers';
+import { IResetPasswordParams } from '@user/interfaces/user.interface';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { config } from '@root/config';
 import { forgotPasswordTemplate } from '@service/emails/templates/forgot/forgot-template';
@@ -13,23 +11,21 @@ import { resetPasswordTemplate } from '@service/emails/templates/reset/reset-tem
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { emailQueue } from '@service/queues/email.queue';
 import { emailSchema, passwordSchema } from '@auth/schemes/password';
+import { authService } from '@service/db/auth.service';
+import { IAuthDocument } from '@auth/interfaces/auth.interface';
 
 export class Password {
   @joiValidation(emailSchema)
   public async create(req: Request, res: Response): Promise<void> {
     const { email } = req.body;
-    const existingUser: IUserDocument = (await UserModel.findOne({
-      email: Helpers.lowerCase(email)
-    }).exec()) as IUserDocument;
+    const existingUser: IAuthDocument = await authService.getAuthUserByEmail(email);
     if (!existingUser) {
       throw new BadRequestError('Invalid credentials');
     }
 
     const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20));
     const randomCharacters: string = randomBytes.toString('hex');
-    existingUser.passwordResetToken = randomCharacters;
-    existingUser.passwordResetExpires = Date.now() + 60 * 60 * 1000;
-    await existingUser.save();
+    await authService.updatePasswordToken(`${existingUser._id!}`, randomCharacters, Date.now() + 60 * 60 * 1000);
 
     const resetLink = `${config.CLIENT_URL}/reset-password?token=${randomCharacters}`;
     const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username!, resetLink);
@@ -44,10 +40,7 @@ export class Password {
     if (password !== confirmPassword) {
       throw new BadRequestError('Passwords do not match.');
     }
-    const existingUser: IUserDocument = (await UserModel.findOne({
-      passwordResetToken: token,
-      passwordResetExpires: { $gt: Date.now() }
-    }).exec()) as IUserDocument;
+    const existingUser: IAuthDocument = await authService.getAuthUserByPasswordToken(token);
     if (!existingUser) {
       throw new BadRequestError('Reset token has expired.');
     }

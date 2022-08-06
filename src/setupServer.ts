@@ -137,14 +137,14 @@ export class ChatServer {
     const userSocketIOHandler: SocketIOUserHandler = new SocketIOUserHandler(io);
     const chatSocketIOHandler: SocketIOChatHandler = new SocketIOChatHandler(io);
     const postSocketIOHandler: SocketIOPostHandler = new SocketIOPostHandler(io);
-    const followerSocketIOHandler: SocketIOFollowerHandler = new SocketIOFollowerHandler();
+    const followerSocketIOHandler: SocketIOFollowerHandler = new SocketIOFollowerHandler(io);
     const imageSocketIOHandler: SocketIOImageHandler = new SocketIOImageHandler();
     const notificationSocketIOHandler: SocketIONotificationHandler = new SocketIONotificationHandler();
 
     userSocketIOHandler.listen();
     chatSocketIOHandler.listen();
     postSocketIOHandler.listen();
-    followerSocketIOHandler.listen(io);
+    followerSocketIOHandler.listen();
     imageSocketIOHandler.listen(io);
     notificationSocketIOHandler.listen(io);
   }

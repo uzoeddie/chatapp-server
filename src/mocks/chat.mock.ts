@@ -76,7 +76,9 @@ export const messageDataMock: IMessageData = {
   gifUrl: chatMessage.gifUrl,
   selectedImage: chatMessage.selectedImage,
   reaction: [],
-  createdAt: '2022-06-29T12:51:39.483Z'
+  createdAt: '2022-06-29T12:51:39.483Z',
+  deleteForMe: false,
+  deleteForEveryone: false
 };
 
 export const chatList: IChatList[] = [

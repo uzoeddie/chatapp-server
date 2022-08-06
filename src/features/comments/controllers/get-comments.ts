@@ -7,8 +7,8 @@ import { CommentCache } from '@service/redis/comment.cache';
 import { commentService } from '@service/db/comment.service';
 
 // const PAGE_SIZE = 2;
-const SKIP_SIZE = 0;
-const LIMIT_SIZE = 100;
+// const SKIP_SIZE = 0;
+// const LIMIT_SIZE = 100;
 const commentCache: CommentCache = new CommentCache();
 
 export class Get {
@@ -26,7 +26,7 @@ export class Get {
     const cachedComments: ICommentNameList[] = await commentCache.getCommentNamesFromCache(postId);
     const comments = cachedComments.length
       ? cachedComments
-      : await commentService.getPostCommentNames({ postId: new mongoose.Types.ObjectId(postId) }, SKIP_SIZE, LIMIT_SIZE, {
+      : await commentService.getPostCommentNames({ postId: new mongoose.Types.ObjectId(postId) }, {
           createdAt: -1
         });
     res.status(HTTP_STATUS.OK).json({ message: 'Post comments names', comments: comments[0] });

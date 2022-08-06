@@ -6,7 +6,6 @@ import { UserCache } from '@service/redis/user.cache';
 import { PostModel } from '@post/models/post.schema';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { IPostDocument } from '@post/interfaces/post.interface';
-import { Aggregate, FilterQuery, Query } from 'mongoose';
 import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
 import { NotificationModel } from '@notification/models/notification.schema';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
@@ -19,14 +18,13 @@ const userCache = new UserCache();
 class Reaction {
   public async addReactionDataToDB(reactionData: IReactionJob): Promise<void> {
     const { postId, userTo, username, userFrom, type, previousReaction, reactionObject } = reactionData;
+    let updatedReactionObject: IReactionDocument = reactionObject as IReactionDocument;
     if (previousReaction) {
-      // use delete with care. It is usually not recommended
-      // delete reactionObject!._id;
-      omit(reactionObject!, ['_id']);
+      updatedReactionObject = omit(reactionObject, ['_id']);
     }
     const updatedReaction: [IUserDocument, IReactionDocument, IPostDocument] = (await Promise.all([
       userCache.getUserFromCache(`${userTo}`),
-      ReactionModel.replaceOne({ postId, type: previousReaction, username }, reactionObject, {
+      ReactionModel.replaceOne({ postId, type: previousReaction, username }, updatedReactionObject, {
         upsert: true
       }),
       PostModel.findOneAndUpdate(
@@ -46,7 +44,7 @@ class Reaction {
       const notifications = await notificationModel.insertNotification({
         userFrom: userFrom as string,
         userTo: userTo as string,
-        message: `${username} reacted on your post.`,
+        message: `${username} reacted to your post.`,
         notificationType: 'reactions',
         entityId: new mongoose.Types.ObjectId(postId),
         createdItemId: new mongoose.Types.ObjectId((updatedReaction[1] as IReactionDocument)._id),
@@ -62,7 +60,7 @@ class Reaction {
 
       const templateParams: INotificationTemplate = {
         username: updatedReaction[0].username!,
-        message: `${username} reacted on your post.`,
+        message: `${username} reacted to your post.`,
         header: 'Post Reaction Notification'
       };
       const template: string = notificationTemplate.notificationMessageTemplate(templateParams);
@@ -91,24 +89,18 @@ class Reaction {
   }
 
   public async getPostReactions(query: IQueryReaction, sort: Record<string, 1 | -1>): Promise<[IReactionDocument[], number]> {
-    const reactions: Aggregate<IReactionDocument[]> = ReactionModel.aggregate([{ $match: query }, { $sort: sort }]);
-    const count: Query<number, IReactionDocument> = ReactionModel.find(query as FilterQuery<IReactionDocument>).countDocuments();
-    const response: [IReactionDocument[], number] = await Promise.all([reactions, count]);
-    return response;
+    const reactions: IReactionDocument[] = await ReactionModel.aggregate([{ $match: query }, { $sort: sort }]);
+    return [reactions, reactions.length];
   }
 
   public async getSinglePostReactionByUsername(postId: string, username: string): Promise<[IReactionDocument, number] | []> {
-    const reaction: IReactionDocument | null = await ReactionModel.findOne({ postId, username: Helpers.firstLetterUppercase(username) });
-    let result: [IReactionDocument, number] | [] = [];
-    if (reaction) {
-      result = [reaction, 1];
-    }
-    return result;
+    const reactions: IReactionDocument[] = await ReactionModel.aggregate([{ $match: { postId, username: Helpers.firstLetterUppercase(username) } }]);
+    return reactions.length ? [reactions[0], reactions.length] : [];
   }
 
   public async getReactionsByUsername(username: string): Promise<IReactionDocument[]> {
-    const reaction: IReactionDocument[] = await ReactionModel.find({ username: Helpers.firstLetterUppercase(username) });
-    return reaction;
+    const reactions: IReactionDocument[] = await ReactionModel.aggregate([{ $match: { username: Helpers.firstLetterUppercase(username) } }]);
+    return reactions;
   }
 }
 

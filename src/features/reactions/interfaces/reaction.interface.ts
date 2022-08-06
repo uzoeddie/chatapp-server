@@ -13,11 +13,6 @@ export interface IReactionDocument extends Document {
   comment?: string;
 }
 
-export interface IFormattedReaction {
-  type: string;
-  value: number;
-}
-
 export interface IReactions {
   like: number;
   love: number;

@@ -274,17 +274,17 @@ export class PostCache extends BaseCache {
     }
   }
 
-  public async updateSinglePostPropInCache(key: string, prop: string, value: string): Promise<void> {
-    const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
+  // public async updateSinglePostPropInCache(key: string, prop: string, value: string): Promise<void> {
+  //   const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
 
-    try {
-      if (!this.client.isOpen) {
-        await this.client.connect();
-      }
-      await this.client.HSET(`posts:${key}`, dataToSave);
-    } catch (error) {
-      log.error(error);
-      throw new ServerError('Server error. Try again.');
-    }
-  }
+  //   try {
+  //     if (!this.client.isOpen) {
+  //       await this.client.connect();
+  //     }
+  //     await this.client.HSET(`posts:${key}`, dataToSave);
+  //   } catch (error) {
+  //     log.error(error);
+  //     throw new ServerError('Server error. Try again.');
+  //   }
+  // }
 }

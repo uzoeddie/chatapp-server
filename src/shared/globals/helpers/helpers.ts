@@ -1,4 +1,9 @@
-import { IFormattedReaction, IReactions } from '@reaction/interfaces/reaction.interface';
+import { IReactions } from '@reaction/interfaces/reaction.interface';
+
+export interface IFormattedReaction {
+  type: string;
+  value: number;
+}
 
 export class Helpers {
   static firstLetterUppercase(str: string): string {

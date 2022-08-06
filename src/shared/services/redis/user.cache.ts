@@ -175,16 +175,14 @@ export class UserCache extends BaseCache {
     }
   }
 
-  public async getRandomUsersFromCache(excludedKey: string): Promise<IUserDocument[]> {
+  public async getRandomUsersFromCache(userId: string, excludedUsername: string): Promise<IUserDocument[]> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
       const replies: IUserDocument[] = [];
-      const followers: string[] = await this.client.LRANGE(`followers:${excludedKey}`, 0, -1);
+      const followers: string[] = await this.client.LRANGE(`followers:${userId}`, 0, -1);
       const users: string[] = await this.client.ZRANGE('user', 0, -1);
-      const excludedKeyIndex: number = _.indexOf(users, excludedKey);
-      users.splice(excludedKeyIndex, 1);
       const randomUsers: string[] = Helpers.shuffle(users).slice(0, 10);
       for (const key of randomUsers) {
         const followerIndex = _.indexOf(followers, key);
@@ -193,6 +191,8 @@ export class UserCache extends BaseCache {
           replies.push(userHash);
         }
       }
+      const excludedUsernameIndex: number = _.findIndex(replies, ['username', excludedUsername]);
+      replies.splice(excludedUsernameIndex, 1);
       for (const reply of replies) {
         reply.createdAt = new Date(Helpers.parseJson(`${reply.createdAt}`) as Date);
         reply.postsCount = Helpers.parseJson(`${reply.postsCount}`) as number;

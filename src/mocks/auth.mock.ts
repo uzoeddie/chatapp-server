@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AuthPayload, IAuthDocument } from '@auth/interfaces/auth.interface';
 import { Response } from 'express';
@@ -63,7 +64,9 @@ export const authMock = {
   email: 'manny@me.com',
   avatarColor: '#9c27b0',
   createdAt: new Date(),
-} as IAuthDocument;
+  save: () => {},
+  comparePassword: () => false
+} as unknown as IAuthDocument;
 
 export const signUpMockData = {
   _id: '605727cd646eb50e668a4e13',

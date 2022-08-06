@@ -4,11 +4,17 @@ import { Server, Socket } from 'socket.io';
 let socketIOFollowerObject: Server;
 
 export class SocketIOFollowerHandler {
-  public listen(io: Server): void {
+  private io: Server;
+
+  constructor(io: Server) {
+    this.io = io;
     socketIOFollowerObject = io;
-    io.on('connection', (socket: Socket) => {
+  }
+
+  public listen(): void {
+    this.io.on('connection', (socket: Socket) => {
       socket.on('unfollow user', (data: IFollowers) => {
-        io.emit('remove follower', data);
+        this.io.emit('remove follower', data);
       });
     });
   }

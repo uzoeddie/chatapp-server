@@ -1,9 +1,8 @@
-import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { authMock, authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { Request, Response } from 'express';
 import { CustomError } from '@global/helpers/error-handler';
-import { existingUser } from '@root/mocks/user.mock';
 import { SignIn } from '@auth/controllers/signin';
-import mongoose from 'mongoose';
 import { Helpers } from '@global/helpers/helpers';
 import { authService } from '@service/db/auth.service';
 
@@ -84,8 +83,7 @@ describe('SignIn', () => {
   it('should throw "Invalid credentials" if username does not exist', () => {
     const req: Request = authMockRequest({}, { username: USERNAME, password: PASSWORD }) as Request;
     const res: Response = authMockResponse();
-    jest.spyOn(authService, 'getAuthUserByUsername');
-    jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(null);
+    jest.spyOn(authService, 'getAuthUserByUsername').mockResolvedValueOnce(null as any);
 
     SignIn.prototype.read(req, res).catch((error: CustomError) => {
       expect(authService.getAuthUserByUsername).toHaveBeenCalledWith(Helpers.firstLetterUppercase(req.body.username));
@@ -97,12 +95,7 @@ describe('SignIn', () => {
   it('should throw "Invalid credentials" if password does not exist', () => {
     const req: Request = authMockRequest({}, { username: USERNAME, password: PASSWORD }) as Request;
     const res: Response = authMockResponse();
-    const mockUser = {
-      ...existingUser,
-      comparePassword: () => false
-    };
-    jest.spyOn(authService, 'getAuthUserByUsername');
-    jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(mockUser);
+    jest.spyOn(authService, 'getAuthUserByUsername').mockResolvedValueOnce(null as any);
 
     SignIn.prototype.read(req, res).catch((error: CustomError) => {
       expect(authService.getAuthUserByUsername).toHaveBeenCalledWith(Helpers.firstLetterUppercase(req.body.username));
@@ -114,18 +107,15 @@ describe('SignIn', () => {
   it('should set session data for valid credentials and send correct json response', async () => {
     const req: Request = authMockRequest({}, { username: USERNAME, password: PASSWORD }) as Request;
     const res: Response = authMockResponse();
-    const mockUser = {
-      ...existingUser,
-      comparePassword: () => true
-    };
-    jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(mockUser);
+    authMock.comparePassword = () => Promise.resolve(true);
+    jest.spyOn(authService, 'getAuthUserByUsername').mockResolvedValue(authMock);
 
     await SignIn.prototype.read(req, res);
     expect(req.session?.jwt).toBeDefined();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       message: 'User login successfully',
-      user: mockUser,
+      user: authMock,
       token: req.session?.jwt
     });
   });

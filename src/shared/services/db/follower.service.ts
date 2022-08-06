@@ -99,20 +99,24 @@ class Follower {
     const followee = await FollowerModel.aggregate([
       { $match: { followerId: userObjectId } },
       { $lookup: { from: 'User', localField: 'followeeId', foreignField: '_id', as: 'followeeId' } },
+      { $unwind: '$followeeId' },
+      { $lookup: { from: 'Auth', localField: 'followeeId.authId', foreignField: '_id', as: 'authId' } },
+      { $unwind: '$authId' },
       {
         $addFields: {
-          _id: { $first: '$followeeId._id' },
-          username: { $first: '$followeeId.username' },
-          avatarColor: { $first: '$followeeId.avatarColor' },
-          postsCount: { $first: '$followeeId.postsCount' },
-          followersCount: { $first: '$followeeId.followersCount' },
-          followingCount: { $first: '$followeeId.followingCount' },
-          profilePicture: { $first: '$followeeId.profilePicture' },
-          uId: { $first: '$followeeId.uId' }
+          _id: '$followeeId._id',
+          username: '$authId.username',
+          avatarColor: '$authId.avatarColor',
+          postsCount: '$followeeId.postsCount',
+          followersCount: '$followeeId.followersCount',
+          followingCount: '$followeeId.followingCount',
+          profilePicture: '$followeeId.profilePicture',
+          uId: '$authId.uId'
         }
       },
       {
         $project: {
+          authId: 0,
           followeeId: 0,
           followerId: 0,
           createdAt: 0,
@@ -127,20 +131,24 @@ class Follower {
     const follower = await FollowerModel.aggregate([
       { $match: { followeeId: userObjectId } },
       { $lookup: { from: 'User', localField: 'followerId', foreignField: '_id', as: 'followerId' } },
+      { $unwind: '$followerId' },
+      { $lookup: { from: 'Auth', localField: 'followerId.authId', foreignField: '_id', as: 'authId' } },
+      { $unwind: '$authId' },
       {
         $addFields: {
-          _id: { $first: '$followerId._id' },
-          username: { $first: '$followerId.username' },
-          avatarColor: { $first: '$followerId.avatarColor' },
-          postsCount: { $first: '$followerId.postsCount' },
-          followersCount: { $first: '$followerId.followersCount' },
-          followingCount: { $first: '$followerId.followingCount' },
-          profilePicture: { $first: '$followerId.profilePicture' },
-          uId: { $first: '$followeeId.uId' }
+          _id: '$followerId._id',
+          username: '$authId.username',
+          avatarColor: '$authId.avatarColor',
+          postsCount: '$followerId.postsCount',
+          followersCount: '$followerId.followersCount',
+          followingCount: '$followerId.followingCount',
+          profilePicture: '$followerId.profilePicture',
+          uId: '$authId.uId'
         }
       },
       {
         $project: {
+          authId: 0,
           followeeId: 0,
           followerId: 0,
           createdAt: 0,

@@ -42,7 +42,7 @@ class Image {
   }
 
   public async getImages(userId: string): Promise<IFileImageDocument[]> {
-    const images: IFileImageDocument[] = (await ImageModel.find({ userId }).exec()) as IFileImageDocument[];
+    const images: IFileImageDocument[] = await ImageModel.aggregate([{ $match: { userId: new mongoose.Types.ObjectId(userId) } }]);
     return images;
   }
 }

@@ -5,7 +5,7 @@ import { IPostDocument } from '@post/interfaces/post.interface';
 import { PostModel } from '@post/models/post.schema';
 import { UserCache } from '@service/redis/user.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
-import { Aggregate, Query } from 'mongoose';
+import { Query } from 'mongoose';
 import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
 import { NotificationModel } from '@notification/models/notification.schema';
 import { emailQueue } from '@service/queues/email.queue';
@@ -55,24 +55,20 @@ class Comment {
   }
 
   public async getPostComments(query: IQueryComment, sort: Record<string, 1 | -1>): Promise<ICommentDocument[]> {
-    return new Promise((resolve) => {
-      const comments: Aggregate<ICommentDocument[]> = CommentsModel.aggregate([{ $match: query }, { $sort: sort }]);
-      resolve(comments);
-    });
+    const comments: ICommentDocument[] = await CommentsModel.aggregate([{ $match: query }, { $sort: sort }]);
+    return comments;
   }
 
-  public async getPostCommentNames(query: IQueryComment, skip = 0, limit = 0, sort: Record<string, 1 | -1>): Promise<ICommentNameList[]> {
-    return new Promise((resolve) => {
-      const commentsNameList: Aggregate<ICommentNameList[]> = CommentsModel.aggregate([
-        { $match: query },
-        { $sort: sort },
-        { $skip: skip },
-        { $limit: limit },
-        { $group: { _id: null, names: { $addToSet: '$username' }, count: { $sum: 1 } } },
-        { $project: { _id: 0 } }
-      ]);
-      resolve(commentsNameList);
-    });
+  public async getPostCommentNames(query: IQueryComment, sort: Record<string, 1 | -1>): Promise<ICommentNameList[]> {
+    const commentsNameList: ICommentNameList[] = await CommentsModel.aggregate([
+      { $match: query },
+      { $sort: sort },
+      // { $skip: skip },
+      // { $limit: limit },
+      { $group: { _id: null, names: { $addToSet: '$username' }, count: { $sum: 1 } } },
+      { $project: { _id: 0 } }
+    ]);
+    return commentsNameList;
   }
 }
 

@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
 import { Password } from '@auth/controllers/password';
-import { authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
+import { authMock, authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { CustomError } from '@global/helpers/error-handler';
-import { existingUser } from '@root/mocks/user.mock';
 import { emailQueue } from '@service/queues/email.queue';
+import { authService } from '@service/db/auth.service';
 
 const WRONG_EMAIL = 'test@email.com';
 const CORRECT_EMAIL = 'manny@me.com';
@@ -13,6 +13,7 @@ const CORRECT_PASSWORD = 'manny';
 
 jest.mock('@service/queues/base.queue');
 jest.mock('@service/queues/email.queue');
+jest.mock('@service/db/auth.service');
 
 describe('Password', () => {
   beforeEach(() => {
@@ -36,7 +37,7 @@ describe('Password', () => {
     it('should throw "Invalid credentials" if email does not exist', () => {
       const req: Request = authMockRequest({}, { email: WRONG_EMAIL }) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(null);
+      jest.spyOn(authService, 'getAuthUserByEmail').mockResolvedValue(null as any);
       Password.prototype.create(req, res).catch((error: CustomError) => {
         expect(error.statusCode).toEqual(400);
         expect(error.serializeErrors().message).toEqual('Invalid credentials');
@@ -46,12 +47,8 @@ describe('Password', () => {
     it('should call sendMail method', async () => {
       const req: Request = authMockRequest({}, { email: CORRECT_EMAIL }) as Request;
       const res: Response = authMockResponse();
-      const mockUser = {
-        ...existingUser,
-        save: () => Promise.resolve(existingUser)
-      };
+      jest.spyOn(authService, 'getAuthUserByEmail').mockResolvedValue(authMock);
       jest.spyOn(emailQueue, 'addEmailJob');
-      jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(mockUser);
       await Password.prototype.create(req, res);
       expect(emailQueue.addEmailJob).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
@@ -85,7 +82,7 @@ describe('Password', () => {
         token: ''
       }) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(null);
+      jest.spyOn(authService, 'getAuthUserByPasswordToken').mockResolvedValue(null as any);
       Password.prototype.update(req, res).catch((error: CustomError) => {
         expect(error.statusCode).toEqual(400);
         expect(error.serializeErrors().message).toEqual('Reset token has expired.');
@@ -97,12 +94,8 @@ describe('Password', () => {
         token: '12sde3'
       }) as Request;
       const res: Response = authMockResponse();
-      const mockUser = {
-        ...existingUser,
-        save: () => Promise.resolve(existingUser)
-      };
+      jest.spyOn(authService, 'getAuthUserByPasswordToken').mockResolvedValue(authMock);
       jest.spyOn(emailQueue, 'addEmailJob');
-      jest.spyOn(mongoose.Query.prototype, 'exec').mockResolvedValueOnce(mockUser);
       await Password.prototype.update(req, res);
       expect(emailQueue.addEmailJob).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
