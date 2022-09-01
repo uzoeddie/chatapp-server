@@ -7,7 +7,7 @@ class ChatQueue extends BaseQueue {
     super('chats');
     this.processJob('addChatMessageToDB', 5, chatWorker.addChatMessageToDB);
     this.processJob('markMessagesAsReadInDB', 5, chatWorker.markMessagesAdReadInDB);
-    this.processJob('addMessageReaction', 5, chatWorker.addMessageReactionToDB);
+    this.processJob('updateMessageReaction', 5, chatWorker.updateMessageReaction);
     this.processJob('markMessageAsDeletedInDB', 5, chatWorker.markMessageAsDeleted);
   }
 

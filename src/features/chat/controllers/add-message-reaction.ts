@@ -19,7 +19,7 @@ export class Message {
       type
     );
     socketIOChatObject.emit('message reaction', updatedmessage);
-    chatQueue.addChatJob('addMessageReaction', {
+    chatQueue.addChatJob('updateMessageReaction', {
       messageId: new mongoose.Types.ObjectId(messageId),
       senderName: req.currentUser!.username,
       reaction,

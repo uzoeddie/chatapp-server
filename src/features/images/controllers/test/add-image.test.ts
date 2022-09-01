@@ -6,14 +6,14 @@ import { imagesMockRequest, imagesMockResponse } from '@root/mocks/image.mock';
 import { Add } from '@image/controllers/add-image';
 import { CustomError } from '@global/helpers/error-handler';
 import { authUserPayload } from '@root/mocks/auth.mock';
-import { UserInfoCache } from '@service/redis/user-info.cache';
+import { UserCache } from '@service/redis/user.cache';
 import { existingUser } from '@root/mocks/user.mock';
 import { imageQueue } from '@service/queues/image.queue';
 import * as cloudinaryUploads from '@global/helpers/cloudinary-upload';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
-jest.mock('@service/redis/user-info.cache');
+jest.mock('@service/redis/user.cache');
 jest.mock('@socket/user');
 jest.mock('@socket/chat');
 jest.mock('@global/helpers/cloudinary-upload');
@@ -52,14 +52,14 @@ describe('Add', () => {
     it('should call updateSingleUserItemInCache method', async () => {
       const req: Request = imagesMockRequest({}, { image: 'testing' }, authUserPayload) as Request;
       const res: Response = imagesMockResponse();
-      jest.spyOn(UserInfoCache.prototype, 'updateSingleUserItemInCache').mockResolvedValue(existingUser);
+      jest.spyOn(UserCache.prototype, 'updateSingleUserItemInCache').mockResolvedValue(existingUser);
       jest.spyOn(imageServer.socketIOImageObject, 'emit');
       jest.spyOn(cloudinaryUploads, 'uploads').mockImplementation((): any => Promise.resolve({ version: '1234', public_id: '123456' }));
 
       const url = 'https://res.cloudinary.com/dyamr9ym3/image/upload/v1234/123456';
 
       await Add.prototype.image(req, res);
-      expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, 'profilePicture', url);
+      expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, 'profilePicture', url);
       expect(imageServer.socketIOImageObject.emit).toHaveBeenCalledWith('update user', existingUser);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -134,13 +134,13 @@ describe('Add', () => {
     it('should call updateSingleUserItemInCache method', async () => {
       const req: Request = imagesMockRequest({}, { image: 'data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==' }, authUserPayload) as Request;
       const res: Response = imagesMockResponse();
-      jest.spyOn(UserInfoCache.prototype, 'updateSingleUserItemInCache').mockResolvedValue(existingUser);
+      jest.spyOn(UserCache.prototype, 'updateSingleUserItemInCache').mockResolvedValue(existingUser);
       jest.spyOn(imageServer.socketIOImageObject, 'emit');
       jest.spyOn(cloudinaryUploads, 'uploads').mockImplementation((): any => Promise.resolve({ version: '1234', public_id: '123456' }));
 
       await Add.prototype.backgroundImage(req, res);
-      expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser!.userId}`, 'bgImageId', '123456');
-      expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(
+      expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser!.userId}`, 'bgImageId', '123456');
+      expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(
         `${req.currentUser!.userId}`,
         'bgImageVersion',
         '1234'

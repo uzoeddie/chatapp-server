@@ -92,7 +92,7 @@ class Chat {
     await MessageModel.updateMany(query, { $set: { isRead: true } }).exec();
   }
 
-  public async addMessageReaction(messageId: ObjectId, senderName: string, reaction: string, type: string): Promise<void> {
+  public async updateMessageReaction(messageId: ObjectId, senderName: string, reaction: string, type: string): Promise<void> {
     if (type === 'add') {
       await MessageModel.updateOne({ _id: messageId }, { $push: { reaction: { senderName, type: reaction } } }).exec();
     } else {

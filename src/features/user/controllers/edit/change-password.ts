@@ -25,7 +25,7 @@ export class ChangePassword {
       throw new BadRequestError('Invalid credentials');
     }
     const hashedPassword: string = await existingUser.hashPassword(newPassword);
-    userService.updatePassword(`${req.currentUser?.userId}`, hashedPassword);
+    userService.updatePassword(`${req.currentUser?.username}`, hashedPassword);
 
     const templateParams: IResetPasswordParams = {
       username: existingUser.username!,

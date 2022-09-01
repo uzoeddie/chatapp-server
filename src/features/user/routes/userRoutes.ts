@@ -1,6 +1,6 @@
 import { authMiddleware } from '@global/helpers/auth-middleware';
 import { ChangePassword } from '@user/controllers/edit/change-password';
-import { EditBasicInfo } from '@user/controllers/edit/edit-basic-info';
+import { EditBasicInfo } from '@user/controllers/edit/update-basic-info';
 import { Settings } from '@user/controllers/edit/update-settings';
 import { Get } from '@user/controllers/get-profile';
 import { Search } from '@user/controllers/search-user';

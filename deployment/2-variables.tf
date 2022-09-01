@@ -4,18 +4,6 @@ variable "aws_region" {
   default     = "eu-central-1"
 }
 
-variable "tf_backend_bucket" {
-  description = "TF backend bucket"
-  type        = string
-  default     = "chatapp-tf-dev-state"
-}
-
-variable "tf_backend_bucket_key" {
-  description = "TF backend bucket key"
-  type        = string
-  default     = "chatapp.tfstate"
-}
-
 variable "vpc_cidr_block" {
   description = "VPC CIDR Block"
   type        = string

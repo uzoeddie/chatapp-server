@@ -6,7 +6,6 @@ import { UserCache } from '@service/redis/user.cache';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
-jest.mock('@service/redis/user-info.cache');
 jest.mock('@service/redis/user.cache');
 
 describe('Settings', () => {
@@ -29,11 +28,11 @@ describe('Settings', () => {
       };
       const req: Request = authMockRequest({}, settings, authUserPayload) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(UserCache.prototype, 'updateNotificationSettingsInCache');
+      jest.spyOn(UserCache.prototype, 'updateSingleUserItemInCache');
       jest.spyOn(userQueue, 'addUserJob');
 
       await Settings.prototype.update(req, res);
-      expect(UserCache.prototype.updateNotificationSettingsInCache).toHaveBeenCalledWith(
+      expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(
         `${req.currentUser?.userId}`,
         'notifications',
         req.body

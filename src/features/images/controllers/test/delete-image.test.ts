@@ -6,11 +6,11 @@ import { fileDocumentMock, imagesMockRequest, imagesMockResponse } from '@root/m
 import { imageQueue } from '@service/queues/image.queue';
 import { Delete } from '@image/controllers/delete-image';
 import { imageService } from '@service/db/image.service';
-import { UserInfoCache } from '@service/redis/user-info.cache';
+import { UserCache } from '@service/redis/user.cache';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
-jest.mock('@service/redis/user-info.cache');
+jest.mock('@service/redis/user.cache');
 
 Object.defineProperties(imageServer, {
   socketIOImageObject: {
@@ -50,12 +50,12 @@ describe('Delete', () => {
     jest.spyOn(imageServer.socketIOImageObject, 'emit');
     jest.spyOn(imageQueue, 'addImageJob');
     jest.spyOn(imageService, 'getImageByBackgroundId').mockResolvedValue(fileDocumentMock);
-    jest.spyOn(UserInfoCache.prototype, 'updateSingleUserItemInCache');
+    jest.spyOn(UserCache.prototype, 'updateSingleUserItemInCache');
 
     await Delete.prototype.backgroundImage(req, res);
     expect(imageServer.socketIOImageObject.emit).toHaveBeenCalledWith('delete image', req.params.imageId);
     expect(imageQueue.addImageJob).toHaveBeenCalledWith('removeImageFromDB', { imageId: req.params.imageId });
-    expect(UserInfoCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, 'bgImageVersion', '');
+    expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, 'bgImageVersion', '');
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       message: 'Image deleted successfully'

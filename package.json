@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=production pm2 start ./build/src/app.js -i 5 --watch | ./node_modules/.bin/bunyan",
+    "start": "NODE_ENV=production pm2 start ./build/src/app.js -i 5 --attach --watch | ./node_modules/.bin/bunyan",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
     "lint:check": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",

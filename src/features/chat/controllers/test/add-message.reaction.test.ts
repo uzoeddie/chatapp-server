@@ -76,7 +76,7 @@ describe('Message', () => {
       jest.spyOn(chatQueue, 'addChatJob');
 
       await Message.prototype.reaction(req, res);
-      expect(chatQueue.addChatJob).toHaveBeenCalledWith('addMessageReaction', {
+      expect(chatQueue.addChatJob).toHaveBeenCalledWith('updateMessageReaction', {
         messageId: mockMessageId,
         senderName: req.currentUser!.username,
         reaction: 'love',

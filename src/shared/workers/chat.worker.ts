@@ -29,10 +29,10 @@ class ChatWorker {
     }
   }
 
-  async addMessageReactionToDB(jobQueue: Job, done: DoneCallback): Promise<void> {
+  async updateMessageReaction(jobQueue: Job, done: DoneCallback): Promise<void> {
     try {
       const { messageId, senderName, reaction, type } = jobQueue.data;
-      await chatService.addMessageReaction(messageId, senderName, reaction, type);
+      await chatService.updateMessageReaction(messageId, senderName, reaction, type);
       jobQueue.progress(100);
       done(null, jobQueue.data);
     } catch (error) {

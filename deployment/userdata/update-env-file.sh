@@ -1,27 +1,14 @@
-#!/bin/bash
+function program_is_installed {
+  local return_=1
 
-# Add this bucket policy to the env files s3 bucket
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Effect": "Allow",
-#             "Principal": {
-#                 "AWS": "arn:aws:iam::144134187792:user/eddie"
-#             },
-#             "Action": [
-#                 "s3:PutObject",
-#                 "s3:PutObjectAcl",
-#                 "s3:GetObject",
-#                 "s3:GetObjectAcl",
-#                 "s3:DeleteObject"
-#             ],
-#             "Resource": "arn:aws:s3:::chatapp-env-files-1/*"
-#         }
-#     ]
-# }
+  type $1 >/dev/null 2>&1 || { local return_=0; }
+  echo "$return_"
+}
 
-# Only use a profile if you are not using a default profile
+if [ $(program_is_installed zip) == 0 ]; then
+  apk update
+  apk add zip
+fi
 
 aws s3 sync s3://chatapp-env-files-1/develop .
 unzip env-file.zip

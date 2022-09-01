@@ -1,8 +1,7 @@
-import { IUserDocument, INotificationSettings } from '@user/interfaces/user.interface';
+import { IUserDocument, INotificationSettings, IBasicInfo, ISocialLinks, ISearchUser } from '@user/interfaces/user.interface';
 import { UserModel } from '@user/models/user.schema';
 import { followerService } from '@service/db/follower.service';
 import { indexOf } from 'lodash';
-import { ISearchUser } from '@chat/interfaces/chat.interface';
 import mongoose from 'mongoose';
 import { AuthModel } from '@auth/models/auth.schema';
 
@@ -11,8 +10,35 @@ class User {
     await UserModel.create(data);
   }
 
-  public async updateNotificationSettings(username: string, settings: INotificationSettings): Promise<void> {
-    await UserModel.updateOne({ username }, { $set: { notifications: settings } }, { upsert: true }).exec();
+  public async updatePassword(username: string, hashedPassword: string): Promise<void> {
+    await AuthModel.updateOne({ username }, { $set: { password: hashedPassword }}).exec();
+  }
+
+  public async updateNotificationSettings(userId: string, settings: INotificationSettings): Promise<void> {
+    await UserModel.updateOne({ _id: userId }, { $set: { notifications: settings } }).exec();
+  }
+
+  public async updateUserInfo(userId: string, info: IBasicInfo): Promise<void> {
+    await UserModel.updateOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      {
+        $set: {
+          work: info['work'],
+          school: info['school'],
+          location: info['location'],
+          quote: info['quote']
+        }
+      }
+    ).exec();
+  }
+
+  public async updateSocialLinks(userId: string, links: ISocialLinks): Promise<void> {
+    await UserModel.updateOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      {
+        $set: { social: links }
+      }
+    ).exec();
   }
 
   public async getUserById(userId: string): Promise<IUserDocument> {
@@ -39,8 +65,16 @@ class User {
     return users[0];
   }
 
-  public async updatePassword(userId: string, hashedPassword: string): Promise<void> {
-    await UserModel.updateOne({ _id: userId }, { $set: { password: hashedPassword } }).exec();
+  public async getUserByAuthId(authId: string): Promise<IUserDocument> {
+    const users: IUserDocument[] = await UserModel.aggregate([
+      { $match: { authId: new mongoose.Types.ObjectId(authId) } },
+      { $lookup: { from: 'Auth', localField: 'authId', foreignField: '_id', as: 'authId' } },
+      { $unwind: '$authId' },
+      {
+        $project: this.aggregateProject()
+      }
+    ]);
+    return users[0];
   }
 
   public async usersCount(): Promise<number> {

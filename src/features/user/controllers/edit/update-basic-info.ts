@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
 import HTTP_STATUS from 'http-status-codes';
-import { userInfoQueue } from '@service/queues/user-info.queue';
-import { UserInfoCache } from '@service/redis/user-info.cache';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { basicInfoSchema, socialLinksSchema } from '@user/schemes/info';
+import { UserCache } from '@service/redis/user.cache';
+import { userQueue } from '@service/queues/user.queue';
 
-const userInfoCache: UserInfoCache = new UserInfoCache();
+const userCache: UserCache = new UserCache();
 
 export class EditBasicInfo {
   @joiValidation(basicInfoSchema)
   public async info(req: Request, res: Response): Promise<void> {
     for (const [key, value] of Object.entries(req.body)) {
-      await userInfoCache.updateUserInfoListInCache(`${req.currentUser?.userId}`, key, `${value}`);
+      await userCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, key, `${value}`);
     }
-    userInfoQueue.addUserInfoJob('updateUserInfoInCache', {
+    userQueue.addUserJob('updateUserInfoInCache', {
       key: `${req.currentUser?.userId}`,
       value: req.body
     });
@@ -22,8 +22,8 @@ export class EditBasicInfo {
 
   @joiValidation(socialLinksSchema)
   public async social(req: Request, res: Response): Promise<void> {
-    await userInfoCache.updateUserInfoListInCache(`${req.currentUser?.userId}`, 'social', req.body);
-    userInfoQueue.addUserInfoJob('updateSocialLinksInCache', {
+    await userCache.updateSingleUserItemInCache(`${req.currentUser?.userId}`, 'social', req.body);
+    userQueue.addUserJob('updateSocialLinksInCache', {
       key: `${req.currentUser?.userId}`,
       value: req.body
     });

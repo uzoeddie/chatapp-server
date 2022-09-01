@@ -3,8 +3,6 @@
 import { AuthPayload, IAuthDocument } from '@auth/interfaces/auth.interface';
 import { Response } from 'express';
 
-const PASSWORD = 'manny1';
-
 export const authMockRequest = (sessionData: IJwt, body: IAuthMock, currentUser?: AuthPayload | null, params?: any) => ({
   session: sessionData,
   body,
@@ -67,30 +65,3 @@ export const authMock = {
   save: () => {},
   comparePassword: () => false
 } as unknown as IAuthDocument;
-
-export const signUpMockData = {
-  _id: '605727cd646eb50e668a4e13',
-  uId: '92241616324557172',
-  username: 'Manny',
-  email: 'manny@test.com',
-  avatarColor: '#ff9800',
-  password: PASSWORD,
-  birthDay: { month: '', day: '' },
-  postCount: 0,
-  gender: '',
-  quotes: '',
-  about: '',
-  relationship: '',
-  blocked: [],
-  blockedBy: [],
-  bgImageVersion: '',
-  bgImageId: '',
-  work: [],
-  school: [],
-  placesLived: [],
-  createdAt: new Date(),
-  followersCount: 0,
-  followingCount: 0,
-  notifications: { messages: true, reactions: true, comments: true, follows: true },
-  profilePicture: 'https://res.cloudinary.com/ratingapp/image/upload/605727cd646eb50e668a4e13'
-};

@@ -4,15 +4,15 @@ import HTTP_STATUS from 'http-status-codes';
 import { uploads } from '@global/helpers/cloudinary-upload';
 import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { addImageSchema } from '@image/schemes/images';
-import { UserInfoCache } from '@service/redis/user-info.cache';
 import { imageQueue } from '@service/queues/image.queue';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { socketIOImageObject } from '@socket/image';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { Helpers } from '@global/helpers/helpers';
 import { IBgUploadResponse } from '@image/interface/image.interface';
+import { UserCache } from '@service/redis/user.cache';
 
-const userInfoCache: UserInfoCache = new UserInfoCache();
+const userCache: UserCache = new UserCache();
 
 export class Add {
   @joiValidation(addImageSchema)
@@ -22,7 +22,7 @@ export class Add {
       throw new BadRequestError(result.message);
     }
     const url = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${result.public_id}`;
-    const cachedUser: IUserDocument | null = await userInfoCache.updateSingleUserItemInCache(
+    const cachedUser: IUserDocument | null = await userCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'profilePicture',
       url
@@ -40,12 +40,12 @@ export class Add {
   @joiValidation(addImageSchema)
   public async backgroundImage(req: Request, res: Response): Promise<void> {
     const { version, publicId }: IBgUploadResponse = await Add.prototype.backgroundUpload(req.body.image);
-    const bgImageId: Promise<IUserDocument | null> = userInfoCache.updateSingleUserItemInCache(
+    const bgImageId: Promise<IUserDocument | null> = userCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'bgImageId',
       publicId
     );
-    const bgImageVersion: Promise<IUserDocument | null> = userInfoCache.updateSingleUserItemInCache(
+    const bgImageVersion: Promise<IUserDocument | null> = userCache.updateSingleUserItemInCache(
       `${req.currentUser?.userId}`,
       'bgImageVersion',
       version

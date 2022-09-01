@@ -29,6 +29,30 @@ class UserWorker {
       done(error as Error);
     }
   }
+
+  async updateUserInfo(jobQueue: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, value } = jobQueue.data;
+      await userService.updateUserInfo(key, value);
+      jobQueue.progress(100);
+      done(null, jobQueue.data);
+    } catch (error) {
+      log.error(error);
+      done(error as Error);
+    }
+  }
+
+  async updateSocialLinks(jobQueue: Job, done: DoneCallback): Promise<void> {
+    try {
+      const { key, value } = jobQueue.data;
+      await userService.updateSocialLinks(key, value);
+      jobQueue.progress(100);
+      done(null, jobQueue.data);
+    } catch (error) {
+      log.error(error);
+      done(error as Error);
+    }
+  }
 }
 
 export const userWorker: UserWorker = new UserWorker();

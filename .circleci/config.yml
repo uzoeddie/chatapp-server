@@ -174,6 +174,8 @@ jobs:
     steps:
       - checkout
       - *show-current-branch-name
+      - aws-cli/setup:
+          profile-name: default
       - run:
           name: Terraform Validate & Format
           command: |
@@ -291,6 +293,8 @@ jobs:
     steps:
       - checkout
       - *show-current-branch-name
+      - aws-cli/setup:
+          profile-name: default
       - run:
           name: Terraform Destroy
           command: |
@@ -334,18 +338,9 @@ workflows:
                 - develop
                 - staging
                 - master
-      - upload-project-to-s3:
-            requires:
-              - unit-test
-            filters:
-              branches:
-                only:
-                  - develop
-                  - staging
-                  - master
       - terraform-validate:
             requires:
-              - upload-project-to-s3
+              - unit-test
             filters:
               branches:
                 only:
@@ -361,9 +356,18 @@ workflows:
                   - develop
                   - staging
                   - master
-      - push-to-aws-code-deploy:
+      - upload-project-to-s3:
             requires:
               - terraform-plan-and-apply
+            filters:
+              branches:
+                only:
+                  - develop
+                  - staging
+                  - master
+      - push-to-aws-code-deploy:
+            requires:
+              - upload-project-to-s3
             filters:
               branches:
                 only:

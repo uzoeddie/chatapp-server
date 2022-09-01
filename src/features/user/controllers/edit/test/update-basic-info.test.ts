@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import { authUserPayload, authMockRequest, authMockResponse } from '@root/mocks/auth.mock';
 import { Server } from 'socket.io';
 import * as userServer from '@socket/user';
-import { userInfoQueue } from '@service/queues/user-info.queue';
-import { UserInfoCache } from '@service/redis/user-info.cache';
-import { EditBasicInfo } from '@user/controllers/edit/edit-basic-info';
+import { EditBasicInfo } from '@user/controllers/edit/update-basic-info';
+import { UserCache } from '@service/redis/user.cache';
+import { userQueue } from '@service/queues/user.queue';
 
 jest.useFakeTimers();
 jest.mock('@service/queues/base.queue');
 jest.mock('@socket/user');
-jest.mock('@service/redis/user-info.cache');
+jest.mock('@service/redis/user.cache');
 
 Object.defineProperties(userServer, {
   socketIOUserObject: {
@@ -38,11 +38,11 @@ describe('EditBasicInfo', () => {
       };
       const req: Request = authMockRequest({}, basicInfo, authUserPayload, {}) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(UserInfoCache.prototype, 'updateUserInfoListInCache');
+      jest.spyOn(UserCache.prototype, 'updateSingleUserItemInCache');
 
       await EditBasicInfo.prototype.info(req, res);
       for (const [key, value] of Object.entries(req.body)) {
-        expect(UserInfoCache.prototype.updateUserInfoListInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, key, `${value}`);
+        expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, key, `${value}`);
       }
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -59,10 +59,10 @@ describe('EditBasicInfo', () => {
       };
       const req: Request = authMockRequest({}, basicInfo, authUserPayload, {}) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(userInfoQueue, 'addUserInfoJob');
+      jest.spyOn(userQueue, 'addUserJob');
 
       await EditBasicInfo.prototype.info(req, res);
-      expect(userInfoQueue.addUserInfoJob).toHaveBeenCalledWith('updateUserInfoInCache', {
+      expect(userQueue.addUserJob).toHaveBeenCalledWith('updateUserInfoInCache', {
         key: `${req.currentUser?.userId}`,
         value: req.body
       });
@@ -83,10 +83,10 @@ describe('EditBasicInfo', () => {
       };
       const req: Request = authMockRequest({}, socialInfo, authUserPayload, {}) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(UserInfoCache.prototype, 'updateUserInfoListInCache');
+      jest.spyOn(UserCache.prototype, 'updateSingleUserItemInCache');
 
       await EditBasicInfo.prototype.social(req, res);
-      expect(UserInfoCache.prototype.updateUserInfoListInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, 'social', req.body);
+      expect(UserCache.prototype.updateSingleUserItemInCache).toHaveBeenCalledWith(`${req.currentUser?.userId}`, 'social', req.body);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Updated successfully'
@@ -102,10 +102,10 @@ describe('EditBasicInfo', () => {
       };
       const req: Request = authMockRequest({}, socialInfo, authUserPayload, {}) as Request;
       const res: Response = authMockResponse();
-      jest.spyOn(userInfoQueue, 'addUserInfoJob');
+      jest.spyOn(userQueue, 'addUserJob');
 
       await EditBasicInfo.prototype.social(req, res);
-      expect(userInfoQueue.addUserInfoJob).toHaveBeenCalledWith('updateSocialLinksInCache', {
+      expect(userQueue.addUserJob).toHaveBeenCalledWith('updateSocialLinksInCache', {
         key: `${req.currentUser?.userId}`,
         value: req.body
       });

@@ -214,13 +214,28 @@ export class UserCache extends BaseCache {
     }
   }
 
-  public async updateNotificationSettingsInCache(key: string, prop: string, value: INotificationSettings): Promise<void> {
-    const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
+  // public async updateNotificationSettingsInCache(key: string, prop: string, value: INotificationSettings): Promise<void> {
+  //   const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
+  //   try {
+  //     if (!this.client.isOpen) {
+  //       await this.client.connect();
+  //     }
+  //     await this.client.HSET(`users:${key}`, dataToSave);
+  //   } catch (error) {
+  //     log.error(error);
+  //     throw new ServerError('Server error. Try again.');
+  //   }
+  // }
+
+  public async updateSingleUserItemInCache(key: string, prop: string, value: string | ISocialLinks | INotificationSettings): Promise<IUserDocument | null> {
     try {
       if (!this.client.isOpen) {
         await this.client.connect();
       }
+      const dataToSave: string[] = [`${prop}`, JSON.stringify(value)];
       await this.client.HSET(`users:${key}`, dataToSave);
+      const response = await this.getUserFromCache(key);
+      return response;
     } catch (error) {
       log.error(error);
       throw new ServerError('Server error. Try again.');

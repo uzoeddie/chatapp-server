@@ -7,6 +7,8 @@ import { joiValidation } from '@global/decorators/joi-validation.decorator';
 import { loginSchema } from '@auth/schemes/signin';
 import { authService } from '@service/db/auth.service';
 import { IAuthDocument } from '@auth/interfaces/auth.interface';
+import { userService } from '@service/db/user.service';
+import { IUserDocument } from '@user/interfaces/user.interface';
 
 export class SignIn {
   @joiValidation(loginSchema)
@@ -21,10 +23,11 @@ export class SignIn {
     if (!passwordsMatch) {
       throw new BadRequestError('Invalid credentials');
     }
+    const user: IUserDocument = await userService.getUserByAuthId(`${existingUser._id}`);
 
     const userJwt: string = JWT.sign(
       {
-        userId: existingUser._id,
+        userId: user._id,
         uId: existingUser.uId,
         email: existingUser.email,
         username: existingUser.username,

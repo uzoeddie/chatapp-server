@@ -76,14 +76,6 @@ export interface IChatJobData {
   type?: string;
 }
 
-export interface ISearchUser {
-  _id: string;
-  profilePicture: string;
-  username: string;
-  email: string;
-  avatarColor: string;
-}
-
 export interface ISenderReceiver {
   senderId: string;
   receiverId: string;
